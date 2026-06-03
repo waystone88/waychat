@@ -67,7 +67,7 @@
 
     <main class="flex-1 h-screen relative flex flex-col min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900">
         
-        <header class="fixed top-0 left-0 right-0 md:left-64 flex justify-between items-center px-4 md:px-6 h-16 z-40 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/30 shadow-sm">
+        <header class="fixed top-0 left-0 right-0 md:left-64 flex justify-between items-center px-4 md:px-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/40 dark:border-gray-700/20 shadow-sm pt-[env(safe-area-inset-top)] h-[calc(3.5rem+env(safe-area-inset-top))]">
             <div class="flex items-center gap-3">
                 <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-gray-200/50 dark:hover:bg-gray-800/50 rounded text-gray-600 dark:text-gray-300 transition-colors">
                     <i class="fa-solid fa-bars text-xl"></i>
@@ -82,20 +82,20 @@
             </div>
         </header>
 
-        <div id="matrix-banner" class="hidden fixed top-16 md:left-64 right-0 left-0 bg-indigo-50/70 dark:bg-indigo-950/70 backdrop-blur-sm p-2 text-xs md:text-sm border-b border-indigo-200/40 dark:border-indigo-700/30 flex flex-wrap justify-center items-center gap-x-3 gap-y-1 z-30">
+        <div id="matrix-banner" class="hidden fixed top-[calc(3.5rem+env(safe-area-inset-top))] md:left-64 right-0 left-0 bg-indigo-50/80 dark:bg-indigo-950/80 backdrop-blur-md p-2 text-xs md:text-sm border-b border-indigo-200/40 dark:border-indigo-700/20 flex flex-wrap justify-center items-center gap-x-3 gap-y-1 z-30">
             <span class="flex items-center gap-1 font-medium"><i class="fa-solid fa-network-wired"></i> 当前设定:</span>
             <span id="banner-system" class="hidden"><span class="opacity-60 text-[10px] md:text-xs border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1">系统</span><span id="banner-system-name" class="font-bold"></span></span>
             <span id="banner-chars" class="hidden"><span class="opacity-60 text-[10px] md:text-xs border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1">角色</span><span id="banner-chars-names"></span></span>
             <span id="banner-plots" class="hidden"><span class="opacity-60 text-[10px] md:text-xs border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1">剧情</span><span id="banner-plots-names"></span></span>
         </div>
 
-        <div id="chat-container" class="absolute inset-0 overflow-y-auto space-y-6 pt-28 pb-36 px-4 md:px-8 lg:px-20 max-w-none w-full no-scrollbar z-10"></div>
+        <div id="chat-container" class="absolute inset-0 overflow-y-auto space-y-6 px-4 md:px-8 lg:px-20 max-w-none w-full no-scrollbar z-10" style="padding-top: calc(5rem + env(safe-area-inset-top)); padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));"></div>
 
-        <div class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pb-6 pt-12 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 backdrop-blur-[2px] z-30 pointer-events-none">
+        <div class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pt-12 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 backdrop-blur-[3px] z-30 pointer-events-none" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             <div class="max-w-4xl mx-auto flex flex-col gap-2 relative pointer-events-auto">
                 
-                <div class="flex gap-2 relative bg-white/90 dark:bg-gray-800/90 border border-gray-300/60 dark:border-gray-700/60 rounded-full p-2 text-base shadow-2xl focus-within:ring-2 focus-within:ring-blue-500 backdrop-blur-md">
-                    <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent rounded-full px-4 py-2 text-base focus:outline-none text-gray-900 dark:text-gray-100" placeholder="输入消息... (Enter 发送, Shift+Enter 换行)" onkeydown="handleInputKeydown(event)" oninput="autoResize(this)"></textarea>
+                <div class="flex gap-2 relative bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 rounded-full p-2 text-base shadow-2xl focus-within:ring-2 focus-within:ring-blue-500 backdrop-blur-xl">
+                    <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent rounded-full px-4 py-2 text-base focus:outline-none text-gray-900 dark:text-gray-100" placeholder="输入消息..." onkeydown="handleInputKeydown(event)" oninput="autoResize(this)"></textarea>
                     
                     <div class="flex items-center px-1">
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -163,7 +163,7 @@
                         <input type="range" id="api-temperature" min="0" max="2" step="0.1" value="1.0" class="w-full cursor-pointer" oninput="document.getElementById('temp-display').innerText = parseFloat(this.value).toFixed(1)">
                     </div>
                     <div>
-                        <label class="block text-sm mb-1">Max Tokens (最大输出长度)</label>
+                        <label class="block text-sm mb-1">Max Tokens (最大长度)</label>
                         <input type="number" id="api-max-tokens" class="w-full p-2 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none text-sm" value="2048" min="1" max="8192" step="1">
                     </div>
                 </div>
@@ -268,7 +268,7 @@
 
         function init() {
             try {
-                // 跃迁至 v18 状态池，承载全屏无界文档流拓扑与动态毛玻璃遮罩
+                // 跃迁至 v18 核心状态域承接数据，前端采用全新 UI 层适配，无感兼容
                 const savedState = localStorage.getItem('deepseek_client_state_v18');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
@@ -278,16 +278,10 @@
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
                 } else {
-                    const fallbackStates = ['deepseek_client_state_v17', 'deepseek_client_state_v16', 'deepseek_client_state_v15'];
-                    let backup = null;
-                    for (const fb of fallbackStates) {
+                    const fallbacks = ['deepseek_client_state_v17', 'deepseek_client_state_v16', 'deepseek_client_state_v15'];
+                    for (const fb of fallbacks) {
                         const d = localStorage.getItem(fb);
-                        if(d) { backup = d; break; }
-                    }
-                    if (backup) {
-                        const parsed = JSON.parse(backup);
-                        state = { ...state, ...parsed };
-                        state.config.fontSize = 16;
+                        if(d) { state = JSON.parse(d); break; }
                     }
                 }
             } catch (e) {
