@@ -41,8 +41,10 @@
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200">
 
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-50 hidden md:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
 
+    <!-- Responsive Sidebar (Fixed) -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-[60] w-64 bg-gray-200 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
             <h1 class="text-lg font-bold">WayChat</h1>
@@ -67,58 +69,65 @@
         </div>
     </aside>
 
+    <!-- Main Viewport Arena -->
     <main class="flex-1 min-h-screen relative flex flex-col min-w-0 md:ml-64">
         
+        <!-- 【全景悬浮层】彻底抹除原标题栏实心方块，完全释放文字贯穿空间 -->
         <header class="fixed top-0 left-0 right-0 md:left-64 flex justify-between items-start px-4 md:px-6 z-40 pt-[calc(0.5rem+env(safe-area-inset-top))] pointer-events-none">
-            <div class="flex items-center gap-3">
-                <button onclick="toggleSidebar()" class="pointer-events-auto md:hidden w-10 h-10 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/70 dark:bg-gray-800/70 backdrop-blur-md text-gray-700 dark:text-gray-200 transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+            <div class="flex items-start gap-2.5">
+                <button onclick="toggleSidebar()" class="pointer-events-auto w-10 h-10 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-700 dark:text-gray-200 transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
-                <h1 class="pointer-events-auto text-sm md:text-base font-bold bg-white/70 dark:bg-gray-800/70 backdrop-blur-md px-4 py-2 rounded-full shadow-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-800 dark:text-gray-100">
-                    WayChat
-                </h1>
+                
+                <!-- 【重构点一】激活设定无缝替换原 WayChat 标题。设定为白色卡片背景，严格限宽 max-w 并支持自动换折行（双行线限制） -->
+                <div id="matrix-banner" class="hidden pointer-events-auto text-xs bg-white/90 dark:bg-gray-800/90 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-800 dark:text-gray-100 flex-wrap items-center gap-x-2 gap-y-1 max-w-[55vw] md:max-w-[65vw] line-clamp-2 overflow-hidden">
+                    <span class="flex items-center gap-1 font-bold text-[10px] uppercase tracking-wider text-indigo-600 dark:text-indigo-400 shrink-0"><i class="fa-solid fa-network-wired"></i> 激活设定:</span>
+                    <span id="banner-system" class="hidden shrink-0"><span class="opacity-60 border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1 text-[10px]">系统</span><span id="banner-system-name" class="font-bold"></span></span>
+                    <span id="banner-chars" class="hidden shrink-0"><span class="opacity-60 border border-purple-300 dark:border-purple-600 rounded px-1 mr-1 text-[10px]">角色</span><span id="banner-chars-names" class="font-medium text-purple-600 dark:text-purple-400"></span></span>
+                    <span id="banner-plots" class="hidden shrink-0"><span class="opacity-60 border border-green-300 dark:border-green-600 rounded px-1 mr-1 text-[10px]">剧情</span><span id="banner-plots-names" class="font-medium text-green-600 dark:text-green-400"></span></span>
+                </div>
             </div>
+            
             <div class="flex items-center gap-2">
-                <button onclick="toggleDarkMode()" class="pointer-events-auto w-10 h-10 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/70 dark:bg-gray-800/70 backdrop-blur-md transition-colors text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+                <button onclick="toggleDarkMode()" class="pointer-events-auto w-10 h-10 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5">
                     <i class="fa-solid fa-moon dark:hidden text-lg"></i>
                     <i class="fa-solid fa-sun hidden dark:inline text-lg"></i>
                 </button>
             </div>
         </header>
 
-        <div id="matrix-banner" class="hidden fixed top-[calc(4rem+env(safe-area-inset-top))] left-1/2 -translate-x-1/2 md:ml-32 bg-indigo-50/80 dark:bg-indigo-900/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] md:text-xs shadow-sm flex-wrap justify-center items-center gap-x-3 gap-y-1 z-30 pointer-events-auto border border-indigo-200/50 dark:border-indigo-700/50 w-max max-w-[90%]">
-            <span class="flex items-center gap-1 font-medium"><i class="fa-solid fa-network-wired"></i> 激活设定:</span>
-            <span id="banner-system" class="hidden"><span class="opacity-60 border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1">系统</span><span id="banner-system-name" class="font-bold"></span></span>
-            <span id="banner-chars" class="hidden"><span class="opacity-60 border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1">角色</span><span id="banner-chars-names"></span></span>
-            <span id="banner-plots" class="hidden"><span class="opacity-60 border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1">剧情</span><span id="banner-plots-names"></span></span>
-        </div>
+        <!-- 聊天容器：增加顶部弹性留白，完美预防双行设定产生重叠 -->
+        <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-6 z-10" style="padding-top: calc(7rem + env(safe-area-inset-top)); padding-bottom: calc(8rem + env(safe-area-inset-bottom));"></div>
 
-        <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-6 z-10" style="padding-top: calc(5rem + env(safe-area-inset-top)); padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));"></div>
-
+        <!-- 底部渐变毛玻璃拦截网 -->
         <div class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             <div class="max-w-4xl mx-auto flex flex-col gap-2 relative pointer-events-auto">
                 
-                <div class="flex gap-2 relative bg-white/85 dark:bg-gray-800/85 border border-gray-300/50 dark:border-gray-700/50 rounded-full p-2 text-base shadow-2xl focus-within:ring-2 focus-within:ring-blue-500 backdrop-blur-xl transition-all">
-                    <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent rounded-full px-4 py-2 text-base focus:outline-none text-gray-900 dark:text-gray-100" placeholder="输入消息..." onkeydown="handleInputKeydown(event)" oninput="autoResize(this)"></textarea>
+                <!-- 【重构点二】完美对标 Gemini。更改为 items-end，输入框向上延展，右侧控制按钮群死死锚定在底部右侧 -->
+                <div class="flex items-end gap-2 relative bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 rounded-[24px] p-2 text-base shadow-2xl focus-within:ring-2 focus-within:ring-blue-500 backdrop-blur-xl transition-all">
+                    <!-- 去除多余药丸边框限制，放开纵向自由度 -->
+                    <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent pl-4 pr-1 py-2.5 text-base focus:outline-none text-gray-900 dark:text-gray-100 min-h-[40px] max-h-[160px] align-bottom" placeholder="输入消息..." onkeydown="handleInputKeydown(event)" oninput="autoResize(this)"></textarea>
                     
-                    <div class="flex items-center px-1">
+                    <!-- 右侧控制块：pb 保持微调齐平，高度物理锁定 -->
+                    <div class="flex items-center gap-2 shrink-0 pb-1.5 pr-1">
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="thinking-mode-toggle" class="sr-only peer" onchange="toggleThinkingMode(event)">
                             <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                         </label>
+                        
+                        <button onclick="sendMessage()" id="send-btn" class="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition w-11 h-11 flex items-center justify-center shrink-0 shadow-md">
+                            <i class="fa-solid fa-paper-plane text-base"></i>
+                        </button>
+                        <button onclick="stopGeneration()" id="stop-btn" class="hidden bg-red-600 text-white p-3 rounded-full hover:bg-red-700 transition w-11 h-11 flex items-center justify-center shrink-0 shadow-md">
+                            <i class="fa-solid fa-stop text-base"></i>
+                        </button>
                     </div>
-
-                    <button onclick="sendMessage()" id="send-btn" class="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition self-end w-12 h-12 flex items-center justify-center shrink-0 shadow-md">
-                        <i class="fa-solid fa-paper-plane text-lg"></i>
-                    </button>
-                    <button onclick="stopGeneration()" id="stop-btn" class="hidden bg-red-600 text-white p-3 rounded-full hover:bg-red-700 transition self-end w-12 h-12 flex items-center justify-center shrink-0 shadow-md">
-                        <i class="fa-solid fa-stop text-lg"></i>
-                    </button>
                 </div>
             </div>
         </div>
     </main>
 
+    <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]">
             <h2 class="text-xl font-bold mb-4 shrink-0">设置</h2>
@@ -179,6 +188,7 @@
         </div>
     </div>
 
+    <!-- World Matrix Console Modal -->
     <div id="world-matrix-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-2 md:p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 w-full max-w-3xl shadow-2xl flex flex-col h-[90vh] md:max-h-[85vh]">
             <div class="flex justify-between items-center mb-4 shrink-0">
@@ -224,7 +234,8 @@
         </div>
     </div>
 
-    <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4">
+    <!-- Edit Modal -->
+    <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-2xl shadow-2xl flex flex-col">
             <h2 class="text-lg md:text-xl font-bold mb-4">修改设定</h2>
             <div class="space-y-4">
@@ -272,7 +283,8 @@
 
         function init() {
             try {
-                const savedState = localStorage.getItem('deepseek_client_state_v21');
+                // 跃迁至 v22 本地持久化隔离缓存区，安全融合旧状态数据
+                const savedState = localStorage.getItem('deepseek_client_state_v22');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     state = { ...state, ...parsed };
@@ -281,16 +293,10 @@
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
                 } else {
-                    const fallbacks = ['deepseek_client_state_v20', 'deepseek_client_state_v19', 'deepseek_client_state_v18'];
-                    let backup = null;
+                    const fallbacks = ['deepseek_client_state_v18', 'deepseek_client_state_v19', 'deepseek_client_state_v17'];
                     for (const fb of fallbacks) {
                         const d = localStorage.getItem(fb);
-                        if(d) { backup = d; break; }
-                    }
-                    if (backup) {
-                        const parsed = JSON.parse(backup);
-                        state = { ...state, ...parsed };
-                        state.config.fontSize = state.config.fontSize || 16;
+                        if(d) { state = JSON.parse(d); break; }
                     }
                 }
             } catch (e) {
@@ -318,7 +324,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('deepseek_client_state_v21', JSON.stringify({
+            localStorage.setItem('deepseek_client_state_v22', JSON.stringify({
                 config: state.config, 
                 sessions: state.sessions, 
                 activeSessionId: state.activeSessionId, 
@@ -794,8 +800,13 @@
                 bPlot.classList.remove('hidden'); hasAny = true;
             } else { bPlot.classList.add('hidden'); }
             
-            if(hasAny) banner.classList.remove('hidden');
-            else banner.classList.add('hidden');
+            if(hasAny) {
+                banner.classList.remove('hidden');
+                banner.classList.add('flex');
+            } else {
+                banner.classList.remove('flex');
+                banner.classList.add('hidden');
+            }
         }
 
         function renderChat() {
@@ -851,7 +862,6 @@
             scrollToBottom();
         }
 
-        // 恢复系统级滚动以支持 iOS Safari 顶部穿透
         function scrollToBottom() { 
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
@@ -859,7 +869,7 @@
         function autoResize(textarea) { 
             if(!textarea) return;
             textarea.style.height = 'auto'; 
-            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px'; 
+            textarea.style.height = Math.min(textarea.scrollHeight, 140) + 'px'; 
         }
 
         function handleInputKeydown(e) {
