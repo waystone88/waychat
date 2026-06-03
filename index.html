@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN" class="dark bg-gray-50 dark:bg-gray-900">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta id="theme-color-meta" name="theme-color" content="#111827">
     <title>WayChat</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -342,7 +343,14 @@
         }
 
         function toggleDarkMode() { state.config.darkMode = !state.config.darkMode; applyDarkMode(); saveState(); }
-        function applyDarkMode() { document.documentElement.classList.toggle('dark', state.config.darkMode); }
+        
+        function applyDarkMode() { 
+            document.documentElement.classList.toggle('dark', state.config.darkMode); 
+            const metaTheme = document.getElementById('theme-color-meta');
+            if (metaTheme) {
+                metaTheme.setAttribute('content', state.config.darkMode ? '#111827' : '#ffffff');
+            }
+        }
 
         function toggleThinkingMode(event) {
             state.config.thinkingMode = event.target.checked;
