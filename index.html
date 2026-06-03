@@ -29,7 +29,6 @@
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         input[type=range] { accent-color: #4f46e5; }
-        /* 优化设置勾选态样式，使其符合整体无边框高级质感 */
         .card-checkbox:checked + div { border-color: #4f46e5; background-color: rgba(79, 70, 229, 0.08); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1); }
         .dark .card-checkbox:checked + div { border-color: #6366f1; background-color: rgba(99, 102, 241, 0.15); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
         .prose p:first-child { margin-top: 0; }
@@ -42,8 +41,10 @@
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200">
 
+    <!-- Mobile Sidebar Backdrop -->
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
 
+    <!-- Responsive Sidebar -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-200 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
             <h1 class="text-lg font-bold">WayChat</h1>
@@ -68,14 +69,17 @@
         </div>
     </aside>
 
+    <!-- Main Viewport Arena -->
     <main class="flex-1 min-h-screen relative flex flex-col min-w-0 md:ml-64">
         
+        <!-- 全景悬浮层 -->
         <header class="fixed top-0 left-0 right-0 md:left-64 flex justify-between items-start px-4 md:px-6 z-40 pt-[calc(0.5rem+env(safe-area-inset-top))] pointer-events-none">
             <div class="flex items-start gap-2.5">
                 <button onclick="toggleSidebar()" class="pointer-events-auto w-10 h-10 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-700 dark:text-gray-200 transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 
+                <!-- 激活设定组件 -->
                 <div id="matrix-banner" class="hidden pointer-events-auto text-xs bg-white/90 dark:bg-gray-800/90 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-800 dark:text-gray-100 flex-wrap items-center gap-x-2 gap-y-1 max-w-[55vw] md:max-w-[65vw] line-clamp-2 overflow-hidden">
                     <span class="flex items-center gap-1 font-bold text-[10px] uppercase tracking-wider text-indigo-600 dark:text-indigo-400 shrink-0"><i class="fa-solid fa-network-wired"></i> 激活设定:</span>
                     <span id="banner-system" class="hidden shrink-0"><span class="opacity-60 border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1 text-[10px]">系统</span><span id="banner-system-name" class="font-bold"></span></span>
@@ -92,8 +96,10 @@
             </div>
         </header>
 
+        <!-- 聊天容器 -->
         <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-6 z-10" style="padding-top: calc(7rem + env(safe-area-inset-top)); padding-bottom: calc(8rem + env(safe-area-inset-bottom));"></div>
 
+        <!-- 底部大卡片输入组件 -->
         <div class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             <div class="max-w-4xl mx-auto flex flex-col gap-2 relative pointer-events-auto">
                 
@@ -118,6 +124,7 @@
         </div>
     </main>
 
+    <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 70;">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]">
             <h2 class="text-xl font-bold mb-4 shrink-0">设置</h2>
@@ -178,8 +185,9 @@
         </div>
     </div>
 
-    <div id="world-matrix-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-3 md:p-4" style="z-index: 70;">
-        <div class="bg-white/95 dark:bg-gray-900/95 border border-gray-200/50 dark:border-gray-800/60 rounded-3xl p-5 md:p-6 w-full max-w-3xl shadow-2xl flex flex-col h-[90vh] md:max-h-[85vh] backdrop-blur-xl">
+    <!-- World Matrix Console Modal (【终极全屏化】手机端 fixed inset-0 撑满无死角，去除黑边；反转布局将输入轨置顶) -->
+    <div id="world-matrix-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center md:p-4" style="z-index: 70;">
+        <div class="bg-white/95 dark:bg-gray-900/95 border-0 md:border border-gray-200/50 dark:border-gray-800/60 w-full h-full md:h-[85vh] md:max-w-3xl rounded-none md:rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col backdrop-blur-xl pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
             <div class="flex justify-between items-center mb-4 shrink-0">
                 <h2 class="text-lg md:text-xl font-bold tracking-tight">设定与角色库</h2>
                 <button onclick="closeModal('world-matrix-modal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -191,36 +199,41 @@
                 <button class="tab-btn px-4 py-2.5 text-sm md:text-base font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-b-2 border-transparent transition-all" onclick="switchTab('plots', this)">剧情卡</button>
             </div>
 
+            <!-- Tab Content: System -->
             <div id="tab-system" class="matrix-tab flex-1 flex flex-col overflow-hidden">
-                <div id="system-list" class="flex-1 overflow-y-auto space-y-3 mb-4 pr-1 no-scrollbar"></div>
-                <div class="border-t border-gray-200/50 dark:border-gray-800/50 pt-4 space-y-3 shrink-0 flex flex-col">
+                <!-- 【置顶输入轨】绝不向底部键盘妥协，防止软键盘弹起引发遮挡 -->
+                <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-sys-title" placeholder="名称 (如：无共识小说引擎)" class="w-full px-4 py-2.5 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium">
-                    <textarea id="new-sys-content" rows="3" placeholder="注入高维约束核心指令...（支持随输入自动向上扩容扩展）" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none overflow-y-auto max-h-[140px]" oninput="autoResize(this)"></textarea>
-                    <button onclick="addCard('system')" class="self-end px-6 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-plus-circle text-blue-500"></i> 添加系统设定</button>
+                    <textarea id="new-sys-content" rows="2" placeholder="注入高维约束核心指令... (高度自动扩容)" class="w-full px-4 py-2.5 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
+                    <button onclick="addCard('system')" class="self-end px-5 py-2 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-plus-circle text-blue-500"></i> 添加系统设定</button>
                 </div>
+                <div id="system-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
+            <!-- Tab Content: Characters -->
             <div id="tab-characters" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden">
-                <div id="character-list" class="flex-1 overflow-y-auto space-y-3 mb-4 pr-1 no-scrollbar"></div>
-                <div class="border-t border-gray-200/50 dark:border-gray-800/50 pt-4 space-y-3 shrink-0 flex flex-col">
+                <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-char-title" placeholder="角色实体姓名 (如：李慢)" class="w-full px-4 py-2.5 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-medium">
-                    <textarea id="new-char-content" rows="3" placeholder="录入性格矩阵、隐藏动机与对白痕迹...（支持随输入自动向上扩容扩展）" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm resize-none overflow-y-auto max-h-[140px]" oninput="autoResize(this)"></textarea>
-                    <button onclick="addCard('character')" class="self-end px-6 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-user-plus text-purple-500"></i> 添加角色实体</button>
+                    <textarea id="new-char-content" rows="2" placeholder="录入性格矩阵与故事轨迹..." class="w-full px-4 py-2.5 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
+                    <button onclick="addCard('character')" class="self-end px-5 py-2 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-user-plus text-purple-500"></i> 添加角色实体</button>
                 </div>
+                <div id="character-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
+            <!-- Tab Content: Plots -->
             <div id="tab-plots" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden">
-                <div id="plot-list" class="flex-1 overflow-y-auto space-y-3 mb-4 pr-1 no-scrollbar"></div>
-                <div class="border-t border-gray-200/50 dark:border-gray-800/50 pt-4 space-y-3 shrink-0 flex flex-col">
+                <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-plot-title" placeholder="故事因果卡标识 (如：冰冷触感)" class="w-full px-4 py-2.5 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm font-medium">
-                    <textarea id="new-plot-content" rows="3" placeholder="植入主线大纲碎片或当前环境宏观变数...（支持随输入自动向上扩容扩展）" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-none overflow-y-auto max-h-[140px]" oninput="autoResize(this)"></textarea>
-                    <button onclick="addCard('plot')" class="self-end px-6 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-map-marker-alt text-green-500"></i> 锚定剧情槽位</button>
+                    <textarea id="new-plot-content" rows="2" placeholder="植入主线大纲碎片或宏观变数..." class="w-full px-4 py-2.5 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
+                    <button onclick="addCard('plot')" class="self-end px-5 py-2 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-map-marker-alt text-green-500"></i> 锚定剧情槽位</button>
                 </div>
+                <div id="plot-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
         </div>
     </div>
 
-    <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-[80] p-4" style="z-index: 80;">
+    <!-- Edit Modal -->
+    <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4" style="z-index: 80;">
         <div class="bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-3xl p-5 md:p-6 w-full max-w-2xl shadow-2xl flex flex-col backdrop-blur-xl">
             <h2 class="text-lg font-bold mb-4 tracking-tight">重构既定公理</h2>
             <div class="space-y-4">
@@ -268,7 +281,7 @@
 
         function init() {
             try {
-                // 持久化存储完美闭环承接 v22/v23
+                // 持久化集群演进至 v24
                 const savedState = localStorage.getItem('deepseek_client_state_v22');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
@@ -457,7 +470,7 @@
 
         function exportMarkdown(id, event) {
             if (event) event.stopPropagation();
-            const session = state.sessions.find(s => s.id === session.id);
+            const session = state.sessions.find(s => s.id === state.activeSessionId);
             if (!session || session.messages.length === 0) return;
             let mdContent = `# ${session.title}\n\n`;
             session.messages.forEach(msg => {
@@ -532,39 +545,37 @@
             btn.classList.add('text-blue-600', 'border-blue-600');
         }
 
-        // 【重构点三】卡片流洗牌渲染。卡片完全无边框流体化，剔除高饱和底色
+        // 【重构点三】彻底精简列表详情。移除 content 内容详情块，实现超高密度的骨架面板
         function renderWorldMatrix() {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
 
-            // 1. 系统单选设定流重构
+            // 1. 系统单选设定流
             document.getElementById('system-list').innerHTML = state.systemCards.map(p => {
                 const isActive = activeSession.systemPrompt?.title === p.title;
                 return `
-                <div class="p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-start gap-3 transition-all border ${isActive ? 'border-blue-500/80 bg-blue-50/40 dark:bg-blue-950/20 shadow-sm' : 'border-gray-200/40 dark:border-gray-800/40'}">
-                    <div class="flex-1 cursor-pointer" onclick="toggleSystem('${p.id}')">
-                        <div class="font-bold text-sm ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'} flex items-center gap-1">${escapeHTML(p.title)} ${isActive ? '<i class="fa-solid fa-circle-check text-xs"></i>' : ''}</div>
-                        <div class="text-xs text-gray-400 mt-1 leading-relaxed">${escapeHTML(p.content)}</div>
+                <div class="p-3 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isActive ? 'border-blue-500/80 bg-blue-50/40 dark:bg-blue-950/20 shadow-sm' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                    <div class="flex-1 cursor-pointer truncate" onclick="toggleSystem('${p.id}')">
+                        <div class="font-bold text-sm ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'} flex items-center gap-1 truncate">${escapeHTML(p.title)} ${isActive ? '<i class="fa-solid fa-circle-check text-xs"></i>' : ''}</div>
                     </div>
-                    <div class="flex items-center gap-2.5 shrink-0 pt-0.5">
+                    <div class="flex items-center gap-2 shrink-0">
                         <button onclick="openEditPromptModal('system', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="编辑"><i class="fa-solid fa-pen text-xs"></i></button>
                         <button onclick="deleteCard('system', '${p.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="删除"><i class="fa-solid fa-trash text-xs"></i></button>
                     </div>
                 </div>`;
             }).join('');
 
-            // 2. 角色多选卡片流重构
+            // 2. 角色多选卡片流
             document.getElementById('character-list').innerHTML = state.characterCards.map(c => {
                 const isChecked = activeSession.activeCharacters.includes(c.id);
                 return `
-                <label class="relative flex items-start cursor-pointer group">
+                <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('character', '${c.id}', this.checked)">
-                    <div class="w-full p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-start gap-3 transition-all border ${isChecked ? 'border-purple-500/80' : 'border-gray-200/40 dark:border-gray-800/40'}">
-                        <div class="flex-1">
-                            <div class="font-bold text-sm ${isChecked ? 'text-purple-600 dark:text-purple-400' : 'text-gray-800 dark:text-gray-200'}">${escapeHTML(c.title)}</div>
-                            <div class="text-xs text-gray-400 mt-1 leading-relaxed">${escapeHTML(c.content)}</div>
+                    <div class="w-full p-3 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-purple-500/80 bg-purple-50/20 dark:bg-purple-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                        <div class="flex-1 truncate">
+                            <div class="font-bold text-sm ${isChecked ? 'text-purple-600 dark:text-purple-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(c.title)}</div>
                         </div>
-                        <div class="flex items-center gap-2.5 shrink-0 z-10 pt-0.5">
+                        <div class="flex items-center gap-2 shrink-0 z-10">
                             <button type="button" onclick="openEditPromptModal('character', '${c.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="编辑"><i class="fa-solid fa-pen text-xs"></i></button>
                             <button type="button" onclick="deleteCard('character', '${c.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash text-xs"></i></button>
                         </div>
@@ -572,18 +583,17 @@
                 </label>`;
             }).join('');
 
-            // 3. 剧情多选卡片流重构
+            // 3. 剧情多选卡片流
             document.getElementById('plot-list').innerHTML = state.plotCards.map(p => {
                 const isChecked = activeSession.activePlots.includes(p.id);
                 return `
-                <label class="relative flex items-start cursor-pointer group">
+                <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('plot', '${p.id}', this.checked)">
-                    <div class="w-full p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-start gap-3 transition-all border ${isChecked ? 'border-green-500/80' : 'border-gray-200/40 dark:border-gray-800/40'}">
-                        <div class="flex-1">
-                            <div class="font-bold text-sm ${isChecked ? 'text-green-600 dark:text-green-400' : 'text-gray-800 dark:text-gray-200'}">${escapeHTML(p.title)}</div>
-                            <div class="text-xs text-gray-400 mt-1 leading-relaxed">${escapeHTML(p.content)}</div>
+                    <div class="w-full p-3 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-green-500/80 bg-green-50/20 dark:bg-green-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                        <div class="flex-1 truncate">
+                            <div class="font-bold text-sm ${isChecked ? 'text-green-600 dark:text-green-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(p.title)}</div>
                         </div>
-                        <div class="flex items-center gap-2.5 shrink-0 z-10 pt-0.5">
+                        <div class="flex items-center gap-2 shrink-0 z-10">
                             <button type="button" onclick="openEditPromptModal('plot', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="编辑"><i class="fa-solid fa-pen text-xs"></i></button>
                             <button type="button" onclick="deleteCard('plot', '${p.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash text-xs"></i></button>
                         </div>
@@ -635,7 +645,7 @@
             else state.plotCards.push(newObj);
             
             titleEl.value = ''; contentEl.value = '';
-            contentEl.style.height = 'auto'; // 重置高度
+            contentEl.style.height = 'auto'; 
             saveState(); renderWorldMatrix();
         }
 
@@ -672,7 +682,7 @@
                 const contentEl = document.getElementById('edit-prompt-content');
                 contentEl.value = p.content;
                 document.getElementById('edit-prompt-modal').classList.remove('hidden');
-                setTimeout(() => autoResize(contentEl), 20); // 激活动态撑开
+                setTimeout(() => autoResize(contentEl), 20); 
             }
         }
 
@@ -861,8 +871,7 @@
         function autoResize(textarea) { 
             if(!textarea) return;
             textarea.style.height = 'auto'; 
-            // 针对主输入框和设定卡片输入框，分流最大高度限制
-            const maxH = textarea.id === 'message-input' ? 140 : 250;
+            const maxH = textarea.id === 'message-input' ? 140 : 120;
             textarea.style.height = Math.min(textarea.scrollHeight, maxH) + 'px'; 
         }
 
