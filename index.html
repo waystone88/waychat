@@ -29,9 +29,13 @@
         input[type=range] { accent-color: #4f46e5; }
         .card-checkbox:checked + div { border-color: #4f46e5; background-color: rgba(79, 70, 229, 0.05); }
         .dark .card-checkbox:checked + div { background-color: rgba(79, 70, 229, 0.2); }
-        /* 针对 prose 的段落间距进行微调，以适应大字号 */
         .prose p:first-child { margin-top: 0; }
         .prose p:last-child { margin-bottom: 0; }
+
+        /* 【适配核心】阻止 iOS Safari 输入时的默认放大行为 */
+        input[type=text], input[type=password], textarea {
+            font-size: 16px !important;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 h-screen flex overflow-hidden transition-colors duration-200">
@@ -64,50 +68,56 @@
 
     <main class="flex-1 flex flex-col h-full relative min-w-0">
         
-        <header class="md:hidden flex justify-between items-center p-3 bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-700 shrink-0 shadow-sm z-20">
-            <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded text-gray-600 dark:text-gray-300 transition-colors">
-                <i class="fa-solid fa-bars text-xl"></i>
-            </button>
-            <h1 class="text-lg font-bold">WayChat</h1>
-            <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors text-gray-600 dark:text-gray-300">
-                <i class="fa-solid fa-moon dark:hidden text-xl"></i>
-                <i class="fa-solid fa-sun hidden dark:inline text-xl"></i>
-            </button>
+        <header class="fixed top-0 left-0 right-0 md:left-64 md:right-0 flex justify-between items-center px-4 md:px-6 h-navbar z-50 bg-white/70 dark:bg-gray-950/70 backdrop-blur-md border-b border-gray-300/30 dark:border-gray-700/30 shrink-0 shadow-sm pt-navbar-padding">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-gray-200/50 dark:hover:bg-gray-800/50 rounded text-gray-600 dark:text-gray-300 transition-colors">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-lg font-bold md:block hidden">WayChat</h1>
+                <h1 class="text-lg font-bold md:hidden">WayChat</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-200/50 dark:hover:bg-gray-800/50 rounded transition-colors text-gray-600 dark:text-gray-300">
+                    <i class="fa-solid fa-moon dark:hidden text-xl"></i>
+                    <i class="fa-solid fa-sun hidden dark:inline text-xl"></i>
+                </button>
+            </div>
         </header>
 
-        <div id="matrix-banner" class="hidden shrink-0 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 p-2 text-xs md:text-sm border-b border-indigo-200 dark:border-indigo-700/50 flex flex-wrap justify-center items-center gap-x-3 gap-y-2">
+        <div id="matrix-banner" class="hidden fixed top-navbar md:left-64 md:right-0 right-0 left-0 bg-indigo-50/70 dark:bg-indigo-950/70 backdrop-blur-sm p-2 text-xs md:text-sm border-b border-indigo-200 dark:border-indigo-700/50 flex flex-wrap justify-center items-center gap-x-3 gap-y-1 z-40">
             <span class="flex items-center gap-1 font-medium"><i class="fa-solid fa-network-wired"></i> 当前设定:</span>
             <span id="banner-system" class="hidden"><span class="opacity-60 text-[10px] md:text-xs border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1">系统</span><span id="banner-system-name" class="font-bold"></span></span>
             <span id="banner-chars" class="hidden"><span class="opacity-60 text-[10px] md:text-xs border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1">角色</span><span id="banner-chars-names"></span></span>
             <span id="banner-plots" class="hidden"><span class="opacity-60 text-[10px] md:text-xs border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1">剧情</span><span id="banner-plots-names"></span></span>
         </div>
 
-        <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:px-8 lg:px-20 space-y-6 relative max-w-5xl mx-auto w-full"></div>
+        <div id="chat-container" class="flex-1 overflow-y-auto space-y-6 pt-navbar+banner+padding pb-input-pill relative max-w-full mx-auto w-full no-scrollbar"></div>
 
-        <div class="p-3 md:p-4 bg-white dark:bg-gray-900 border-t border-gray-300 dark:border-gray-700 relative shrink-0">
+        <div class="fixed bottom-0 left-0 right-0 md:left-64 md:right-0 p-2 md:p-4 bg-gray-50/70 dark:bg-gray-900/70 backdrop-blur-md border-t border-gray-300/30 dark:border-gray-700/30 relative z-30 pb-input-pill-padding">
             <div class="max-w-4xl mx-auto flex flex-col gap-2 relative">
-                <div class="flex items-center gap-2 px-1">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="thinking-mode-toggle" class="sr-only peer" onchange="toggleThinkingMode(event)">
-                        <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                        <span class="ml-2 text-sm font-medium text-gray-600 dark:text-gray-400 select-none">深度思考</span>
-                    </label>
-                </div>
                 
-                <div class="flex gap-2 relative">
-                    <textarea id="message-input" rows="1" class="flex-1 resize-none bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="输入消息... (Enter 发送, Shift+Enter 换行)" onkeydown="handleInputKeydown(event)" oninput="autoResize(this)"></textarea>
-                    <button onclick="sendMessage()" id="send-btn" class="bg-blue-600 text-white px-4 md:px-5 rounded-lg hover:bg-blue-700 transition self-end h-12 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-paper-plane"></i>
+                <div class="flex gap-2 relative bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-full p-2 text-base shadow-2xl focus-within:ring-2 focus-within:ring-blue-500">
+                    <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent rounded-full px-4 text-base focus:outline-none" placeholder="输入消息... (Enter 发送, Shift+Enter 换行)" onkeydown="handleInputKeydown(event)" oninput="autoResize(this)"></textarea>
+                    
+                    <div class="flex items-center gap-2 px-1">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="thinking-mode-toggle" class="sr-only peer" onchange="toggleThinkingMode(event)">
+                            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            </label>
+                    </div>
+
+                    <button onclick="sendMessage()" id="send-btn" class="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition self-end w-12 h-12 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-paper-plane text-xl"></i>
                     </button>
-                    <button onclick="stopGeneration()" id="stop-btn" class="hidden bg-red-600 text-white px-4 md:px-5 rounded-lg hover:bg-red-700 transition self-end h-12 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-stop"></i>
+                    <button onclick="stopGeneration()" id="stop-btn" class="hidden bg-red-600 text-white p-3 rounded-full hover:bg-red-700 transition self-end w-12 h-12 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-stop text-xl"></i>
                     </button>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-settings p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]">
             <h2 class="text-xl font-bold mb-4 shrink-0">设置</h2>
             <div class="space-y-4 overflow-y-auto pr-2 flex-1">
@@ -168,7 +178,7 @@
         </div>
     </div>
 
-    <div id="world-matrix-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 md:p-4">
+    <div id="world-matrix-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-settings p-2 md:p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 w-full max-w-3xl shadow-2xl flex flex-col h-[90vh] md:max-h-[85vh]">
             <div class="flex justify-between items-center mb-4 shrink-0">
                 <h2 class="text-lg md:text-xl font-bold">设定与角色库</h2>
@@ -213,7 +223,7 @@
         </div>
     </div>
 
-    <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+    <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-modal p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-2xl shadow-2xl flex flex-col">
             <h2 class="text-lg md:text-xl font-bold mb-4">修改设定</h2>
             <div class="space-y-4">
@@ -244,7 +254,7 @@
                 temperature: 1.0,
                 maxTokens: 2048,
                 historyTurns: 20,
-                fontSize: 16  // 默认正文字号
+                fontSize: 16
             },
             sessions: [],
             activeSessionId: null,
@@ -261,8 +271,8 @@
 
         function init() {
             try {
-                // 跃迁至 v16，接管流形布局重构与字号记忆
-                const savedState = localStorage.getItem('deepseek_client_state_v16');
+                // 跃迁至 v17，接管毛玻璃全屏文档流布局、悬浮输入 Pill 与字号适配
+                const savedState = localStorage.getItem('deepseek_client_state_v17');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     state = { ...state, ...parsed };
@@ -271,10 +281,18 @@
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
                 } else {
-                    // 数据承接
-                    const oldState = localStorage.getItem('deepseek_client_state_v15');
-                    if (oldState) {
-                        const parsed = JSON.parse(oldState);
+                    // 数据承接 (尝试从旧沙箱)
+                    const oldStates = ['deepseek-client-v16', 'deepseek_client_state_v16', 'deepseek_client_state_v15'];
+                    let oldData = null;
+                    for (const os of oldStates) {
+                        const d = localStorage.getItem(os);
+                        if(d) {
+                            oldData = d;
+                            break;
+                        }
+                    }
+                    if (oldData) {
+                        const parsed = JSON.parse(oldData);
                         state = { ...state, ...parsed };
                         state.config.fontSize = 16;
                     }
@@ -304,7 +322,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('deepseek_client_state_v16', JSON.stringify({
+            localStorage.setItem('deepseek_client_state_v17', JSON.stringify({
                 config: state.config, 
                 sessions: state.sessions, 
                 activeSessionId: state.activeSessionId, 
@@ -378,7 +396,6 @@
             state.config.temperature = parseFloat(document.getElementById('api-temperature').value);
             state.config.maxTokens = parseInt(document.getElementById('api-max-tokens').value, 10) || 2048;
             state.config.historyTurns = parseInt(document.getElementById('api-history').value, 10) || 20;
-            // 字体大小已在拖动时实时保存，此处仅确保冗余安全
             state.config.fontSize = parseInt(document.getElementById('api-font-size').value, 10) || 16;
             
             saveState(); closeModal('settings-modal');
@@ -742,7 +759,7 @@
             let html = '';
             if (reasoning) {
                 html += `
-                    <details class="mb-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800/80 overflow-hidden w-fit max-w-full">
+                    <details class="mb-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800/80 overflow-hidden w-fit max-w-full z-10 relative">
                         <summary class="cursor-pointer p-3 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2">
                             <i class="fa-solid fa-brain text-blue-500"></i> 思考过程
                         </summary>
@@ -811,26 +828,27 @@
                 const isUser = msg.role === 'user';
                 const parsedContent = isUser ? `<div class="whitespace-pre-wrap">${escapeHTML(msg.content)}</div>` : buildMessageHTML(msg.content, msg.reasoning);
                 
-                // 【文档流重构】取消背景，右侧灰底，左侧透明
+                // 【文档流重构】取消背景， You 使用浅灰 Pill 模块，靠右
                 if (isUser) {
                     return `
-                    <div class="flex flex-col items-end group w-full mb-4">
-                        <div class="max-w-[85%] md:max-w-[75%] relative">
+                    <div class="flex flex-col items-end group w-full mb-4 px-4 md:px-8 lg:px-20 max-w-7xl mx-auto">
+                        <div class="max-w-[90%] md:max-w-[75%] relative">
                             <div class="flex gap-3 md:gap-2 text-[10px] md:text-xs text-gray-500 md:text-gray-400 mb-1 absolute -top-6 right-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
                                 <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分叉"><i class="fa-solid fa-code-branch"></i></button>
+                                <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
                                 <button onclick="deleteMessage(${index})" class="hover:text-red-500" title="删除"><i class="fa-solid fa-trash"></i></button>
                             </div>
                             <div class="px-5 py-3 rounded-[24px] bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 message-content" style="${fontSizeStyle}">${parsedContent}</div>
                         </div>
                     </div>`;
                 } else {
+                    // WayChat: 彻底剥离气泡底色，透明底全宽平铺
                     return `
-                    <div class="flex flex-col items-start group w-full mb-6 mt-2">
+                    <div class="flex flex-col items-start group w-full mb-6 mt-2 px-4 md:px-8 lg:px-20 max-w-7xl mx-auto">
                         <div class="w-full relative">
                             <div class="flex gap-3 md:gap-2 text-[10px] md:text-xs text-gray-500 md:text-gray-400 mb-1 absolute -top-6 left-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
                                 <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分叉"><i class="fa-solid fa-code-branch"></i></button>
+                                <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
                                 <button onclick="deleteMessage(${index})" class="hover:text-red-500" title="删除"><i class="fa-solid fa-trash"></i></button>
                             </div>
                             <div class="py-2 message-content prose dark:prose-invert max-w-none text-gray-900 dark:text-gray-100" style="${fontSizeStyle}">${parsedContent}</div>
@@ -849,12 +867,14 @@
         function autoResize(textarea) { 
             if(!textarea) return;
             textarea.style.height = 'auto'; 
-            textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px'; 
+            // 悬浮 Pill 布局下，限制最大高度，防止输入法弹出时挤压过甚
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px'; 
         }
 
         function handleInputKeydown(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 if (e.isComposing) return;
+                // 移动端保持回车换行，电脑端发送
                 if(window.innerWidth >= 768) {
                     e.preventDefault(); 
                     sendMessage(); 
