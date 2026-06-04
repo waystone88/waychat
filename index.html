@@ -475,6 +475,57 @@
             renderSessions(); renderChat(); saveState();
         }
 
+        // 注入适配 iOS 设备的导出 Markdown 函数
+        function exportMarkdown(sessionId, event) {
+            if(event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            const session = state.sessions.find(s => s.id === sessionId);
+            if (!session) return;
+
+            let markdown = `# ${session.title}\n\n`;
+            session.messages.forEach(msg => {
+                const role = msg.role === 'user' ? '**You**' : '**Way**';
+                markdown += `${role}:\n${msg.content}\n\n`;
+            });
+
+            const filename = `${session.title.replace(/[\\/:*?"<>|]/g, '') || 'chat'}.md`;
+            const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+
+            // 备用传统下载方案
+            const doFallback = () => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+            };
+
+            // 优先唤起 iOS 原生分享面板 (Save to Files)
+            if (navigator.share && navigator.canShare) {
+                const file = new File([blob], filename, { type: 'text/markdown' });
+                if (navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        title: session.title,
+                        files: [file]
+                    }).catch(err => {
+                        console.log('分享取消或发生错误:', err);
+                    });
+                } else {
+                    doFallback();
+                }
+            } else {
+                doFallback();
+            }
+        }
+
         function forkSession(messageIndex) {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
