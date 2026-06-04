@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark h-full bg-gray-50 dark:bg-gray-900">
+<html lang="zh-CN" class="h-full bg-gray-50 dark:bg-gray-900">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -30,47 +30,48 @@
         details > summary::-webkit-details-marker { display: none; }
         input[type=range] { accent-color: #4f46e5; }
         
-        /* 状态微调及全场去高亮轮廓线约束 */
+        /* 状态勾选框高级样式融合 */
         .card-checkbox:checked + div { border-color: #4f46e5; background-color: rgba(79, 70, 229, 0.08); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1); }
         .dark .card-checkbox:checked + div { border-color: #6366f1; background-color: rgba(99, 102, 241, 0.15); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
         .prose p:first-child { margin-top: 0; }
         .prose p:last-child { margin-bottom: 0; }
 
-        /* 全局强力压制所有点击高亮线 */
-        input:focus, textarea:focus, select:focus, button:focus, div:focus {
+        /* 【要求六】强制扼杀跨页面、跨图层一切组件聚焦点击后的高亮轮廓线与阴影环 */
+        input:focus, textarea:focus, select:focus, button:focus, div:focus, label:focus {
             outline: none !important;
             box-shadow: none !important;
+            border-color: inherit-default !important;
         }
 
         input[type=text], input[type=password], textarea {
-            font-size: 17px !important; /* 物理防缩放 */
+            font-size: 17px !important;
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200 text-base">
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200 text-lg">
 
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-200 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
-            <h1 class="text-xl font-bold tracking-tight">WayChat</h1>
+            <h1 class="text-2xl font-bold tracking-tight">WayChat</h1>
             <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
-                <i class="fa-solid fa-moon dark:hidden text-lg"></i>
-                <i class="fa-solid fa-sun hidden dark:inline text-lg"></i>
+                <i class="fa-solid fa-moon dark:hidden text-xl"></i>
+                <i class="fa-solid fa-sun hidden dark:inline text-xl"></i>
             </button>
         </div>
         
-        <div class="flex-1 overflow-y-auto p-2 text-base" id="sessions-list"></div>
+        <div class="flex-1 overflow-y-auto p-2 text-lg" id="sessions-list"></div>
 
         <div class="p-2 border-t border-gray-300 dark:border-gray-700 space-y-2 shrink-0 bg-gray-200 dark:bg-gray-800 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
-            <button onclick="createNewSession(); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm font-medium text-base">
-                <i class="fa-solid fa-plus mr-2"></i>新建对话
+            <button onclick="createNewSession(); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition font-bold text-lg text-gray-900 dark:text-gray-100 flex items-center">
+                <i class="fa-solid fa-plus mr-2.5 text-lg"></i>新建对话
             </button>
-            <button onclick="openModal('world-matrix-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition text-base">
-                <i class="fa-solid fa-mask mr-2"></i>设定与角色库
+            <button onclick="openModal('world-matrix-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
+                <i class="fa-solid fa-mask mr-2.5 text-lg"></i>设定与角色库
             </button>
-            <button onclick="openModal('settings-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition text-base">
-                <i class="fa-solid fa-gear mr-2"></i>设置
+            <button onclick="openModal('settings-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
+                <i class="fa-solid fa-gear mr-2.5 text-lg"></i>设置
             </button>
         </div>
     </aside>
@@ -93,12 +94,12 @@
 
         <div id="matrix-banner" class="hidden"></div>
 
-        <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-7 z-10 text-base md:text-lg" style="padding-top: calc(5.5rem + env(safe-area-inset-top)); padding-bottom: calc(8.5rem + env(safe-area-inset-bottom));"></div>
+        <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-7 z-10 text-lg md:text-xl" style="padding-top: calc(5.5rem + env(safe-area-inset-top)); padding-bottom: calc(8.5rem + env(safe-area-inset-bottom));"></div>
 
         <div class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pb-6 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             <div class="max-w-4xl mx-auto flex items-end gap-2.5 relative pointer-events-auto">
                 
-                <button onclick="toggleThinkingModeViaBtn()" id="thinking-bulb-btn" class="w-12 h-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 transition-all">
+                <button onclick="toggleThinkingModeViaBtn()" id="thinking-bulb-btn" class="w-12 h-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 transition-all mb-2">
                     <i class="fa-regular fa-lightbulb text-xl"></i>
                 </button>
                 <input type="checkbox" id="thinking-mode-toggle" class="sr-only">
@@ -245,7 +246,7 @@
                 apiUrl: 'https://api.deepseek.com/v1', 
                 apiKey: '', 
                 model: 'deepseek-v4-flash', 
-                darkMode: true, 
+                darkMode: false, // 【要求三】默认工厂配置重置为 false (日间模式)
                 thinkingMode: false,
                 temperature: 1.0,
                 maxTokens: 2048,
@@ -267,21 +268,24 @@
 
         function init() {
             try {
-                // 状态持久化完美锚定 v22/v23 控制域
-                const savedState = localStorage.getItem('deepseek_client_state_v22');
+                // 【升级点】跃迁至全新的 v26 持久化独立状态存储集群，保证新默认项强制无污染生效
+                const savedState = localStorage.getItem('deepseek_client_state_v26');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     state = { ...state, ...parsed };
-                    state.config = { ...{apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', darkMode: true, thinkingMode: false, temperature: 1.0, maxTokens: 2048, historyTurns: 20, fontSize: 16}, ...parsed.config };
+                    state.config = { ...{apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 2048, historyTurns: 20, fontSize: 16}, ...parsed.config };
                     if(parsed.prompts && !parsed.systemCards) state.systemCards = parsed.prompts;
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
                 } else {
-                    const fallbacks = ['deepseek_client_state_v18', 'deepseek_client_state_v19', 'deepseek_client_state_v17'];
-                    for (const fb of fallbacks) {
-                        const d = localStorage.getItem(fb);
-                        if(d) { state = JSON.parse(d); break; }
+                    // 数据自适应继承向下兼容
+                    const oldData = localStorage.getItem('deepseek_client_state_v22') || localStorage.getItem('deepseek_client_state_v18');
+                    if (oldData) {
+                        const parsed = JSON.parse(oldData);
+                        state = { ...state, ...parsed };
                     }
+                    state.config.darkMode = false; // 强行极化初始为日间
+                    saveState();
                 }
             } catch (e) {
                 console.error("State parse error", e);
@@ -309,7 +313,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('deepseek_client_state_v22', JSON.stringify({
+            localStorage.setItem('deepseek_client_state_v26', JSON.stringify({
                 config: state.config, 
                 sessions: state.sessions, 
                 activeSessionId: state.activeSessionId, 
@@ -338,7 +342,6 @@
         function toggleDarkMode() { state.config.darkMode = !state.config.darkMode; applyDarkMode(); saveState(); }
         function applyDarkMode() { document.documentElement.classList.toggle('dark', state.config.darkMode); }
 
-        // 【要求三】灯泡控制微件点击反转状态锁
         function toggleThinkingModeViaBtn() {
             state.config.thinkingMode = !state.config.thinkingMode;
             const toggleElement = document.getElementById('thinking-mode-toggle');
@@ -353,6 +356,7 @@
             updateThinkingBulbUI();
         }
 
+        // 【要求三】灯泡思考微件未启用时呈现低饱和无色线条，启用后转为深沉的蓝色线条高亮
         function updateThinkingBulbUI() {
             const btn = document.getElementById('thinking-bulb-btn');
             if (!btn) return;
@@ -475,28 +479,6 @@
             renderSessions(); renderChat(); saveState();
         }
 
-        function exportMarkdown(id, event) {
-            if (event) event.stopPropagation();
-            const session = state.sessions.find(s => s.id === state.activeSessionId);
-            if (!session || session.messages.length === 0) return;
-            let mdContent = `# ${session.title}\n\n`;
-            session.messages.forEach(msg => {
-                if (msg.role === 'user') {
-                    const blockquoteContent = msg.content.split('\n').map(line => `> ${line}`).join('\n');
-                    mdContent += `${blockquoteContent}\n\n`;
-                } else if (msg.role === 'assistant') {
-                    mdContent += `${msg.content}\n\n---\n\n`;
-                }
-            });
-            const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${session.title}.md`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
         function forkSession(messageIndex) {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
@@ -552,57 +534,57 @@
             btn.classList.add('text-blue-600', 'border-blue-600');
         }
 
-        // 【要求三】列表详情完全裁剪剔除，按钮转为极简浅色轻投影药丸样式，并且【要求五】图标全面物理放大一号 (text-sm/text-base)
+        // 【要求五】微件里的全部编辑、移除控制图标实施物理级尺寸大一号扩展 (text-sm -> text-base)
         function renderWorldMatrix() {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
 
-            // 1. 系统单选设定流
+            // 1. 系统设定组
             document.getElementById('system-list').innerHTML = state.systemCards.map(p => {
                 const isActive = activeSession.systemPrompt?.title === p.title;
                 return `
                 <div class="p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isActive ? 'border-blue-500/80 bg-blue-50/40 dark:bg-blue-950/20 shadow-sm' : 'border-gray-200/40 dark:border-gray-800/40'}">
                     <div class="flex-1 cursor-pointer truncate" onclick="toggleSystem('${p.id}')">
-                        <div class="font-bold text-base ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'} flex items-center gap-1 truncate">${escapeHTML(p.title)} ${isActive ? '<i class="fa-solid fa-circle-check text-sm"></i>' : ''}</div>
+                        <div class="font-bold text-base ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'} flex items-center gap-1 truncate">${escapeHTML(p.title)} ${isActive ? '<i class="fa-solid fa-circle-check text-base"></i>' : ''}</div>
                     </div>
                     <div class="flex items-center gap-3 shrink-0">
-                        <button onclick="openEditPromptModal('system', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-sm"></i></button>
-                        <button onclick="deleteCard('system', '${p.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1.5" title="删除"><i class="fa-solid fa-trash text-sm"></i></button>
+                        <button onclick="openEditPromptModal('system', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-base"></i></button>
+                        <button onclick="deleteCard('system', '${p.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1.5" title="删除"><i class="fa-solid fa-trash text-base"></i></button>
                     </div>
                 </div>`;
             }).join('');
 
-            // 2. 角色多选卡片流
+            // 2. 角色实体组
             document.getElementById('character-list').innerHTML = state.characterCards.map(c => {
                 const isChecked = activeSession.activeCharacters.includes(c.id);
                 return `
                 <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('character', '${c.id}', this.checked)">
-                    <div class="w-full p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-purple-500/80 bg-purple-50/20 dark:bg-purple-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                    <div class="w-full p-3 p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-purple-500/80 bg-purple-50/20 dark:bg-purple-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
                         <div class="flex-1 truncate">
                             <div class="font-bold text-base ${isChecked ? 'text-purple-600 dark:text-purple-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(c.title)}</div>
                         </div>
                         <div class="flex items-center gap-3 shrink-0 z-10">
-                            <button type="button" onclick="openEditPromptModal('character', '${c.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-sm"></i></button>
-                            <button type="button" onclick="deleteCard('character', '${c.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1.5"><i class="fa-solid fa-trash text-sm"></i></button>
+                            <button type="button" onclick="openEditPromptModal('character', '${c.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-base"></i></button>
+                            <button type="button" onclick="deleteCard('character', '${c.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1.5"><i class="fa-solid fa-trash text-base"></i></button>
                         </div>
                     </div>
                 </label>`;
             }).join('');
 
-            // 3. 剧情多选卡片流
+            // 3. 剧情节点组
             document.getElementById('plot-list').innerHTML = state.plotCards.map(p => {
                 const isChecked = activeSession.activePlots.includes(p.id);
                 return `
                 <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('plot', '${p.id}', this.checked)">
-                    <div class="w-full p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-green-500/80 bg-green-50/20 dark:bg-green-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                    <div class="w-full p-3 p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-green-500/80 bg-green-50/20 dark:bg-green-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
                         <div class="flex-1 truncate">
                             <div class="font-bold text-base ${isChecked ? 'text-green-600 dark:text-green-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(p.title)}</div>
                         </div>
                         <div class="flex items-center gap-3 shrink-0 z-10">
-                            <button type="button" onclick="openEditPromptModal('plot', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-sm"></i></button>
-                            <button type="button" onclick="deleteCard('plot', '${p.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1.5"><i class="fa-solid fa-trash text-sm"></i></button>
+                            <button type="button" onclick="openEditPromptModal('plot', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-base"></i></button>
+                            <button type="button" onclick="deleteCard('plot', '${p.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1.5"><i class="fa-solid fa-trash text-base"></i></button>
                         </div>
                     </div>
                 </label>`;
@@ -740,19 +722,20 @@
             }
         }
 
+        // 【要求二 & 五】侧边栏信息节点尺寸全面升格至 text-lg，微动操作项图标同步物理级大一号扩展
         function renderSessions() {
             const container = document.getElementById('sessions-list');
             if(!container) return;
             container.innerHTML = state.sessions.map(s => {
                 const hasMatrix = s.systemPrompt || (s.activeCharacters && s.activeCharacters.length > 0) || (s.activePlots && s.activePlots.length > 0);
                 return `
-                <div class="flex justify-between items-center p-3 md:p-2 rounded-xl cursor-pointer mb-1 ${s.id === state.activeSessionId ? 'bg-gray-300 dark:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" onclick="switchSession('${s.id}')">
-                    <div class="truncate flex-1 text-base ${hasMatrix ? 'text-indigo-700 dark:text-indigo-400 font-medium' : ''}">
-                        <i class="fa-regular ${hasMatrix ? 'fa-id-card' : 'fa-message'} mr-2"></i> ${escapeHTML(s.title)}
+                <div class="flex justify-between items-center p-3 md:p-2.5 rounded-xl cursor-pointer mb-1 ${s.id === state.activeSessionId ? 'bg-gray-300 dark:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" onclick="switchSession('${s.id}')">
+                    <div class="truncate flex-1 text-lg ${hasMatrix ? 'text-indigo-700 dark:text-indigo-400 font-medium' : ''}">
+                        <i class="fa-regular ${hasMatrix ? 'fa-id-card' : 'fa-message'} mr-2.5 text-lg"></i> ${escapeHTML(s.title)}
                     </div>
-                    <div class="flex items-center gap-3 md:gap-2 shrink-0 opacity-100 md:opacity-60 md:hover:opacity-100">
-                        <button onclick="exportMarkdown('${s.id}', event)" class="text-gray-500 hover:text-green-500 transition" title="导出Markdown"><i class="fa-solid fa-download text-sm"></i></button>
-                        <button onclick="deleteSession('${s.id}', event)" class="text-gray-500 hover:text-red-500 transition" title="删除"><i class="fa-solid fa-xmark text-sm"></i></button>
+                    <div class="flex items-center gap-3.5 shrink-0 opacity-100 md:opacity-60 md:hover:opacity-100">
+                        <button onclick="exportMarkdown('${s.id}', event)" class="text-gray-500 hover:text-green-500 transition p-1" title="导出Markdown"><i class="fa-solid fa-download text-base"></i></button>
+                        <button onclick="deleteSession('${s.id}', event)" class="text-gray-500 hover:text-red-500 transition p-1" title="删除"><i class="fa-solid fa-xmark text-base"></i></button>
                     </div>
                 </div>`;
             }).join('');
@@ -764,6 +747,7 @@
             }[tag] || tag));
         }
 
+        // 【要求五】对话记录中隐藏的“修改”、“因果分叉分支”、“物理删除”三项微控微件全量逆向大一号触发
         function buildMessageHTML(content, reasoning) {
             let html = '';
             if (reasoning) {
@@ -784,7 +768,7 @@
             return html;
         }
 
-        // 【要求二】根据牌库勾选状态，动态变色顶部圆形线条书本控制按钮
+        // 【要求二】根据设定卡片激活数量进行线条动态变色。有设定激活转为蓝色线条，无设定激活归于系统基色
         function updateBanner(session) {
             const bookBtn = document.getElementById('book-matrix-btn');
             if (!bookBtn) return;
@@ -825,12 +809,12 @@
                 const isUser = msg.role === 'user';
                 const parsedContent = isUser ? `<div class="whitespace-pre-wrap">${escapeHTML(msg.content)}</div>` : buildMessageHTML(msg.content, msg.reasoning);
                 
-                // 【要求五】对话框中的微件控制按钮整体物理放大一号 (text-sm md:text-base)
+                // 【要求五】将操作轴按钮组字号及图标强制膨胀大一号 (text-sm md:text-base -> text-base md:text-lg)
                 if (isUser) {
                     return `
                     <div class="flex flex-col items-end group w-full mb-4 max-w-5xl mx-auto">
                         <div class="max-w-[90%] md:max-w-[75%] relative">
-                            <div class="flex gap-3.5 md:gap-2.5 text-sm md:text-base text-gray-500 md:text-gray-400 mb-1 absolute -top-6 right-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20">
+                            <div class="flex gap-3.5 md:gap-2.5 text-base md:text-lg text-gray-500 md:text-gray-400 mb-1 absolute -top-6 right-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20">
                                 <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
                                 <button onclick="deleteMessage(${index})" class="hover:text-red-500" title="删除"><i class="fa-solid fa-trash"></i></button>
@@ -842,7 +826,7 @@
                     return `
                     <div class="flex flex-col items-start group w-full mb-6 mt-2 max-w-5xl mx-auto">
                         <div class="w-full relative">
-                            <div class="flex gap-3.5 md:gap-2.5 text-sm md:text-base text-gray-500 md:text-gray-400 mb-1 absolute -top-6 left-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20">
+                            <div class="flex gap-3.5 md:gap-2.5 text-base md:text-lg text-gray-500 md:text-gray-400 mb-1 absolute -top-6 left-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20">
                                 <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
                                 <button onclick="deleteMessage(${index})" class="hover:text-red-500" title="删除"><i class="fa-solid fa-trash"></i></button>
