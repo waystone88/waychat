@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>WayChat · 智能滚动控制</title>
+    <title>WayChat</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -43,26 +43,6 @@
 
         input[type=text], input[type=password], textarea {
             font-size: 17px !important;
-        }
-
-        /* 浮动滚动按钮 – 优雅触碰 */
-        .scroll-hint-btn {
-            transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s;
-            opacity: 0.75;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .scroll-hint-btn:hover {
-            opacity: 1;
-            transform: scale(1.02);
-        }
-        @media (max-width: 768px) {
-            .scroll-hint-btn {
-                width: 48px;
-                height: 48px;
-                bottom: 90px;
-                right: 16px;
-            }
         }
     </style>
 </head>
@@ -143,11 +123,6 @@
             </div>
         </div>
     </main>
-
-    <!-- 浮动滚动按钮 (手工控制滚动，告别强制自动滚屏) -->
-    <button id="float-scroll-btn" onclick="manualScrollToBottom()" class="fixed bottom-28 right-5 md:bottom-28 md:right-8 z-50 w-12 h-12 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-300/50 dark:border-gray-700/50 shadow-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400 transition-all hover:scale-105 scroll-hint-btn" title="滚动到底部">
-        <i class="fa-solid fa-arrow-down text-xl"></i>
-    </button>
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 70;">
@@ -303,54 +278,9 @@
         let editingPromptId = null;
         let sidebarOpen = false;
 
-        // ========== 智能滚动控制核心 ==========
-        let userScrolledUp = false;          // 用户是否主动向上滚动过（从而暂停自动滚动）
-        let scrollEventTimer = null;
-        
-        // 监听滚动事件，判断用户意图
-        function initScrollWatcher() {
-            window.addEventListener('scroll', () => {
-                if (scrollEventTimer) clearTimeout(scrollEventTimer);
-                // 防抖，避免过于频繁，但需要及时更新状态
-                scrollEventTimer = setTimeout(() => {
-                    const scrollHeight = document.body.scrollHeight;
-                    const windowHeight = window.innerHeight;
-                    const scrollTop = window.scrollY;
-                    const distanceToBottom = scrollHeight - (scrollTop + windowHeight);
-                    const isNearBottom = distanceToBottom <= 30;   // 30px以内判定为“希望跟随底部”
-                    
-                    if (isNearBottom) {
-                        // 用户主动滚到底部 → 恢复自动滚动模式
-                        if (userScrolledUp) userScrolledUp = false;
-                    } else {
-                        // 距离底部较远 → 用户正在浏览历史，停止自动跟随
-                        if (!userScrolledUp) userScrolledUp = true;
-                    }
-                }, 80);
-            });
-        }
-        
-        // 手动滚动到底部，并强制恢复自动滚动模式
-        function manualScrollToBottom() {
-            userScrolledUp = false;
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-        
-        // 增强版滚动（仅在满足自动条件时使用）
-        function autoScrollIfNeeded() {
-            if (!userScrolledUp) {
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            }
-        }
-        
-        // 强制滚动（用于新消息/发送场景，不受userScrolledUp影响）
-        function forceScrollToBottom() {
-            userScrolledUp = false;   // 重置拦截标志，保证后续新回复自动跟随
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-        
         function init() {
             try {
+                // 跃迁至拥有因果时序防护锁的 v28 离散沙箱
                 const savedState = localStorage.getItem('deepseek_client_state_v28');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
@@ -368,7 +298,9 @@
                     state.config.darkMode = false;
                     saveState();
                 }
-            } catch (e) { console.error("State parse error", e); }
+            } catch (e) {
+                console.error("State parse error", e);
+            }
 
             if (state.sessions.length === 0) createNewSession(false);
             if (!state.activeSessionId && state.sessions.length > 0) state.activeSessionId = state.sessions[0].id;
@@ -389,8 +321,6 @@
             if (typeof marked !== 'undefined') {
                 marked.setOptions({ breaks: true, gfm: true });
             }
-            // 启动滚动行为监视器
-            initScrollWatcher();
         }
 
         function saveState() {
@@ -404,72 +334,574 @@
             }));
         }
 
-        // 切换会话等强制滚动重置标记
+        function toggleSidebar() {
+            sidebarOpen = !sidebarOpen;
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            
+            if (sidebarOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('opacity-0');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            }
+        }
+
+        function toggleDarkMode() { state.config.darkMode = !state.config.darkMode; applyDarkMode(); saveState(); }
+        function applyDarkMode() { document.documentElement.classList.toggle('dark', state.config.darkMode); }
+
+        function toggleThinkingModeViaBtn() {
+            state.config.thinkingMode = !state.config.thinkingMode;
+            const toggleElement = document.getElementById('thinking-mode-toggle');
+            if (toggleElement) toggleElement.checked = state.config.thinkingMode;
+            saveState();
+            updateThinkingBulbUI();
+        }
+
+        function toggleThinkingMode(event) {
+            state.config.thinkingMode = event.target.checked;
+            saveState();
+            updateThinkingBulbUI();
+        }
+
+        function updateThinkingBulbUI() {
+            const btn = document.getElementById('thinking-bulb-btn');
+            if (!btn) return;
+            if (state.config.thinkingMode) {
+                btn.className = "w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-blue-500/60 dark:border-blue-400/60 shadow-lg backdrop-blur-xl shrink-0 text-blue-500 dark:text-blue-400 font-bold mb-[11px]";
+            } else {
+                btn.className = "w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 mb-[11px]";
+            }
+        }
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            
+            if (id === 'settings-modal') {
+                document.getElementById('api-url').value = state.config.apiUrl || '';
+                document.getElementById('api-key').value = state.config.apiKey || '';
+                document.getElementById('api-temperature').value = state.config.temperature ?? 1.0;
+                document.getElementById('temp-display').innerText = parseFloat(state.config.temperature ?? 1.0).toFixed(1);
+                document.getElementById('api-max-tokens').value = state.config.maxTokens ?? 2048;
+                document.getElementById('api-history').value = state.config.historyTurns ?? 20;
+                document.getElementById('history-display').innerText = state.config.historyTurns ?? 20;
+                
+                document.getElementById('api-font-size').value = state.config.fontSize ?? 16;
+                document.getElementById('font-display').innerText = (state.config.fontSize ?? 16) + 'px';
+
+                const container = document.getElementById('model-input-container');
+                if (container) container.innerHTML = `<input type="text" id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="${state.config.model || 'deepseek-v4-flash'}">`;
+                const statusDiv = document.getElementById('model-fetch-status');
+                if(statusDiv) statusDiv.classList.add('hidden');
+            } else if (id === 'world-matrix-modal') {
+                renderWorldMatrix();
+            }
+        }
+
+        function closeModal(id) { 
+            const modal = document.getElementById(id);
+            if(modal) modal.classList.add('hidden'); 
+        }
+
+        function saveSettings() {
+            state.config.apiUrl = document.getElementById('api-url').value.trim();
+            state.config.apiKey = document.getElementById('api-key').value.trim();
+            state.config.model = document.getElementById('api-model').value.trim();
+            state.config.temperature = parseFloat(document.getElementById('api-temperature').value);
+            state.config.maxTokens = parseInt(document.getElementById('api-max-tokens').value, 10) || 2048;
+            state.config.historyTurns = parseInt(document.getElementById('api-history').value, 10) || 20;
+            state.config.fontSize = parseInt(document.getElementById('api-font-size').value, 10) || 16;
+            
+            saveState(); closeModal('settings-modal');
+        }
+
+        async function fetchModels() {
+            const baseUrl = document.getElementById('api-url').value.trim().replace(/\/+$/, '');
+            const apiKey = document.getElementById('api-key').value.trim();
+            const statusDiv = document.getElementById('model-fetch-status');
+            const modelContainer = document.getElementById('model-input-container');
+
+            if (!apiKey) {
+                statusDiv.textContent = '错误：请先填写 API Key';
+                statusDiv.className = 'text-sm mt-1 text-red-500';
+                statusDiv.classList.remove('hidden');
+                return;
+            }
+
+            statusDiv.textContent = '正在获取模型列表...';
+            statusDiv.className = 'text-sm mt-1 text-blue-500';
+            statusDiv.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`${baseUrl}/models`, { method: 'GET', headers: { 'Authorization': `Bearer ${apiKey}` } });
+                if (!res.ok) throw new Error(`请求失败: HTTP ${res.status}`);
+                const data = await res.json();
+                
+                if (data && data.data && Array.isArray(data.data)) {
+                    const currentModel = document.getElementById('api-model').value.trim();
+                    let options = data.data.map(m => `<option value="${m.id}" ${m.id === currentModel ? 'selected' : ''}>${m.id}</option>`).join('');
+                    if (currentModel && !data.data.find(m => m.id === currentModel)) {
+                        options = `<option value="${currentModel}" selected>${currentModel}</option>` + options;
+                    }
+                    modelContainer.innerHTML = `<select id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base">${options}</select>`;
+                    statusDiv.textContent = `获取成功：已找到 ${data.data.length} 个模型`;
+                    statusDiv.className = 'text-sm mt-1 text-green-500';
+                } else {
+                    throw new Error('数据格式错误');
+                }
+            } catch (err) {
+                statusDiv.textContent = `获取失败: ${err.message}`;
+                statusDiv.className = 'text-sm mt-1 text-red-500';
+            }
+        }
+
+        function createNewSession(render = true) {
+            const newSession = { 
+                id: Date.now().toString(), 
+                title: '未命名对话', 
+                messages: [],
+                activeCharacters: [],
+                activePlots: []
+            };
+            state.sessions.unshift(newSession);
+            state.activeSessionId = newSession.id;
+            if (render) { renderSessions(); renderChat(); saveState(); }
+        }
+
+        function switchSession(id) {
+            if (abortController) stopGeneration();
+            state.activeSessionId = id;
+            if(window.innerWidth < 768 && sidebarOpen) toggleSidebar();
+            renderSessions(); renderChat(); saveState();
+        }
+
+        function deleteSession(id, event) {
+            event.stopPropagation();
+            if(!confirm('确定要删除此对话吗？')) return;
+            state.sessions = state.sessions.filter(s => s.id !== id);
+            if (state.activeSessionId === id) state.activeSessionId = state.sessions.length > 0 ? state.sessions[0].id : null;
+            if (state.sessions.length === 0) createNewSession(false);
+            renderSessions(); renderChat(); saveState();
+        }
+
+        function forkSession(messageIndex) {
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (!activeSession) return;
+            const forkedMessages = JSON.parse(JSON.stringify(activeSession.messages.slice(0, messageIndex + 1)));
+            const newSession = { 
+                id: Date.now().toString(), 
+                title: activeSession.title + ' [分支]', 
+                messages: forkedMessages,
+                systemPrompt: activeSession.systemPrompt ? JSON.parse(JSON.stringify(activeSession.systemPrompt)) : null,
+                activeCharacters: [...(activeSession.activeCharacters || [])],
+                activePlots: [...(activeSession.activePlots || [])]
+            };
+            state.sessions.unshift(newSession);
+            state.activeSessionId = newSession.id;
+            renderSessions(); renderChat(); saveState();
+        }
+
+        function deleteMessage(index) {
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (!activeSession) return;
+            if (!confirm('确定删除此消息及其之后的所有回复吗？')) return;
+            activeSession.messages.splice(index);
+            renderChat(); saveState();
+        }
+
+        function editMessage(index) {
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            const msg = activeSession.messages[index];
+            const newContent = prompt("修改消息内容：", msg.content);
+            if (newContent !== null && newContent.trim() !== '') {
+                msg.content = newContent;
+                if(confirm('确定保存修改并重新生成后续对话吗？')) {
+                    activeSession.messages.splice(index + 1);
+                    if (msg.role === 'user') {
+                        const contentToResend = activeSession.messages.pop().content;
+                        renderChat(); triggerSend(contentToResend);
+                        return;
+                    }
+                }
+                renderChat(); saveState();
+            }
+        }
+
+        function copyMessage(index) {
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (!activeSession || !activeSession.messages[index]) return;
+            const text = activeSession.messages[index].content;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('该段对话已成功复制到剪贴板。');
+            }).catch(err => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed'; 
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('该段对话已成功复制到剪贴板。');
+                } catch (e) {
+                    console.error('复制流执行中断:', e);
+                }
+                document.body.removeChild(textarea);
+            });
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.matrix-tab').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('text-blue-600', 'border-blue-600');
+                el.classList.add('text-gray-400', 'border-transparent');
+            });
+            btn.classList.remove('text-gray-400', 'border-transparent');
+            btn.classList.add('text-blue-600', 'border-blue-600');
+        }
+
+        function renderWorldMatrix() {
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (!activeSession) return;
+
+            // 1. 系统单选设定流
+            document.getElementById('system-list').innerHTML = state.systemCards.map(p => {
+                const isActive = activeSession.systemPrompt?.title === p.title;
+                return `
+                <div class="p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isActive ? 'border-blue-500/80 bg-blue-50/40 dark:bg-blue-950/20 shadow-sm' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                    <div class="flex-1 cursor-pointer truncate" onclick="toggleSystem('${p.id}')">
+                        <div class="font-bold text-base ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'} flex items-center gap-1 truncate">${escapeHTML(p.title)} ${isActive ? '<i class="fa-solid fa-circle-check text-base"></i>' : ''}</div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <button onclick="openEditPromptModal('system', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-base"></i></button>
+                        <button onclick="deleteCard('system', '${p.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1.5" title="删除"><i class="fa-solid fa-trash text-base"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // 2. 角色多选卡片流
+            document.getElementById('character-list').innerHTML = state.characterCards.map(c => {
+                const isChecked = activeSession.activeCharacters.includes(c.id);
+                return `
+                <label class="relative flex items-center cursor-pointer group w-full">
+                    <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('character', '${c.id}', this.checked)">
+                    <div class="w-full p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-purple-500/80 bg-purple-50/20 dark:bg-purple-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                        <div class="flex-1 truncate">
+                            <div class="font-bold text-base ${isChecked ? 'text-purple-600 dark:text-purple-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(c.title)}</div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0 z-10">
+                            <button type="button" onclick="openEditPromptModal('character', '${c.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-base"></i></button>
+                            <button type="button" onclick="deleteCard('character', '${c.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1.5"><i class="fa-solid fa-trash text-base"></i></button>
+                        </div>
+                    </div>
+                </label>`;
+            }).join('');
+
+            // 3. 剧情多选卡片流
+            document.getElementById('plot-list').innerHTML = state.plotCards.map(p => {
+                const isChecked = activeSession.activePlots.includes(p.id);
+                return `
+                <label class="relative flex items-center cursor-pointer group w-full">
+                    <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('plot', '${p.id}', this.checked)">
+                    <div class="w-full p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-green-500/80 bg-green-50/20 dark:bg-green-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                        <div class="flex-1 truncate">
+                            <div class="font-bold text-base ${isChecked ? 'text-green-600 dark:text-green-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(p.title)}</div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0 z-10">
+                            <button type="button" onclick="openEditPromptModal('plot', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-base"></i></button>
+                            <button type="button" onclick="deleteCard('plot', '${p.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1.5"><i class="fa-solid fa-trash text-base"></i></button>
+                        </div>
+                    </div>
+                </label>`;
+            }).join('');
+        }
+
+        function toggleSystem(id) {
+            const p = state.systemCards.find(x => x.id === id);
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (p && activeSession) {
+                if(activeSession.systemPrompt?.title === p.title) {
+                    delete activeSession.systemPrompt; 
+                } else {
+                    activeSession.systemPrompt = { title: p.title, content: p.content };
+                }
+                saveState();
+                renderWorldMatrix();
+                renderChat();
+            }
+        }
+
+        function toggleMatrixItem(type, id, isChecked) {
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (!activeSession) return;
+            const targetArray = type === 'character' ? activeSession.activeCharacters : activeSession.activePlots;
+            if (isChecked) {
+                if(!targetArray.includes(id)) targetArray.push(id);
+            } else {
+                const idx = targetArray.indexOf(id);
+                if(idx > -1) targetArray.splice(idx, 1);
+            }
+            saveState();
+            renderChat(); 
+        }
+
+        function addCard(type) {
+            const prefix = type === 'system' ? 'sys' : type === 'character' ? 'char' : 'plot';
+            const titleEl = document.getElementById(`new-${prefix}-title`);
+            const contentEl = document.getElementById(`new-${prefix}-content`);
+            const title = titleEl.value.trim();
+            const content = contentEl.value.trim();
+            if (!title || !content) return;
+            
+            const newObj = { id: Date.now().toString() + prefix[0], title, content };
+            if (type === 'system') state.systemCards.push(newObj);
+            else if (type === 'character') state.characterCards.push(newObj);
+            else state.plotCards.push(newObj);
+            
+            titleEl.value = ''; contentEl.value = '';
+            contentEl.style.height = 'auto'; 
+            saveState(); renderWorldMatrix();
+        }
+
+        function deleteCard(type, id) {
+            if(!confirm('确定删除此设定吗？')) return;
+            if (type === 'system') {
+                state.systemCards = state.systemCards.filter(x => x.id !== id);
+                state.sessions.forEach(s => {
+                    if(s.systemPrompt && !state.systemCards.find(c => c.title === s.systemPrompt.title)) delete s.systemPrompt;
+                });
+            } else if (type === 'character') {
+                state.characterCards = state.characterCards.filter(x => x.id !== id);
+                state.sessions.forEach(s => s.activeCharacters = s.activeCharacters.filter(cId => cId !== id));
+            } else {
+                state.plotCards = state.plotCards.filter(x => x.id !== id);
+                state.sessions.forEach(s => s.activePlots = s.activePlots.filter(pId => pId !== id));
+            }
+            saveState(); renderWorldMatrix(); renderChat();
+        }
+
+        function openEditPromptModal(type, id, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            editingPromptId = { type, id };
+            let p;
+            if (type === 'system') p = state.systemCards.find(x => x.id === id);
+            else if (type === 'character') p = state.characterCards.find(x => x.id === id);
+            else p = state.plotCards.find(x => x.id === id);
+            
+            if (p) {
+                document.getElementById('edit-prompt-title').value = p.title;
+                const contentEl = document.getElementById('edit-prompt-content');
+                contentEl.value = p.content;
+                document.getElementById('edit-prompt-modal').classList.remove('hidden');
+                setTimeout(() => autoResize(contentEl), 20); 
+            }
+        }
+
+        function closeEditPromptModal() {
+            editingPromptId = null;
+            document.getElementById('edit-prompt-modal').classList.add('hidden');
+        }
+
+        function saveEditedPrompt() {
+            if (!editingPromptId) return;
+            const title = document.getElementById('edit-prompt-title').value.trim();
+            const content = document.getElementById('edit-prompt-content').value.trim();
+            if (!title || !content) return;
+            
+            const { type, id } = editingPromptId;
+            let targetArray;
+            if (type === 'system') targetArray = state.systemCards;
+            else if (type === 'character') targetArray = state.characterCards;
+            else targetArray = state.plotCards;
+
+            const idx = targetArray.findIndex(p => p.id === id);
+            if (idx !== -1) {
+                targetArray[idx].title = title;
+                targetArray[idx].content = content;
+                
+                if (type === 'system') {
+                    const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+                    if (activeSession && activeSession.systemPrompt && activeSession.systemPrompt.title === targetArray[idx].title) {
+                        activeSession.systemPrompt.content = content;
+                    }
+                }
+                
+                saveState();
+                renderWorldMatrix();
+                renderChat();
+                closeEditPromptModal();
+            }
+        }
+
+        function renderSessions() {
+            const container = document.getElementById('sessions-list');
+            if(!container) return;
+            container.innerHTML = state.sessions.map(s => {
+                const hasMatrix = s.systemPrompt || (s.activeCharacters && s.activeCharacters.length > 0) || (s.activePlots && s.activePlots.length > 0);
+                return `
+                <div class="flex justify-between items-center p-3 md:p-2.5 rounded-xl cursor-pointer mb-1 ${s.id === state.activeSessionId ? 'bg-gray-300 dark:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" onclick="switchSession('${s.id}')">
+                    <div class="truncate flex-1 text-lg ${hasMatrix ? 'text-indigo-700 dark:text-indigo-400 font-medium' : ''}">
+                        <i class="fa-regular ${hasMatrix ? 'fa-id-card' : 'fa-message'} mr-2.5 text-lg"></i> ${escapeHTML(s.title)}
+                    </div>
+                    <div class="flex items-center gap-3.5 shrink-0 opacity-100 md:opacity-60 md:hover:opacity-100">
+                        <button onclick="exportMarkdown('${s.id}', event)" class="text-gray-500 hover:text-green-500 transition p-1" title="导出Markdown"><i class="fa-solid fa-download text-base"></i></button>
+                        <button onclick="deleteSession('${s.id}', event)" class="text-gray-500 hover:text-red-500 transition p-1" title="删除"><i class="fa-solid fa-xmark text-base"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function escapeHTML(str) {
+            return (str || '').replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag] || tag));
+        }
+
+        function buildMessageHTML(content, reasoning) {
+            let html = '';
+            if (reasoning) {
+                html += `
+                    <details class="mb-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800/80 overflow-hidden w-fit max-w-full z-10 relative">
+                        <summary class="cursor-pointer p-3 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2">
+                            <i class="fa-solid fa-brain text-blue-500"></i> 思考过程
+                        </summary>
+                        <div class="p-4 pt-2 text-[0.9em] text-gray-500 dark:text-gray-400 whitespace-pre-wrap border-t border-gray-200 dark:border-gray-700 leading-relaxed">${escapeHTML(reasoning)}</div>
+                    </details>
+                `;
+            }
+            if (content && typeof marked !== 'undefined') {
+                html += marked.parse(content);
+            } else if (content) {
+                html += `<div class="whitespace-pre-wrap">${escapeHTML(content)}</div>`;
+            }
+            return html;
+        }
+
+        function updateBanner(session) {
+            const bookBtn = document.getElementById('book-matrix-btn');
+            if (!bookBtn) return;
+            
+            let hasAny = false;
+            if (session.systemPrompt) hasAny = true;
+            if (session.activeCharacters && session.activeCharacters.length > 0) hasAny = true;
+            if (session.activePlots && session.activePlots.length > 0) hasAny = true;
+            
+            if (hasAny) {
+                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
+            } else {
+                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
+            }
+        }
+
         function renderChat() {
             const container = document.getElementById('chat-container');
             if(!container) return;
+
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
+            
             updateBanner(activeSession);
 
             if (activeSession.messages.length === 0) {
-                container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-center opacity-80 select-none px-4 mt-24">
+                container.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center opacity-80 select-none px-4 mt-24">
                         <h2 class="text-3xl font-medium text-gray-800 dark:text-gray-100 mb-2 tracking-wider">你好，Way</h2>
                         <p class="text-gray-500 dark:text-gray-400 text-base md:text-lg font-light">发送消息以开始对话</p>
                     </div>`;
-                forceScrollToBottom();
                 return;
             }
 
             const fontSizeStyle = `font-size: ${state.config.fontSize || 16}px;`;
+
             container.innerHTML = activeSession.messages.map((msg, index) => {
                 const isUser = msg.role === 'user';
                 const parsedContent = isUser ? `<div class="whitespace-pre-wrap">${escapeHTML(msg.content)}</div>` : buildMessageHTML(msg.content, msg.reasoning);
+                
+                // 核心时序校验线
                 const isGenerating = (index === activeSession.messages.length - 1 && abortController !== null);
+
                 if (isUser) {
-                    return `<div class="flex flex-col items-end group w-full mb-4 max-w-5xl mx-auto">
+                    return `
+                    <div class="flex flex-col items-end group w-full mb-4 max-w-5xl mx-auto">
                         <div class="max-w-[90%] md:max-w-[75%] relative flex flex-col items-end">
                             <div class="px-5 py-3 rounded-[24px] bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 message-content shadow-sm" style="${fontSizeStyle}">${parsedContent}</div>
+                            
                             <div class="flex gap-3.5 md:gap-2.5 text-base md:text-lg text-gray-400 md:text-gray-500 mt-1.5 mr-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20 ${isGenerating ? 'hidden' : ''}">
-                                <button onclick="copyMessage(${index})" class="hover:text-indigo-500"><i class="fa-regular fa-copy"></i></button>
-                                <button onclick="editMessage(${index})" class="hover:text-blue-500"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="forkSession(${index})" class="hover:text-green-500"><i class="fa-solid fa-code-branch"></i></button>
-                                <button onclick="deleteMessage(${index})" class="hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                                <button onclick="copyMessage(${index})" class="hover:text-indigo-500" title="复制文本"><i class="fa-regular fa-copy"></i></button>
+                                <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
+                                <button onclick="deleteMessage(${index})" class="hover:text-red-500" title="删除"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
                     </div>`;
                 } else {
-                    return `<div class="flex flex-col items-start group w-full mb-6 mt-2 max-w-5xl mx-auto">
+                    return `
+                    <div class="flex flex-col items-start group w-full mb-6 mt-2 max-w-5xl mx-auto">
                         <div class="w-full relative flex flex-col items-start">
                             <div class="py-2 message-content prose dark:prose-invert max-w-none text-gray-900 dark:text-gray-100 w-full" style="${fontSizeStyle}">${parsedContent}</div>
+                            
                             <div class="flex gap-3.5 md:gap-2.5 text-base md:text-lg text-gray-400 md:text-gray-500 mt-1 ml-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20 ${isGenerating ? 'hidden' : ''}">
-                                <button onclick="copyMessage(${index})" class="hover:text-indigo-500"><i class="fa-regular fa-copy"></i></button>
-                                <button onclick="editMessage(${index})" class="hover:text-blue-500"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="forkSession(${index})" class="hover:text-green-500"><i class="fa-solid fa-code-branch"></i></button>
-                                <button onclick="deleteMessage(${index})" class="hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                                <button onclick="copyMessage(${index})" class="hover:text-indigo-500" title="复制文本"><i class="fa-regular fa-copy"></i></button>
+                                <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
+                                <button onclick="deleteMessage(${index})" class="hover:text-red-500" title="删除"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
                     </div>`;
                 }
             }).join('');
-            forceScrollToBottom();   // 刷新聊天内容后默认到底部，符合直觉
+            scrollToBottom();
         }
 
-        // 流式中的局部更新，保留用户滚动锁
-        function streamUpdateMessage(aiMessageIndex, fullContent, reasoningContent, lastMsgDiv) {
-            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
-            if (activeSession) {
-                activeSession.messages[aiMessageIndex].reasoning = reasoningContent;
-                activeSession.messages[aiMessageIndex].content = fullContent;
-            }
-            if (lastMsgDiv) {
-                lastMsgDiv.innerHTML = buildMessageHTML(fullContent, reasoningContent);
-                if (!userScrolledUp) autoScrollIfNeeded();
+        function scrollToBottom() { 
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        function autoResize(textarea) { 
+            if(!textarea) return;
+            textarea.style.height = 'auto'; 
+            const maxH = textarea.id === 'message-input' ? 140 : 120;
+            textarea.style.height = Math.min(textarea.scrollHeight, maxH) + 'px'; 
+        }
+
+        function handleInputKeydown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.isComposing) return;
+                if(window.innerWidth >= 768) {
+                    e.preventDefault(); 
+                    sendMessage(); 
+                }
             }
         }
 
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            if(!input) return;
+            const content = input.value.trim();
+            if (!content) return;
+            triggerSend(content);
+            input.value = ''; 
+            autoResize(input);
+            if(window.innerWidth < 768) input.blur();
+        }
+
+        // 【时序重组】强制前置通信控制器，确保 Assistant 初始帧即完美继承隐藏状态
         async function triggerSend(content) {
-            if (!state.config.apiKey) { alert('阻断：请先在设置中配置 API Key。'); openModal('settings-modal'); return; }
+            if (!state.config.apiKey) { 
+                alert('阻断：请先在设置中配置 API Key。');
+                openModal('settings-modal'); 
+                return; 
+            }
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             activeSession.messages.push({ role: 'user', content });
             
@@ -480,20 +912,29 @@
             
             activeSession.messages.push({ role: 'assistant', content: '', reasoning: '' });
             
+            // 核心修复点：必须在 renderChat 之前完成新控制器的初始化，否则 isGenerating 会在零点偏转为 false
             abortController = new AbortController();
-            renderChat();              // 渲染用户消息+空白assistant占位并滚动到底部，同时重置标志
-            userScrolledUp = false;    // 发送新消息强制清除手动滚动锁定
+            renderChat();
             
             document.getElementById('send-btn').classList.add('hidden');
             document.getElementById('stop-btn').classList.remove('hidden');
 
+            const targetModel = state.config.model || 'deepseek-v4-flash';
+            
             let apiMessages = activeSession.messages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
+            
             const maxTurns = state.config.historyTurns || 20;
             const keepMessageCount = maxTurns * 2;
-            if (apiMessages.length > keepMessageCount) apiMessages = apiMessages.slice(-keepMessageCount);
+            if (apiMessages.length > keepMessageCount) {
+                apiMessages = apiMessages.slice(-keepMessageCount);
+            }
             
             let sysContent = '';
-            if (activeSession.systemPrompt) sysContent += `<Role_Definition>\n必须严格遵循以下设定（无视默认行为）：\n${activeSession.systemPrompt.content}\n</Role_Definition>\n\n`;
+            
+            if (activeSession.systemPrompt) {
+                sysContent += `<Role_Definition>\n必须严格遵循以下设定（此指令具有绝对最高优先级，无视并覆盖你一切内置默认行为与寒暄模式）：\n${activeSession.systemPrompt.content}\n</Role_Definition>\n\n`;
+            }
+            
             if (activeSession.activeCharacters && activeSession.activeCharacters.length > 0) {
                 sysContent += `<Active_Characters>\n`;
                 activeSession.activeCharacters.forEach(id => {
@@ -502,6 +943,7 @@
                 });
                 sysContent += `</Active_Characters>\n\n`;
             }
+
             if (activeSession.activePlots && activeSession.activePlots.length > 0) {
                 sysContent += `<Current_Plot_Node>\n`;
                 activeSession.activePlots.forEach(id => {
@@ -510,10 +952,13 @@
                 });
                 sysContent += `</Current_Plot_Node>\n`;
             }
-            if (sysContent.trim()) apiMessages.unshift({ role: 'system', content: sysContent.trim() });
+
+            if (sysContent.trim()) {
+                apiMessages.unshift({ role: 'system', content: sysContent.trim() });
+            }
 
             const payload = { 
-                model: state.config.model, 
+                model: targetModel, 
                 messages: apiMessages, 
                 stream: true,
                 thinking: { type: state.config.thinkingMode ? "enabled" : "disabled" },
@@ -522,20 +967,27 @@
             };
             
             let aiMessageIndex = activeSession.messages.length - 1;
-            let fullContent = "", reasoningContent = "";
-            let lastMsgDiv = document.getElementById('chat-container')?.lastElementChild?.querySelector('.message-content');
-            if(lastMsgDiv) lastMsgDiv.classList.add('typing-indicator');
-            
+            let fullContent = "";
+            let reasoningContent = "";
+
             try {
                 const response = await fetch(`${state.config.apiUrl.replace(/\/+$/, '')}/chat/completions`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.apiKey}` },
                     body: JSON.stringify(payload), signal: abortController.signal
                 });
-                if (!response.ok) { const err = await response.json().catch(()=>({})); throw new Error(err.error?.message || `HTTP ${response.status}`); }
+                
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.error?.message || `HTTP ${response.status}`);
+                }
                 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder("utf-8");
                 let buffer = "";
+                const chatContainer = document.getElementById('chat-container');
+                const lastMsgDiv = chatContainer ? chatContainer.lastElementChild.querySelector('.message-content') : null;
+                if(lastMsgDiv) lastMsgDiv.classList.add('typing-indicator');
+
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
@@ -549,70 +1001,56 @@
                             try {
                                 const data = JSON.parse(trimmed.substring(6));
                                 const delta = data.choices[0]?.delta || {};
+                                
                                 if (delta.reasoning_content) reasoningContent += delta.reasoning_content;
                                 if (delta.content) fullContent += delta.content;
-                                streamUpdateMessage(aiMessageIndex, fullContent, reasoningContent, lastMsgDiv);
-                            } catch(e) {}
+                                
+                                activeSession.messages[aiMessageIndex].reasoning = reasoningContent;
+                                activeSession.messages[aiMessageIndex].content = fullContent;
+                                
+                                if(lastMsgDiv) lastMsgDiv.innerHTML = buildMessageHTML(fullContent, reasoningContent);
+                                scrollToBottom();
+                            } catch (e) {}
                         }
                     }
                 }
-                if(lastMsgDiv) lastMsgDiv.classList.remove('typing-indicator');
-                const detailsNode = lastMsgDiv?.querySelector('details');
-                if(detailsNode) detailsNode.removeAttribute('open');
+                if(lastMsgDiv) {
+                    lastMsgDiv.classList.remove('typing-indicator');
+                    const detailsNode = lastMsgDiv.querySelector('details');
+                    if(detailsNode) detailsNode.removeAttribute('open');
+                }
+
             } catch (error) {
                 if (error.name !== 'AbortError') { 
-                    activeSession.messages[aiMessageIndex].content += `\n\n[网络错误] ${error.message}`;
-                    if(lastMsgDiv) lastMsgDiv.innerHTML = buildMessageHTML(fullContent + `\n\n[网络错误] ${error.message}`, reasoningContent);
+                    activeSession.messages[aiMessageIndex].content += `\n\n[网络错误] ${error.message}`; 
                 }
             } finally {
                 abortController = null;
-                document.getElementById('send-btn')?.classList.remove('hidden');
-                document.getElementById('stop-btn')?.classList.add('hidden');
+                const btnSend = document.getElementById('send-btn');
+                const btnStop = document.getElementById('stop-btn');
+                if(btnSend) btnSend.classList.remove('hidden');
+                if(btnStop) btnStop.classList.add('hidden');
                 saveState();
-                // 不再全量调用renderChat防止滚动抖动，只更新最后消息UI和保存状态即可
-                const finalDiv = document.getElementById('chat-container')?.lastElementChild?.querySelector('.message-content');
-                if (finalDiv && fullContent) finalDiv.innerHTML = buildMessageHTML(fullContent, reasoningContent);
+                renderChat(); // 闭合时刻全量冲刷，将指示按键平滑吐出
             }
         }
 
         function stopGeneration() {
             if (abortController) {
-                abortController.abort();
-                abortController = null;
+                abortController.abort(); abortController = null;
                 const lastMsgDiv = document.getElementById('chat-container')?.lastElementChild?.querySelector('.message-content');
                 if (lastMsgDiv) lastMsgDiv.classList.remove('typing-indicator');
-                document.getElementById('send-btn')?.classList.remove('hidden');
-                document.getElementById('stop-btn')?.classList.add('hidden');
-                saveState();
+                const btnSend = document.getElementById('send-btn');
+                const btnStop = document.getElementById('stop-btn');
+                if(btnSend) btnSend.classList.remove('hidden');
+                if(btnStop) btnStop.classList.add('hidden');
+                renderChat(); 
             }
         }
 
-        // 其余辅助函数 (copy, edit, delete, fork等等) 保持原有不变，但因篇幅限制保留主要结构——均无额外改动，符合预期滚动逻辑。以下为快速补齐必要函数引用避免丢失
-        function toggleDarkMode() { state.config.darkMode = !state.config.darkMode; applyDarkMode(); saveState(); }
-        function applyDarkMode() { document.documentElement.classList.toggle('dark', state.config.darkMode); }
-        function toggleThinkingModeViaBtn() { state.config.thinkingMode = !state.config.thinkingMode; const toggleElement = document.getElementById('thinking-mode-toggle'); if (toggleElement) toggleElement.checked = state.config.thinkingMode; saveState(); updateThinkingBulbUI(); }
-        function updateThinkingBulbUI() { const btn = document.getElementById('thinking-bulb-btn'); if(!btn) return; if(state.config.thinkingMode) btn.className = "w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-blue-500/60 dark:border-blue-400/60 shadow-lg backdrop-blur-xl shrink-0 text-blue-500 dark:text-blue-400 font-bold mb-[11px]"; else btn.className = "w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 mb-[11px]"; }
-        // 重新导出必要函数副本（原html中大量存在，为避免缺失定义外层暴露）
-        window.renderChat = renderChat; window.manualScrollToBottom = manualScrollToBottom;
-        window.sendMessage = function() { const input = document.getElementById('message-input'); if(!input) return; const content = input.value.trim(); if (!content) return; triggerSend(content); input.value = ''; autoResize(input); if(window.innerWidth < 768) input.blur(); };
-        window.handleInputKeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { if(window.innerWidth >= 768) { e.preventDefault(); sendMessage(); } } };
-        window.autoResize = function(textarea) { if(!textarea) return; textarea.style.height = 'auto'; textarea.style.height = Math.min(textarea.scrollHeight, (textarea.id === 'message-input' ? 140 : 120)) + 'px'; };
-        window.copyMessage = (i) => { const msg = state.sessions.find(s=>s.id===state.activeSessionId)?.messages[i]; if(msg) navigator.clipboard.writeText(msg.content).then(()=>alert("已复制")); };
-        window.editMessage = (idx) => { /* 略作保留，原有逻辑不影响 */ alert("编辑功能保持原样，点击消息旁编辑按钮即可"); };
-        window.forkSession = (idx) => { alert("分支功能正常"); };
-        window.deleteMessage = (idx) => { if(confirm('删除此消息及其后续？')){ const s = state.sessions.find(s=>s.id===state.activeSessionId); s.messages.splice(idx); renderChat(); saveState(); } };
-        function buildMessageHTML(content, reasoning) { let html=''; if(reasoning) html+=`<details class="mb-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800/80 overflow-hidden w-fit max-w-full"><summary class="cursor-pointer p-3 text-sm font-bold"><i class="fa-solid fa-brain text-blue-500"></i> 思考过程</summary><div class="p-4 text-[0.9em] whitespace-pre-wrap">${escapeHTML(reasoning)}</div></details>`; if(content && typeof marked !== 'undefined') html+=marked.parse(content); else if(content) html+=`<div class="whitespace-pre-wrap">${escapeHTML(content)}</div>`; return html; }
-        function escapeHTML(str) { return (str || '').replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); }
-        function updateBanner(session) { const bookBtn = document.getElementById('book-matrix-btn'); if(!bookBtn) return; const hasAny = session.systemPrompt || (session.activeCharacters?.length>0) || (session.activePlots?.length>0); bookBtn.className = hasAny ? "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold" : "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100"; }
-        function createNewSession(render=true) { const newSession = { id: Date.now().toString(), title: '未命名对话', messages: [], activeCharacters: [], activePlots: [] }; state.sessions.unshift(newSession); state.activeSessionId = newSession.id; if(render) { renderSessions(); renderChat(); saveState(); } }
-        function renderSessions() { /* 保留原有逻辑但简化为避免报错 */ const container = document.getElementById('sessions-list'); if(!container) return; container.innerHTML = state.sessions.map(s => `<div class="flex justify-between p-3 rounded-xl cursor-pointer mb-1 ${s.id===state.activeSessionId?'bg-gray-300 dark:bg-gray-700':'hover:bg-gray-200 dark:hover:bg-gray-700'}" onclick="switchSession('${s.id}')"><div class="truncate flex-1"><i class="fa-regular fa-message mr-2"></i> ${escapeHTML(s.title)}</div><div><button onclick="deleteSession('${s.id}', event)" class="text-gray-500 hover:text-red-500 p-1"><i class="fa-solid fa-xmark"></i></button></div></div>`).join(''); }
-        window.switchSession = (id) => { if(abortController) stopGeneration(); state.activeSessionId = id; renderSessions(); renderChat(); saveState(); if(window.innerWidth<768 && sidebarOpen) toggleSidebar(); };
-        window.deleteSession = (id,event) => { event.stopPropagation(); if(!confirm('删除对话？')) return; state.sessions = state.sessions.filter(s=>s.id!==id); if(state.activeSessionId===id) state.activeSessionId = state.sessions[0]?.id||null; if(state.sessions.length===0) createNewSession(false); renderSessions(); renderChat(); saveState(); };
-        window.toggleSidebar = () => { sidebarOpen = !sidebarOpen; const sidebar=document.getElementById('sidebar'), backdrop=document.getElementById('sidebar-backdrop'); if(sidebarOpen) { sidebar.classList.remove('-translate-x-full'); backdrop.classList.remove('hidden'); setTimeout(()=>backdrop.classList.remove('opacity-0'),10); } else { sidebar.classList.add('-translate-x-full'); backdrop.classList.add('opacity-0'); setTimeout(()=>backdrop.classList.add('hidden'),300); } };
-        window.openModal = (id) => { const modal = document.getElementById(id); if(modal) modal.classList.remove('hidden'); if(id==='settings-modal') { document.getElementById('api-url').value = state.config.apiUrl; document.getElementById('api-key').value = state.config.apiKey; } };
-        window.closeModal = (id) => { const modal = document.getElementById(id); if(modal) modal.classList.add('hidden'); };
-        window.saveSettings = () => { state.config.apiUrl = document.getElementById('api-url').value.trim(); state.config.apiKey = document.getElementById('api-key').value.trim(); state.config.model = document.getElementById('api-model').value.trim(); state.config.temperature = parseFloat(document.getElementById('api-temperature').value); state.config.maxTokens = parseInt(document.getElementById('api-max-tokens').value,10); state.config.historyTurns = parseInt(document.getElementById('api-history').value,10); state.config.fontSize = parseInt(document.getElementById('api-font-size').value,10); saveState(); closeModal('settings-modal'); };
-        init();
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(init, 50);
+        });
     </script>
 </body>
 </html>
