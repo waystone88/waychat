@@ -29,226 +29,212 @@
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         input[type=range] { accent-color: #4f46e5; }
+        
+        /* 状态微调及全场去高亮轮廓线约束 */
         .card-checkbox:checked + div { border-color: #4f46e5; background-color: rgba(79, 70, 229, 0.08); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1); }
         .dark .card-checkbox:checked + div { border-color: #6366f1; background-color: rgba(99, 102, 241, 0.15); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
         .prose p:first-child { margin-top: 0; }
         .prose p:last-child { margin-bottom: 0; }
 
+        /* 全局强力压制所有点击高亮线 */
+        input:focus, textarea:focus, select:focus, button:focus, div:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
         input[type=text], input[type=password], textarea {
-            font-size: 16px !important;
+            font-size: 17px !important; /* 物理防缩放 */
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200">
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200 text-base">
 
-    <!-- Mobile Sidebar Backdrop -->
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
 
-    <!-- Responsive Sidebar -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-200 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
-            <h1 class="text-lg font-bold">WayChat</h1>
-            <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors hidden md:block">
-                <i class="fa-solid fa-moon dark:hidden"></i>
-                <i class="fa-solid fa-sun hidden dark:inline"></i>
+            <h1 class="text-xl font-bold tracking-tight">WayChat</h1>
+            <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
+                <i class="fa-solid fa-moon dark:hidden text-lg"></i>
+                <i class="fa-solid fa-sun hidden dark:inline text-lg"></i>
             </button>
         </div>
         
-        <div class="flex-1 overflow-y-auto p-2" id="sessions-list"></div>
+        <div class="flex-1 overflow-y-auto p-2 text-base" id="sessions-list"></div>
 
         <div class="p-2 border-t border-gray-300 dark:border-gray-700 space-y-2 shrink-0 bg-gray-200 dark:bg-gray-800 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
-            <button onclick="createNewSession(); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm">
+            <button onclick="createNewSession(); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm font-medium text-base">
                 <i class="fa-solid fa-plus mr-2"></i>新建对话
             </button>
-            <button onclick="openModal('world-matrix-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition">
+            <button onclick="openModal('world-matrix-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition text-base">
                 <i class="fa-solid fa-mask mr-2"></i>设定与角色库
             </button>
-            <button onclick="openModal('settings-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition">
+            <button onclick="openModal('settings-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition text-base">
                 <i class="fa-solid fa-gear mr-2"></i>设置
             </button>
         </div>
     </aside>
 
-    <!-- Main Viewport Arena -->
     <main class="flex-1 min-h-screen relative flex flex-col min-w-0 md:ml-64">
         
-        <!-- 全景悬浮层 -->
         <header class="fixed top-0 left-0 right-0 md:left-64 flex justify-between items-start px-4 md:px-6 z-40 pt-[calc(0.5rem+env(safe-area-inset-top))] pointer-events-none">
             <div class="flex items-start gap-2.5">
-                <button onclick="toggleSidebar()" class="pointer-events-auto w-10 h-10 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-700 dark:text-gray-200 transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5">
-                    <i class="fa-solid fa-bars text-lg"></i>
+                <button onclick="toggleSidebar()" class="pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-700 dark:text-gray-200 transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5">
+                    <i class="fa-solid fa-bars text-xl"></i>
                 </button>
-                
-                <!-- 激活设定组件 -->
-                <div id="matrix-banner" class="hidden pointer-events-auto text-xs bg-white/90 dark:bg-gray-800/90 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-800 dark:text-gray-100 flex-wrap items-center gap-x-2 gap-y-1 max-w-[55vw] md:max-w-[65vw] line-clamp-2 overflow-hidden">
-                    <span class="flex items-center gap-1 font-bold text-[10px] uppercase tracking-wider text-indigo-600 dark:text-indigo-400 shrink-0"><i class="fa-solid fa-network-wired"></i> 激活设定:</span>
-                    <span id="banner-system" class="hidden shrink-0"><span class="opacity-60 border border-indigo-300 dark:border-indigo-600 rounded px-1 mr-1 text-[10px]">系统</span><span id="banner-system-name" class="font-bold"></span></span>
-                    <span id="banner-chars" class="hidden shrink-0"><span class="opacity-60 border border-purple-300 dark:border-purple-600 rounded px-1 mr-1 text-[10px]">角色</span><span id="banner-chars-names" class="font-medium text-purple-600 dark:text-purple-400"></span></span>
-                    <span id="banner-plots" class="hidden shrink-0"><span class="opacity-60 border border-green-300 dark:border-green-600 rounded px-1 mr-1 text-[10px]">剧情</span><span id="banner-plots-names" class="font-medium text-green-600 dark:text-green-400"></span></span>
-                </div>
             </div>
             
             <div class="flex items-center gap-2">
-                <button onclick="toggleDarkMode()" class="pointer-events-auto w-10 h-10 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors text-gray-700 dark:text-gray-200 shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5">
-                    <i class="fa-solid fa-moon dark:hidden text-lg"></i>
-                    <i class="fa-solid fa-sun hidden dark:inline text-lg"></i>
+                <button onclick="openModal('world-matrix-modal')" id="book-matrix-btn" class="pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100" title="设定控制台">
+                    <i class="fa-regular fa-book-open text-xl"></i>
                 </button>
             </div>
         </header>
 
-        <!-- 聊天容器 -->
-        <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-6 z-10" style="padding-top: calc(7rem + env(safe-area-inset-top)); padding-bottom: calc(8rem + env(safe-area-inset-bottom));"></div>
+        <div id="matrix-banner" class="hidden"></div>
 
-        <!-- 底部大卡片输入组件 -->
-        <div class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
-            <div class="max-w-4xl mx-auto flex flex-col gap-2 relative pointer-events-auto">
+        <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-7 z-10 text-base md:text-lg" style="padding-top: calc(5.5rem + env(safe-area-inset-top)); padding-bottom: calc(8.5rem + env(safe-area-inset-bottom));"></div>
+
+        <div class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pb-6 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
+            <div class="max-w-4xl mx-auto flex items-end gap-2.5 relative pointer-events-auto">
                 
-                <div class="flex items-end gap-2 relative bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 rounded-[24px] p-2 text-base shadow-2xl focus-within:ring-2 focus-within:ring-blue-500 backdrop-blur-xl transition-all">
-                    <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent rounded-full pl-4 pr-1 py-2.5 text-base focus:outline-none text-gray-900 dark:text-gray-100 min-h-[40px] max-h-[160px] align-bottom" placeholder="输入消息..." onkeydown="handleInputKeydown(event)" oninput="autoResize(this)"></textarea>
+                <button onclick="toggleThinkingModeViaBtn()" id="thinking-bulb-btn" class="w-12 h-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 transition-all">
+                    <i class="fa-regular fa-lightbulb text-xl"></i>
+                </button>
+                <input type="checkbox" id="thinking-mode-toggle" class="sr-only">
+                
+                <div class="flex-1 flex items-end gap-2 relative bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 rounded-[24px] p-2 text-base shadow-2xl backdrop-blur-xl transition-all">
+                    <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent pl-4 pr-1 py-2.5 text-base md:text-lg focus:outline-none text-gray-900 dark:text-gray-100 min-h-[40px] max-h-[160px] align-bottom border-0" placeholder="输入消息..." onkeydown="handleInputKeydown(event)" oninput="autoResize(this)"></textarea>
                     
-                    <div class="flex items-center gap-2 shrink-0 pb-1.5 pr-1">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="thinking-mode-toggle" class="sr-only peer" onchange="toggleThinkingMode(event)">
-                            <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                        </label>
-                        
-                        <button onclick="sendMessage()" id="send-btn" class="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition w-11 h-11 flex items-center justify-center shrink-0 shadow-md">
-                            <i class="fa-solid fa-paper-plane text-base"></i>
-                        </button>
-                        <button onclick="stopGeneration()" id="stop-btn" class="hidden bg-red-600 text-white p-3 rounded-full hover:bg-red-700 transition w-11 h-11 flex items-center justify-center shrink-0 shadow-md">
-                            <i class="fa-solid fa-stop text-base"></i>
-                        </button>
-                    </div>
+                    <button onclick="sendMessage()" id="send-btn" class="bg-gray-900 dark:bg-white text-white dark:text-gray-900 p-3 rounded-full hover:bg-black dark:hover:bg-gray-100 transition w-11 h-11 flex items-center justify-center shrink-0 shadow-md">
+                        <i class="fa-solid fa-arrow-up text-base font-bold"></i>
+                    </button>
+                    <button onclick="stopGeneration()" id="stop-btn" class="hidden bg-red-600 text-white p-3 rounded-full hover:bg-red-700 transition w-11 h-11 flex items-center justify-center shrink-0 shadow-md">
+                        <i class="fa-solid fa-stop text-base"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 70;">
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]">
-            <h2 class="text-xl font-bold mb-4 shrink-0">设置</h2>
-            <div class="space-y-4 overflow-y-auto pr-2 flex-1">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] text-base">
+            <h2 class="text-2xl font-bold mb-4 shrink-0 tracking-tight">设置</h2>
+            <div class="space-y-4 overflow-y-auto pr-2 flex-1 text-base">
                 <div>
-                    <label class="block text-sm mb-1">API Base URL</label>
-                    <input type="text" id="api-url" class="w-full p-2 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none text-sm" value="https://api.deepseek.com/v1">
+                    <label class="block text-base font-medium mb-1.5">API Base URL</label>
+                    <input type="text" id="api-url" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="https://api.deepseek.com/v1">
                 </div>
                 <div>
-                    <label class="block text-sm mb-1">API Key</label>
-                    <input type="password" id="api-key" class="w-full p-2 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none text-sm" placeholder="sk-...">
+                    <label class="block text-base font-medium mb-1.5">API Key</label>
+                    <input type="password" id="api-key" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" placeholder="sk-...">
                 </div>
                 <div>
-                    <label class="block text-sm mb-1">选择模型 (Model)</label>
+                    <label class="block text-base font-medium mb-1.5">选择模型 (Model)</label>
                     <div class="flex gap-2 relative">
                         <div id="model-input-container" class="flex-1">
-                            <input type="text" id="api-model" class="w-full p-2 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none text-sm" value="deepseek-v4-flash">
+                            <input type="text" id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="deepseek-v4-flash">
                         </div>
-                        <button onclick="fetchModels()" class="bg-indigo-600 text-white px-3 rounded hover:bg-indigo-700 transition" title="获取模型列表">
+                        <button onclick="fetchModels()" class="bg-indigo-600 text-white px-3.5 rounded-xl hover:bg-indigo-700 transition" title="获取模型列表">
                             <i class="fa-solid fa-satellite-dish"></i>
                         </button>
                     </div>
-                    <div id="model-fetch-status" class="text-xs mt-1 hidden"></div>
+                    <div id="model-fetch-status" class="text-sm mt-1 hidden"></div>
                 </div>
 
                 <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 space-y-4">
                     <div>
-                        <label class="block text-sm mb-1 flex justify-between">
+                        <label class="block text-base mb-1.5 flex justify-between">
                             <span class="font-bold text-blue-600 dark:text-blue-400">聊天字体大小</span>
                             <span id="font-display" class="font-mono text-blue-500 font-bold">16px</span>
                         </label>
                         <input type="range" id="api-font-size" min="12" max="24" step="1" value="16" class="w-full cursor-pointer" oninput="document.getElementById('font-display').innerText = this.value + 'px'; state.config.fontSize = parseInt(this.value); renderChat();">
                     </div>
                     <div>
-                        <label class="block text-sm mb-1 flex justify-between">
+                        <label class="block text-base font-medium mb-1.5 flex justify-between">
                             <span>携带历史对话轮次</span>
                             <span id="history-display" class="font-mono text-indigo-500">20</span>
                         </label>
                         <input type="range" id="api-history" min="1" max="100" step="1" value="20" class="w-full cursor-pointer" oninput="document.getElementById('history-display').innerText = this.value">
                     </div>
                     <div>
-                        <label class="block text-sm mb-1 flex justify-between">
+                        <label class="block text-base font-medium mb-1.5 flex justify-between">
                             <span>Temperature (发散度)</span>
                             <span id="temp-display" class="font-mono text-indigo-500">1.0</span>
                         </label>
                         <input type="range" id="api-temperature" min="0" max="2" step="0.1" value="1.0" class="w-full cursor-pointer" oninput="document.getElementById('temp-display').innerText = parseFloat(this.value).toFixed(1)">
                     </div>
                     <div>
-                        <label class="block text-sm mb-1">Max Tokens (最大长度)</label>
-                        <input type="number" id="api-max-tokens" class="w-full p-2 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none text-sm" value="2048" min="1" max="8192" step="1">
+                        <label class="block text-base font-medium mb-1.5">Max Tokens (最大长度)</label>
+                        <input type="number" id="api-max-tokens" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="2048" min="1" max="8192" step="1">
                     </div>
                 </div>
             </div>
             <div class="mt-6 flex justify-end gap-2 shrink-0">
-                <button onclick="closeModal('settings-modal')" class="px-4 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition">取消</button>
-                <button onclick="saveSettings()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">保存</button>
+                <button onclick="closeModal('settings-modal')" class="px-5 py-2.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition text-base">取消</button>
+                <button onclick="saveSettings()" class="px-6 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition text-base font-bold">保存</button>
             </div>
         </div>
     </div>
 
-    <!-- World Matrix Console Modal (【终极全屏化】手机端 fixed inset-0 撑满无死角，去除黑边；反转布局将输入轨置顶) -->
     <div id="world-matrix-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center md:p-4" style="z-index: 70;">
         <div class="bg-white/95 dark:bg-gray-900/95 border-0 md:border border-gray-200/50 dark:border-gray-800/60 w-full h-full md:h-[85vh] md:max-w-3xl rounded-none md:rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col backdrop-blur-xl pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
             <div class="flex justify-between items-center mb-4 shrink-0">
-                <h2 class="text-lg md:text-xl font-bold tracking-tight">设定与角色库</h2>
-                <button onclick="closeModal('world-matrix-modal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <h2 class="text-xl md:text-2xl font-bold tracking-tight">设定与角色库</h2>
+                <button onclick="closeModal('world-matrix-modal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
             </div>
             
             <div class="flex overflow-x-auto whitespace-nowrap border-b border-gray-200 dark:border-gray-800 mb-4 shrink-0 no-scrollbar">
-                <button class="tab-btn px-4 py-2.5 text-sm md:text-base font-bold text-blue-600 border-b-2 border-blue-600 transition-all" onclick="switchTab('system', this)">系统设定</button>
-                <button class="tab-btn px-4 py-2.5 text-sm md:text-base font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-b-2 border-transparent transition-all" onclick="switchTab('characters', this)">角色卡</button>
-                <button class="tab-btn px-4 py-2.5 text-sm md:text-base font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-b-2 border-transparent transition-all" onclick="switchTab('plots', this)">剧情卡</button>
+                <button class="tab-btn px-4 py-2.5 text-base font-bold text-blue-600 border-b-2 border-blue-600 transition-all" onclick="switchTab('system', this)">系统设定</button>
+                <button class="tab-btn px-4 py-2.5 text-base font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-b-2 border-transparent transition-all" onclick="switchTab('characters', this)">角色卡</button>
+                <button class="tab-btn px-4 py-2.5 text-base font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-b-2 border-transparent transition-all" onclick="switchTab('plots', this)">剧情卡</button>
             </div>
 
-            <!-- Tab Content: System -->
-            <div id="tab-system" class="matrix-tab flex-1 flex flex-col overflow-hidden">
-                <!-- 【置顶输入轨】绝不向底部键盘妥协，防止软键盘弹起引发遮挡 -->
+            <div id="tab-system" class="matrix-tab flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
-                    <input type="text" id="new-sys-title" placeholder="名称 (如：无共识小说引擎)" class="w-full px-4 py-2.5 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium">
-                    <textarea id="new-sys-content" rows="2" placeholder="注入高维约束核心指令... (高度自动扩容)" class="w-full px-4 py-2.5 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
-                    <button onclick="addCard('system')" class="self-end px-5 py-2 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-plus-circle text-blue-500"></i> 添加系统设定</button>
+                    <input type="text" id="new-sys-title" placeholder="名称 (如：无共识小说引擎)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
+                    <textarea id="new-sys-content" rows="2" placeholder="注入高维约束核心指令... (高度自动扩容)" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
+                    <button onclick="addCard('system')" class="self-end px-5 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-plus-circle text-blue-500"></i> 添加系统设定</button>
                 </div>
                 <div id="system-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
-            <!-- Tab Content: Characters -->
-            <div id="tab-characters" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden">
+            <div id="tab-characters" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
-                    <input type="text" id="new-char-title" placeholder="角色实体姓名 (如：李慢)" class="w-full px-4 py-2.5 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm font-medium">
-                    <textarea id="new-char-content" rows="2" placeholder="录入性格矩阵与故事轨迹..." class="w-full px-4 py-2.5 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
-                    <button onclick="addCard('character')" class="self-end px-5 py-2 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-user-plus text-purple-500"></i> 添加角色实体</button>
+                    <input type="text" id="new-char-title" placeholder="角色实体姓名 (如：李慢)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
+                    <textarea id="new-char-content" rows="2" placeholder="录入性格矩阵与故事轨迹..." class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
+                    <button onclick="addCard('character')" class="self-end px-5 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-user-plus text-purple-500"></i> 添加角色实体</button>
                 </div>
                 <div id="character-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
-            <!-- Tab Content: Plots -->
-            <div id="tab-plots" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden">
+            <div id="tab-plots" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
-                    <input type="text" id="new-plot-title" placeholder="故事因果卡标识 (如：冰冷触感)" class="w-full px-4 py-2.5 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm font-medium">
-                    <textarea id="new-plot-content" rows="2" placeholder="植入主线大纲碎片或宏观变数..." class="w-full px-4 py-2.5 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
-                    <button onclick="addCard('plot')" class="self-end px-5 py-2 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-map-marker-alt text-green-500"></i> 锚定剧情槽位</button>
+                    <input type="text" id="new-plot-title" placeholder="故事因果卡标识 (如：冰冷触感)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
+                    <textarea id="new-plot-content" rows="2" placeholder="植入主线大纲碎片或宏观变数..." class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
+                    <button onclick="addCard('plot')" class="self-end px-5 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-map-marker-alt text-green-500"></i> 锚定剧情槽位</button>
                 </div>
                 <div id="plot-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
         </div>
     </div>
 
-    <!-- Edit Modal -->
     <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4" style="z-index: 80;">
         <div class="bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-3xl p-5 md:p-6 w-full max-w-2xl shadow-2xl flex flex-col backdrop-blur-xl">
-            <h2 class="text-lg font-bold mb-4 tracking-tight">重构既定公理</h2>
-            <div class="space-y-4">
+            <h2 class="text-xl font-bold mb-4 tracking-tight">重构既定公理</h2>
+            <div class="space-y-4 text-base">
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wider">实体名称</label>
-                    <input type="text" id="edit-prompt-title" class="w-full px-4 py-2.5 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <label class="block text-sm font-bold text-gray-400 mb-1.5 uppercase tracking-wider">实体名称</label>
+                    <input type="text" id="edit-prompt-title" class="w-full px-4 py-2.5 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium text-gray-900 dark:text-gray-100">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wider">逻辑核心数据</label>
-                    <textarea id="edit-prompt-content" rows="4" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none overflow-y-auto max-h-[220px] text-gray-900 dark:text-gray-100" oninput="autoResize(this)"></textarea>
+                    <label class="block text-sm font-bold text-gray-400 mb-1.5 uppercase tracking-wider">逻辑核心数据</label>
+                    <textarea id="edit-prompt-content" rows="4" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[220px] text-gray-900 dark:text-gray-100" oninput="autoResize(this)"></textarea>
                 </div>
             </div>
             <div class="mt-6 flex justify-end gap-2 shrink-0">
                 <button onclick="closeEditPromptModal()" class="px-5 py-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium transition-all">取消</button>
-                <button onclick="saveEditedPrompt()" class="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-full text-sm font-bold shadow-md transition-all">保存修改</button>
+                <button onclick="saveEditedPrompt()" class="px-6 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md transition-all">保存修改</button>
             </div>
         </div>
     </div>
@@ -281,7 +267,7 @@
 
         function init() {
             try {
-                // 持久化集群演进至 v24
+                // 状态持久化完美锚定 v22/v23 控制域
                 const savedState = localStorage.getItem('deepseek_client_state_v22');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
@@ -315,6 +301,7 @@
             applyDarkMode(); 
             renderSessions(); 
             renderChat();
+            updateThinkingBulbUI();
             
             if (typeof marked !== 'undefined') {
                 marked.setOptions({ breaks: true, gfm: true });
@@ -351,9 +338,29 @@
         function toggleDarkMode() { state.config.darkMode = !state.config.darkMode; applyDarkMode(); saveState(); }
         function applyDarkMode() { document.documentElement.classList.toggle('dark', state.config.darkMode); }
 
+        // 【要求三】灯泡控制微件点击反转状态锁
+        function toggleThinkingModeViaBtn() {
+            state.config.thinkingMode = !state.config.thinkingMode;
+            const toggleElement = document.getElementById('thinking-mode-toggle');
+            if (toggleElement) toggleElement.checked = state.config.thinkingMode;
+            saveState();
+            updateThinkingBulbUI();
+        }
+
         function toggleThinkingMode(event) {
             state.config.thinkingMode = event.target.checked;
             saveState();
+            updateThinkingBulbUI();
+        }
+
+        function updateThinkingBulbUI() {
+            const btn = document.getElementById('thinking-bulb-btn');
+            if (!btn) return;
+            if (state.config.thinkingMode) {
+                btn.className = "w-12 h-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-blue-500/60 dark:border-blue-400/60 shadow-lg backdrop-blur-xl shrink-0 text-blue-500 dark:text-blue-400 font-bold";
+            } else {
+                btn.className = "w-12 h-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300";
+            }
         }
 
         function openModal(id) {
@@ -374,7 +381,7 @@
                 document.getElementById('font-display').innerText = (state.config.fontSize ?? 16) + 'px';
 
                 const container = document.getElementById('model-input-container');
-                if (container) container.innerHTML = `<input type="text" id="api-model" class="w-full p-2 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none text-sm" value="${state.config.model || 'deepseek-v4-flash'}">`;
+                if (container) container.innerHTML = `<input type="text" id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="${state.config.model || 'deepseek-v4-flash'}">`;
                 const statusDiv = document.getElementById('model-fetch-status');
                 if(statusDiv) statusDiv.classList.add('hidden');
             } else if (id === 'world-matrix-modal') {
@@ -407,13 +414,13 @@
 
             if (!apiKey) {
                 statusDiv.textContent = '错误：请先填写 API Key';
-                statusDiv.className = 'text-xs mt-1 text-red-500';
+                statusDiv.className = 'text-sm mt-1 text-red-500';
                 statusDiv.classList.remove('hidden');
                 return;
             }
 
             statusDiv.textContent = '正在获取模型列表...';
-            statusDiv.className = 'text-xs mt-1 text-blue-500';
+            statusDiv.className = 'text-sm mt-1 text-blue-500';
             statusDiv.classList.remove('hidden');
 
             try {
@@ -427,15 +434,15 @@
                     if (currentModel && !data.data.find(m => m.id === currentModel)) {
                         options = `<option value="${currentModel}" selected>${currentModel}</option>` + options;
                     }
-                    modelContainer.innerHTML = `<select id="api-model" class="w-full p-2 rounded bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none cursor-pointer appearance-auto text-sm">${options}</select>`;
+                    modelContainer.innerHTML = `<select id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none cursor-pointer appearance-auto text-base">${options}</select>`;
                     statusDiv.textContent = `获取成功：已找到 ${data.data.length} 个模型`;
-                    statusDiv.className = 'text-xs mt-1 text-green-500';
+                    statusDiv.className = 'text-sm mt-1 text-green-500';
                 } else {
                     throw new Error('数据格式错误');
                 }
             } catch (err) {
                 statusDiv.textContent = `获取失败: ${err.message}`;
-                statusDiv.className = 'text-xs mt-1 text-red-500';
+                statusDiv.className = 'text-sm mt-1 text-red-500';
             }
         }
 
@@ -545,7 +552,7 @@
             btn.classList.add('text-blue-600', 'border-blue-600');
         }
 
-        // 【重构点三】彻底精简列表详情。移除 content 内容详情块，实现超高密度的骨架面板
+        // 【要求三】列表详情完全裁剪剔除，按钮转为极简浅色轻投影药丸样式，并且【要求五】图标全面物理放大一号 (text-sm/text-base)
         function renderWorldMatrix() {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
@@ -554,13 +561,13 @@
             document.getElementById('system-list').innerHTML = state.systemCards.map(p => {
                 const isActive = activeSession.systemPrompt?.title === p.title;
                 return `
-                <div class="p-3 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isActive ? 'border-blue-500/80 bg-blue-50/40 dark:bg-blue-950/20 shadow-sm' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                <div class="p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isActive ? 'border-blue-500/80 bg-blue-50/40 dark:bg-blue-950/20 shadow-sm' : 'border-gray-200/40 dark:border-gray-800/40'}">
                     <div class="flex-1 cursor-pointer truncate" onclick="toggleSystem('${p.id}')">
-                        <div class="font-bold text-sm ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'} flex items-center gap-1 truncate">${escapeHTML(p.title)} ${isActive ? '<i class="fa-solid fa-circle-check text-xs"></i>' : ''}</div>
+                        <div class="font-bold text-base ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'} flex items-center gap-1 truncate">${escapeHTML(p.title)} ${isActive ? '<i class="fa-solid fa-circle-check text-sm"></i>' : ''}</div>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button onclick="openEditPromptModal('system', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="编辑"><i class="fa-solid fa-pen text-xs"></i></button>
-                        <button onclick="deleteCard('system', '${p.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="删除"><i class="fa-solid fa-trash text-xs"></i></button>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <button onclick="openEditPromptModal('system', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-sm"></i></button>
+                        <button onclick="deleteCard('system', '${p.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1.5" title="删除"><i class="fa-solid fa-trash text-sm"></i></button>
                     </div>
                 </div>`;
             }).join('');
@@ -571,13 +578,13 @@
                 return `
                 <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('character', '${c.id}', this.checked)">
-                    <div class="w-full p-3 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-purple-500/80 bg-purple-50/20 dark:bg-purple-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                    <div class="w-full p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-purple-500/80 bg-purple-50/20 dark:bg-purple-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
                         <div class="flex-1 truncate">
-                            <div class="font-bold text-sm ${isChecked ? 'text-purple-600 dark:text-purple-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(c.title)}</div>
+                            <div class="font-bold text-base ${isChecked ? 'text-purple-600 dark:text-purple-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(c.title)}</div>
                         </div>
-                        <div class="flex items-center gap-2 shrink-0 z-10">
-                            <button type="button" onclick="openEditPromptModal('character', '${c.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="编辑"><i class="fa-solid fa-pen text-xs"></i></button>
-                            <button type="button" onclick="deleteCard('character', '${c.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+                        <div class="flex items-center gap-3 shrink-0 z-10">
+                            <button type="button" onclick="openEditPromptModal('character', '${c.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-sm"></i></button>
+                            <button type="button" onclick="deleteCard('character', '${c.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1.5"><i class="fa-solid fa-trash text-sm"></i></button>
                         </div>
                     </div>
                 </label>`;
@@ -589,13 +596,13 @@
                 return `
                 <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('plot', '${p.id}', this.checked)">
-                    <div class="w-full p-3 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-green-500/80 bg-green-50/20 dark:bg-green-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                    <div class="w-full p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-green-500/80 bg-green-50/20 dark:bg-green-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
                         <div class="flex-1 truncate">
-                            <div class="font-bold text-sm ${isChecked ? 'text-green-600 dark:text-green-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(p.title)}</div>
+                            <div class="font-bold text-base ${isChecked ? 'text-green-600 dark:text-green-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(p.title)}</div>
                         </div>
-                        <div class="flex items-center gap-2 shrink-0 z-10">
-                            <button type="button" onclick="openEditPromptModal('plot', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="编辑"><i class="fa-solid fa-pen text-xs"></i></button>
-                            <button type="button" onclick="deleteCard('plot', '${p.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+                        <div class="flex items-center gap-3 shrink-0 z-10">
+                            <button type="button" onclick="openEditPromptModal('plot', '${p.id}', event)" class="text-gray-400 hover:text-blue-500 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-sm"></i></button>
+                            <button type="button" onclick="deleteCard('plot', '${p.id}'); event.preventDefault();" class="text-gray-400 hover:text-red-500 transition-colors p-1.5"><i class="fa-solid fa-trash text-sm"></i></button>
                         </div>
                     </div>
                 </label>`;
@@ -739,13 +746,13 @@
             container.innerHTML = state.sessions.map(s => {
                 const hasMatrix = s.systemPrompt || (s.activeCharacters && s.activeCharacters.length > 0) || (s.activePlots && s.activePlots.length > 0);
                 return `
-                <div class="flex justify-between items-center p-3 md:p-2 rounded cursor-pointer mb-1 ${s.id === state.activeSessionId ? 'bg-gray-300 dark:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" onclick="switchSession('${s.id}')">
-                    <div class="truncate flex-1 text-sm ${hasMatrix ? 'text-indigo-700 dark:text-indigo-400 font-medium' : ''}">
+                <div class="flex justify-between items-center p-3 md:p-2 rounded-xl cursor-pointer mb-1 ${s.id === state.activeSessionId ? 'bg-gray-300 dark:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" onclick="switchSession('${s.id}')">
+                    <div class="truncate flex-1 text-base ${hasMatrix ? 'text-indigo-700 dark:text-indigo-400 font-medium' : ''}">
                         <i class="fa-regular ${hasMatrix ? 'fa-id-card' : 'fa-message'} mr-2"></i> ${escapeHTML(s.title)}
                     </div>
                     <div class="flex items-center gap-3 md:gap-2 shrink-0 opacity-100 md:opacity-60 md:hover:opacity-100">
-                        <button onclick="exportMarkdown('${s.id}', event)" class="text-gray-500 hover:text-green-500 transition" title="导出Markdown"><i class="fa-solid fa-download"></i></button>
-                        <button onclick="deleteSession('${s.id}', event)" class="text-gray-500 hover:text-red-500 transition" title="删除"><i class="fa-solid fa-xmark"></i></button>
+                        <button onclick="exportMarkdown('${s.id}', event)" class="text-gray-500 hover:text-green-500 transition" title="导出Markdown"><i class="fa-solid fa-download text-sm"></i></button>
+                        <button onclick="deleteSession('${s.id}', event)" class="text-gray-500 hover:text-red-500 transition" title="删除"><i class="fa-solid fa-xmark text-sm"></i></button>
                     </div>
                 </div>`;
             }).join('');
@@ -777,37 +784,20 @@
             return html;
         }
 
+        // 【要求二】根据牌库勾选状态，动态变色顶部圆形线条书本控制按钮
         function updateBanner(session) {
-            const banner = document.getElementById('matrix-banner');
-            const bSys = document.getElementById('banner-system');
-            const bChar = document.getElementById('banner-chars');
-            const bPlot = document.getElementById('banner-plots');
+            const bookBtn = document.getElementById('book-matrix-btn');
+            if (!bookBtn) return;
             
             let hasAny = false;
+            if (session.systemPrompt) hasAny = true;
+            if (session.activeCharacters && session.activeCharacters.length > 0) hasAny = true;
+            if (session.activePlots && session.activePlots.length > 0) hasAny = true;
             
-            if (session.systemPrompt) {
-                document.getElementById('banner-system-name').innerText = session.systemPrompt.title;
-                bSys.classList.remove('hidden'); hasAny = true;
-            } else { bSys.classList.add('hidden'); }
-            
-            if (session.activeCharacters && session.activeCharacters.length > 0) {
-                const names = session.activeCharacters.map(id => state.characterCards.find(c => c.id === id)?.title).filter(Boolean).join(', ');
-                document.getElementById('banner-chars-names').innerText = names;
-                bChar.classList.remove('hidden'); hasAny = true;
-            } else { bChar.classList.add('hidden'); }
-            
-            if (session.activePlots && session.activePlots.length > 0) {
-                const names = session.activePlots.map(id => state.plotCards.find(p => p.id === id)?.title).filter(Boolean).join(', ');
-                document.getElementById('banner-plots-names').innerText = names;
-                bPlot.classList.remove('hidden'); hasAny = true;
-            } else { bPlot.classList.add('hidden'); }
-            
-            if(hasAny) {
-                banner.classList.remove('hidden');
-                banner.classList.add('flex');
+            if (hasAny) {
+                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
             } else {
-                banner.classList.remove('flex');
-                banner.classList.add('hidden');
+                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
             }
         }
 
@@ -822,7 +812,7 @@
 
             if (activeSession.messages.length === 0) {
                 container.innerHTML = `
-                    <div class="h-full flex flex-col items-center justify-center text-center opacity-80 select-none px-4 mt-20">
+                    <div class="h-full flex flex-col items-center justify-center text-center opacity-80 select-none px-4 mt-24">
                         <h2 class="text-3xl font-medium text-gray-800 dark:text-gray-100 mb-2 tracking-wider">你好，Way</h2>
                         <p class="text-gray-500 dark:text-gray-400 text-base md:text-lg font-light">发送消息以开始对话</p>
                     </div>`;
@@ -835,23 +825,24 @@
                 const isUser = msg.role === 'user';
                 const parsedContent = isUser ? `<div class="whitespace-pre-wrap">${escapeHTML(msg.content)}</div>` : buildMessageHTML(msg.content, msg.reasoning);
                 
+                // 【要求五】对话框中的微件控制按钮整体物理放大一号 (text-sm md:text-base)
                 if (isUser) {
                     return `
                     <div class="flex flex-col items-end group w-full mb-4 max-w-5xl mx-auto">
                         <div class="max-w-[90%] md:max-w-[75%] relative">
-                            <div class="flex gap-3 md:gap-2 text-[10px] md:text-xs text-gray-500 md:text-gray-400 mb-1 absolute -top-6 right-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20">
+                            <div class="flex gap-3.5 md:gap-2.5 text-sm md:text-base text-gray-500 md:text-gray-400 mb-1 absolute -top-6 right-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20">
                                 <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
                                 <button onclick="deleteMessage(${index})" class="hover:text-red-500" title="删除"><i class="fa-solid fa-trash"></i></button>
                             </div>
-                            <div class="px-5 py-3 rounded-[24px] bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 message-content" style="${fontSizeStyle}">${parsedContent}</div>
+                            <div class="px-5 py-3 rounded-[24px] bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 message-content shadow-sm" style="${fontSizeStyle}">${parsedContent}</div>
                         </div>
                     </div>`;
                 } else {
                     return `
                     <div class="flex flex-col items-start group w-full mb-6 mt-2 max-w-5xl mx-auto">
                         <div class="w-full relative">
-                            <div class="flex gap-3 md:gap-2 text-[10px] md:text-xs text-gray-500 md:text-gray-400 mb-1 absolute -top-6 left-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20">
+                            <div class="flex gap-3.5 md:gap-2.5 text-sm md:text-base text-gray-500 md:text-gray-400 mb-1 absolute -top-6 left-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20">
                                 <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
                                 <button onclick="deleteMessage(${index})" class="hover:text-red-500" title="删除"><i class="fa-solid fa-trash"></i></button>
