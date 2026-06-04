@@ -40,10 +40,6 @@
             box-shadow: none !important;
             border-color: inherit-default !important;
         }
-
-        input[type=text], input[type=password], textarea {
-            font-size: 17px !important;
-        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200 text-lg">
@@ -157,10 +153,17 @@
                 <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 space-y-4">
                     <div>
                         <label class="block text-base mb-1.5 flex justify-between">
-                            <span class="font-bold text-blue-600 dark:text-blue-400">聊天字体大小</span>
+                            <span class="font-bold text-blue-600 dark:text-blue-400">聊天内容字体</span>
                             <span id="font-display" class="font-mono text-blue-500 font-bold">16px</span>
                         </label>
                         <input type="range" id="api-font-size" min="12" max="24" step="1" value="16" class="w-full cursor-pointer" oninput="document.getElementById('font-display').innerText = this.value + 'px'; state.config.fontSize = parseInt(this.value); renderChat();">
+                    </div>
+                    <div>
+                        <label class="block text-base mb-1.5 flex justify-between">
+                            <span class="font-bold text-teal-600 dark:text-teal-400">系统界面字体</span>
+                            <span id="ui-font-display" class="font-mono text-teal-500 font-bold">16px</span>
+                        </label>
+                        <input type="range" id="api-ui-font-size" min="12" max="24" step="1" value="16" class="w-full cursor-pointer" oninput="document.getElementById('ui-font-display').innerText = this.value + 'px'; state.config.uiFontSize = parseInt(this.value); applyUiFontSize();">
                     </div>
                     <div>
                         <label class="block text-base font-medium mb-1.5 flex justify-between">
@@ -178,7 +181,7 @@
                     </div>
                     <div>
                         <label class="block text-base font-medium mb-1.5">Max Tokens (最大长度)</label>
-                        <input type="number" id="api-max-tokens" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="2048" min="1" max="8192" step="1">
+                        <input type="number" id="api-max-tokens" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="8000" min="1" max="32768" step="1">
                     </div>
                 </div>
             </div>
@@ -260,9 +263,10 @@
                 darkMode: false, 
                 thinkingMode: false,
                 temperature: 1.0,
-                maxTokens: 2048,
+                maxTokens: 8000, 
                 historyTurns: 20,
-                fontSize: 16
+                fontSize: 16,
+                uiFontSize: 16
             },
             sessions: [],
             activeSessionId: null,
@@ -284,7 +288,7 @@
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     state = { ...state, ...parsed };
-                    state.config = { ...{apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 2048, historyTurns: 20, fontSize: 16}, ...parsed.config };
+                    state.config = { ...{apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 8000, historyTurns: 20, fontSize: 16, uiFontSize: 16}, ...parsed.config };
                     if(parsed.prompts && !parsed.systemCards) state.systemCards = parsed.prompts;
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
@@ -313,6 +317,7 @@
             if (toggleElement) toggleElement.checked = !!state.config.thinkingMode;
             
             applyDarkMode(); 
+            applyUiFontSize();
             renderSessions(); 
             renderChat();
             updateThinkingBulbUI();
@@ -333,7 +338,37 @@
             }));
         }
 
-        // ================= 新增：悬浮窗局部解耦交互 =================
+        // ================= 新增：系统界面字体控制引擎 =================
+        function applyUiFontSize() {
+            const base = state.config.uiFontSize || 16;
+            const lg = Math.round(base * 1.125);
+            const xl = Math.round(base * 1.25);
+            const text2xl = Math.round(base * 1.5);
+            const sm = Math.round(base * 0.875);
+            const xs = Math.round(base * 0.75);
+            // iOS Safari 保护机制：输入框字体强制不小于 16px 防止自动放大
+            const inputSize = Math.max(16, base);
+
+            const style = document.getElementById('ui-font-style') || document.createElement('style');
+            style.id = 'ui-font-style';
+            style.innerHTML = `
+                #sidebar, #world-matrix-modal, #settings-modal, #matrix-popover, #edit-prompt-modal { font-size: ${base}px !important; }
+                #sidebar .text-2xl, #world-matrix-modal .text-2xl, #settings-modal .text-2xl, #edit-prompt-modal .text-2xl { font-size: ${text2xl}px !important; line-height: 1.2 !important; }
+                #sidebar .text-xl, #world-matrix-modal .text-xl, #settings-modal .text-xl, #edit-prompt-modal .text-xl { font-size: ${xl}px !important; line-height: 1.4 !important; }
+                #sidebar .text-lg, #world-matrix-modal .text-lg, #settings-modal .text-lg, #matrix-popover .text-lg, #edit-prompt-modal .text-lg { font-size: ${lg}px !important; line-height: 1.5 !important; }
+                #sidebar .text-base, #world-matrix-modal .text-base, #settings-modal .text-base, #matrix-popover .text-base, #edit-prompt-modal .text-base { font-size: ${base}px !important; line-height: 1.5 !important; }
+                #sidebar .text-sm, #world-matrix-modal .text-sm, #settings-modal .text-sm, #matrix-popover .text-sm, #edit-prompt-modal .text-sm { font-size: ${sm}px !important; line-height: 1.5 !important; }
+                #sidebar .text-xs, #world-matrix-modal .text-xs, #settings-modal .text-xs, #matrix-popover .text-xs, #edit-prompt-modal .text-xs { font-size: ${xs}px !important; line-height: 1.5 !important; }
+                
+                input[type=text], input[type=password], textarea, select { font-size: ${inputSize}px !important; }
+            `;
+            if (!document.getElementById('ui-font-style')) {
+                document.head.appendChild(style);
+            }
+        }
+        // ==============================================================
+
+        // ================= 悬浮窗局部解耦交互 =================
         function toggleMatrixPopover(event) {
             if(event) event.stopPropagation();
             const popover = document.getElementById('matrix-popover');
@@ -477,12 +512,15 @@
                 document.getElementById('api-key').value = state.config.apiKey || '';
                 document.getElementById('api-temperature').value = state.config.temperature ?? 1.0;
                 document.getElementById('temp-display').innerText = parseFloat(state.config.temperature ?? 1.0).toFixed(1);
-                document.getElementById('api-max-tokens').value = state.config.maxTokens ?? 2048;
+                document.getElementById('api-max-tokens').value = state.config.maxTokens ?? 8000;
                 document.getElementById('api-history').value = state.config.historyTurns ?? 20;
                 document.getElementById('history-display').innerText = state.config.historyTurns ?? 20;
                 
                 document.getElementById('api-font-size').value = state.config.fontSize ?? 16;
                 document.getElementById('font-display').innerText = (state.config.fontSize ?? 16) + 'px';
+
+                document.getElementById('api-ui-font-size').value = state.config.uiFontSize ?? 16;
+                document.getElementById('ui-font-display').innerText = (state.config.uiFontSize ?? 16) + 'px';
 
                 const container = document.getElementById('model-input-container');
                 if (container) container.innerHTML = `<input type="text" id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="${state.config.model || 'deepseek-v4-flash'}">`;
@@ -503,9 +541,10 @@
             state.config.apiKey = document.getElementById('api-key').value.trim();
             state.config.model = document.getElementById('api-model').value.trim();
             state.config.temperature = parseFloat(document.getElementById('api-temperature').value);
-            state.config.maxTokens = parseInt(document.getElementById('api-max-tokens').value, 10) || 2048;
+            state.config.maxTokens = parseInt(document.getElementById('api-max-tokens').value, 10) || 8000;
             state.config.historyTurns = parseInt(document.getElementById('api-history').value, 10) || 20;
             state.config.fontSize = parseInt(document.getElementById('api-font-size').value, 10) || 16;
+            state.config.uiFontSize = parseInt(document.getElementById('api-ui-font-size').value, 10) || 16;
             
             saveState(); closeModal('settings-modal');
         }
@@ -949,9 +988,9 @@
             if (session.activePlots && session.activePlots.length > 0) hasAny = true;
             
             if (hasAny) {
-                bookBtn.className = "w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
+                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
             } else {
-                bookBtn.className = "w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
+                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
             }
         }
 
@@ -1123,7 +1162,7 @@
                 stream: true,
                 thinking: { type: state.config.thinkingMode ? "enabled" : "disabled" },
                 temperature: state.config.temperature ?? 1.0,
-                max_tokens: state.config.maxTokens ?? 2048
+                max_tokens: state.config.maxTokens ?? 8000
             };
             
             let aiMessageIndex = activeSession.messages.length - 1;
