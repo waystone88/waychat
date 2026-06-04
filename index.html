@@ -83,12 +83,25 @@
                 </button>
             </div>
             
-            <div class="flex items-center gap-2">
-                <button onclick="openModal('world-matrix-modal')" id="book-matrix-btn" class="pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100" title="设定控制台">
+            <div class="flex items-center gap-2 relative pointer-events-auto">
+                <button onclick="toggleMatrixPopover(event)" id="book-matrix-btn" class="w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100" title="设定控制台">
                     <i class="fa-regular fa-book-open text-xl"></i>
                 </button>
             </div>
         </header>
+
+        <div id="matrix-popover" class="hidden fixed top-[calc(4rem+env(safe-area-inset-top))] right-4 md:right-6 w-64 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl z-50 flex flex-col overflow-hidden transition-all origin-top-right">
+            <div class="px-4 py-2.5 border-b border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/50 flex justify-between items-center shrink-0">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">当前环境注入</span>
+            </div>
+            <div id="matrix-popover-content" class="max-h-60 overflow-y-auto p-2 space-y-1 no-scrollbar">
+                </div>
+            <div class="p-2 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
+                <button onclick="closeMatrixPopover(); openModal('world-matrix-modal')" class="w-full py-2.5 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center justify-center gap-2 text-gray-800 dark:text-gray-200 font-bold text-sm shadow-sm">
+                    <i class="fa-solid fa-plus"></i> 管理完整库
+                </button>
+            </div>
+        </div>
 
         <div id="matrix-banner" class="hidden"></div>
 
@@ -320,6 +333,97 @@
             }));
         }
 
+        // ================= 新增：悬浮窗局部解耦交互 =================
+        function toggleMatrixPopover(event) {
+            if(event) event.stopPropagation();
+            const popover = document.getElementById('matrix-popover');
+            if(popover.classList.contains('hidden')) {
+                renderMatrixPopover();
+                popover.classList.remove('hidden');
+            } else {
+                closeMatrixPopover();
+            }
+        }
+
+        function closeMatrixPopover() {
+            document.getElementById('matrix-popover')?.classList.add('hidden');
+        }
+
+        document.addEventListener('click', (e) => {
+            const popover = document.getElementById('matrix-popover');
+            const btn = document.getElementById('book-matrix-btn');
+            if(popover && !popover.classList.contains('hidden') && !popover.contains(e.target) && !btn.contains(e.target)) {
+                closeMatrixPopover();
+            }
+        });
+
+        function renderMatrixPopover() {
+            const container = document.getElementById('matrix-popover-content');
+            if(!container) return;
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if(!activeSession) return;
+
+            let html = '';
+            
+            if(activeSession.systemPrompt) {
+                const sysCard = state.systemCards.find(c => c.title === activeSession.systemPrompt.title);
+                if(sysCard) html += buildPopoverItem('系统', activeSession.systemPrompt.title, 'system', sysCard.id, 'text-blue-500');
+            }
+            
+            if(activeSession.activeCharacters && activeSession.activeCharacters.length > 0) {
+                activeSession.activeCharacters.forEach(id => {
+                    const c = state.characterCards.find(x => x.id === id);
+                    if(c) html += buildPopoverItem('角色', c.title, 'character', id, 'text-purple-500');
+                });
+            }
+
+            if(activeSession.activePlots && activeSession.activePlots.length > 0) {
+                activeSession.activePlots.forEach(id => {
+                    const p = state.plotCards.find(x => x.id === id);
+                    if(p) html += buildPopoverItem('剧情', p.title, 'plot', id, 'text-green-500');
+                });
+            }
+
+            if(html === '') {
+                html = `<div class="py-6 text-center text-sm text-gray-400 dark:text-gray-500 italic">尚未锚定任何实体参数</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function buildPopoverItem(label, title, type, id, colorClass) {
+            return `
+                <div class="flex items-center justify-between p-2.5 bg-white/50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/80 border border-transparent hover:border-gray-200/60 dark:hover:border-gray-600/50 rounded-xl transition-all group cursor-default">
+                    <div class="flex flex-col overflow-hidden">
+                        <span class="text-[10px] font-bold tracking-wider ${colorClass} opacity-80 mb-0.5">${label}</span>
+                        <span class="text-sm text-gray-800 dark:text-gray-200 truncate font-medium">${escapeHTML(title)}</span>
+                    </div>
+                    <button onclick="removeMatrixItem('${type}', '${id}', event)" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition shrink-0 shadow-sm md:shadow-none bg-white dark:bg-gray-800 md:bg-transparent md:dark:bg-transparent">
+                        <i class="fa-solid fa-minus text-sm"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        function removeMatrixItem(type, id, event) {
+            if(event) event.stopPropagation();
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if(!activeSession) return;
+
+            if(type === 'system') {
+                delete activeSession.systemPrompt;
+            } else if (type === 'character') {
+                activeSession.activeCharacters = activeSession.activeCharacters.filter(cId => cId !== id);
+            } else if (type === 'plot') {
+                activeSession.activePlots = activeSession.activePlots.filter(pId => pId !== id);
+            }
+
+            saveState();
+            renderMatrixPopover();
+            updateBanner(activeSession);
+        }
+        // ==============================================================
+
         function toggleSidebar() {
             sidebarOpen = !sidebarOpen;
             const sidebar = document.getElementById('sidebar');
@@ -475,7 +579,6 @@
             renderSessions(); renderChat(); saveState();
         }
 
-        // 注入适配 iOS 设备的导出 Markdown 函数
         function exportMarkdown(sessionId, event) {
             if(event) {
                 event.stopPropagation();
@@ -493,7 +596,6 @@
             const filename = `${session.title.replace(/[\\/:*?"<>|]/g, '') || 'chat'}.md`;
             const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
 
-            // 备用传统下载方案
             const doFallback = () => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -508,7 +610,6 @@
                 }, 100);
             };
 
-            // 优先唤起 iOS 原生分享面板 (Save to Files)
             if (navigator.share && navigator.canShare) {
                 const file = new File([blob], filename, { type: 'text/markdown' });
                 if (navigator.canShare({ files: [file] })) {
@@ -671,7 +772,10 @@
                 }
                 saveState();
                 renderWorldMatrix();
-                renderChat();
+                
+                // 仅更新局部状态指示灯与悬浮窗数据，避免重绘整个聊天容器引起闪烁
+                updateBanner(activeSession);
+                renderMatrixPopover();
             }
         }
 
@@ -686,7 +790,9 @@
                 if(idx > -1) targetArray.splice(idx, 1);
             }
             saveState();
-            renderChat(); 
+            
+            updateBanner(activeSession);
+            renderMatrixPopover();
         }
 
         function addCard(type) {
@@ -721,7 +827,12 @@
                 state.plotCards = state.plotCards.filter(x => x.id !== id);
                 state.sessions.forEach(s => s.activePlots = s.activePlots.filter(pId => pId !== id));
             }
-            saveState(); renderWorldMatrix(); renderChat();
+            saveState(); 
+            renderWorldMatrix(); 
+            
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if(activeSession) updateBanner(activeSession);
+            renderMatrixPopover();
         }
 
         function openEditPromptModal(type, id, event) {
@@ -775,7 +886,11 @@
                 
                 saveState();
                 renderWorldMatrix();
-                renderChat();
+                
+                const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+                if(activeSession) updateBanner(activeSession);
+                renderMatrixPopover();
+                
                 closeEditPromptModal();
             }
         }
@@ -834,9 +949,9 @@
             if (session.activePlots && session.activePlots.length > 0) hasAny = true;
             
             if (hasAny) {
-                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
+                bookBtn.className = "w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
             } else {
-                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
+                bookBtn.className = "w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
             }
         }
 
