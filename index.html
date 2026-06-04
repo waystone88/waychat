@@ -48,10 +48,8 @@
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200 text-lg">
 
-    <!-- Mobile Sidebar Backdrop -->
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
 
-    <!-- Responsive Sidebar -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-200 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
             <h1 class="text-2xl font-bold tracking-tight">WayChat</h1>
@@ -76,10 +74,8 @@
         </div>
     </aside>
 
-    <!-- Main Viewport Arena -->
     <main class="flex-1 min-h-screen relative flex flex-col min-w-0 md:ml-64">
         
-        <!-- 全景悬浮层 -->
         <header class="fixed top-0 left-0 right-0 md:left-64 flex justify-between items-start px-4 md:px-6 z-40 pt-[calc(0.5rem+env(safe-area-inset-top))] pointer-events-none">
             <div class="flex items-start gap-2.5">
                 <button onclick="toggleSidebar()" class="pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-700 dark:text-gray-200 transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5">
@@ -96,20 +92,16 @@
 
         <div id="matrix-banner" class="hidden"></div>
 
-        <!-- 聊天容器 -->
         <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-7 z-10 text-lg md:text-xl" style="padding-top: calc(5.5rem + env(safe-area-inset-top)); padding-bottom: calc(8.5rem + env(safe-area-inset-bottom));"></div>
 
-        <!-- 底部大卡片输入组件 -->
         <div class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pb-6 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             <div class="max-w-4xl mx-auto flex items-end gap-2.5 relative pointer-events-auto">
                 
-                <!-- 深度思考灯泡控制钮 -->
                 <button onclick="toggleThinkingModeViaBtn()" id="thinking-bulb-btn" class="w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 transition-all mb-[11px]">
                     <i class="fa-regular fa-lightbulb text-xl"></i>
                 </button>
                 <input type="checkbox" id="thinking-mode-toggle" class="sr-only">
                 
-                <!-- 输入主体卡片 -->
                 <div class="flex-1 flex items-end gap-2 relative bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 rounded-[24px] p-2 text-base shadow-2xl backdrop-blur-xl transition-all">
                     <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent pl-4 pr-1 py-2.5 text-base md:text-lg focus:outline-none text-gray-900 dark:text-gray-100 min-h-[40px] max-h-[160px] align-bottom border-0" placeholder="输入消息..." onkeydown="handleInputKeydown(event)" oninput="autoResize(this)"></textarea>
                     
@@ -124,7 +116,6 @@
         </div>
     </main>
 
-    <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 70;">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] text-base">
             <h2 class="text-2xl font-bold mb-4 shrink-0 tracking-tight">设置</h2>
@@ -185,7 +176,6 @@
         </div>
     </div>
 
-    <!-- World Matrix Console Modal -->
     <div id="world-matrix-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center md:p-4" style="z-index: 70;">
         <div class="bg-white/95 dark:bg-gray-900/95 border-0 md:border border-gray-200/50 dark:border-gray-800/60 w-full h-full md:h-[85vh] md:max-w-3xl rounded-none md:rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col backdrop-blur-xl pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
             <div class="flex justify-between items-center mb-4 shrink-0">
@@ -199,7 +189,6 @@
                 <button class="tab-btn px-4 py-2.5 text-base font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-b-2 border-transparent transition-all" onclick="switchTab('plots', this)">剧情卡</button>
             </div>
 
-            <!-- Tab Content: System -->
             <div id="tab-system" class="matrix-tab flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-sys-title" placeholder="名称 (如：无共识小说引擎)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -209,7 +198,6 @@
                 <div id="system-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
-            <!-- Tab Content: Characters -->
             <div id="tab-characters" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-char-title" placeholder="角色实体姓名 (如：李慢)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -219,7 +207,6 @@
                 <div id="character-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
-            <!-- Tab Content: Plots -->
             <div id="tab-plots" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-plot-title" placeholder="故事因果卡标识 (如：冰冷触感)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -231,7 +218,6 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
     <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4" style="z-index: 80;">
         <div class="bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-3xl p-5 md:p-6 w-full max-w-2xl shadow-2xl flex flex-col backdrop-blur-xl">
             <h2 class="text-xl font-bold mb-4 tracking-tight">重构既定公理</h2>
@@ -447,7 +433,7 @@
                     if (currentModel && !data.data.find(m => m.id === currentModel)) {
                         options = `<option value="${currentModel}" selected>${currentModel}</option>` + options;
                     }
-                    modelContainer.innerHTML = `<select id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none cursor-pointer appearance-auto text-base">${options}</select>`;
+                    modelContainer.innerHTML = `<select id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base">${options}</select>`;
                     statusDiv.textContent = `获取成功：已找到 ${data.data.length} 个模型`;
                     statusDiv.className = 'text-sm mt-1 text-green-500';
                 } else {
@@ -531,7 +517,6 @@
             }
         }
 
-        // 【新功能注入】单段对话的一体化剪贴板复制逻辑，支持双机制兜底
         function copyMessage(index) {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession || !activeSession.messages[index]) return;
@@ -540,10 +525,9 @@
             navigator.clipboard.writeText(text).then(() => {
                 alert('该段对话已成功复制到剪贴板。');
             }).catch(err => {
-                // 降级执行方案：面向部分严格隔离环境下的 iOS Safari 浏览器
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
-                textarea.style.position = 'fixed'; // 规避页面滚动
+                textarea.style.position = 'fixed'; 
                 document.body.appendChild(textarea);
                 textarea.select();
                 try {
@@ -744,17 +728,6 @@
             }
         }
 
-        function clearSystemPrompt() {
-            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
-            if (activeSession) {
-                delete activeSession.systemPrompt;
-                activeSession.activeCharacters = [];
-                activeSession.activePlots = [];
-                saveState();
-                renderChat();
-            }
-        }
-
         function renderSessions() {
             const container = document.getElementById('sessions-list');
             if(!container) return;
@@ -815,6 +788,7 @@
             }
         }
 
+        // 【要求一 & 要求二】全量重写渲染模板。控制键群向右下/左下对齐移位，且注入 isGenerating 指示灯机制
         function renderChat() {
             const container = document.getElementById('chat-container');
             if(!container) return;
@@ -839,31 +813,35 @@
                 const isUser = msg.role === 'user';
                 const parsedContent = isUser ? `<div class="whitespace-pre-wrap">${escapeHTML(msg.content)}</div>` : buildMessageHTML(msg.content, msg.reasoning);
                 
-                // 【核心改进】在每个对话单元的控制钮序列中，追加一个 fa-copy 极简线形复制按钮
+                // 核心探测针：判定当前发言是否处于未完成的流式传输状态
+                const isGenerating = (index === activeSession.messages.length - 1 && abortController !== null);
+
                 if (isUser) {
                     return `
                     <div class="flex flex-col items-end group w-full mb-4 max-w-5xl mx-auto">
-                        <div class="max-w-[90%] md:max-w-[75%] relative">
-                            <div class="flex gap-3.5 md:gap-2.5 text-base md:text-lg text-gray-500 md:text-gray-400 mb-1 absolute -top-6 right-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20">
+                        <div class="max-w-[90%] md:max-w-[75%] relative flex flex-col items-end">
+                            <div class="px-5 py-3 rounded-[24px] bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 message-content shadow-sm" style="${fontSizeStyle}">${parsedContent}</div>
+                            
+                            <div class="flex gap-3.5 md:gap-2.5 text-base md:text-lg text-gray-400 md:text-gray-500 mt-1.5 mr-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20 ${isGenerating ? 'hidden' : ''}">
                                 <button onclick="copyMessage(${index})" class="hover:text-indigo-500" title="复制文本"><i class="fa-regular fa-copy"></i></button>
                                 <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
                                 <button onclick="deleteMessage(${index})" class="hover:text-red-500" title="删除"><i class="fa-solid fa-trash"></i></button>
                             </div>
-                            <div class="px-5 py-3 rounded-[24px] bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 message-content shadow-sm" style="${fontSizeStyle}">${parsedContent}</div>
                         </div>
                     </div>`;
                 } else {
                     return `
                     <div class="flex flex-col items-start group w-full mb-6 mt-2 max-w-5xl mx-auto">
-                        <div class="w-full relative">
-                            <div class="flex gap-3.5 md:gap-2.5 text-base md:text-lg text-gray-500 md:text-gray-400 mb-1 absolute -top-6 left-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20">
+                        <div class="w-full relative flex flex-col items-start">
+                            <div class="py-2 message-content prose dark:prose-invert max-w-none text-gray-900 dark:text-gray-100 w-full" style="${fontSizeStyle}">${parsedContent}</div>
+                            
+                            <div class="flex gap-3.5 md:gap-2.5 text-base md:text-lg text-gray-400 md:text-gray-500 mt-1 ml-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20 ${isGenerating ? 'hidden' : ''}">
                                 <button onclick="copyMessage(${index})" class="hover:text-indigo-500" title="复制文本"><i class="fa-regular fa-copy"></i></button>
                                 <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
                                 <button onclick="deleteMessage(${index})" class="hover:text-red-500" title="删除"><i class="fa-solid fa-trash"></i></button>
                             </div>
-                            <div class="py-2 message-content prose dark:prose-invert max-w-none text-gray-900 dark:text-gray-100" style="${fontSizeStyle}">${parsedContent}</div>
                         </div>
                     </div>`;
                 }
@@ -1028,7 +1006,6 @@
             } catch (error) {
                 if (error.name !== 'AbortError') { 
                     activeSession.messages[aiMessageIndex].content += `\n\n[网络错误] ${error.message}`; 
-                    renderChat(); 
                 }
             } finally {
                 abortController = null;
@@ -1037,6 +1014,7 @@
                 if(btnSend) btnSend.classList.remove('hidden');
                 if(btnStop) btnStop.classList.add('hidden');
                 saveState();
+                renderChat(); // 【核心修复】传输闭合时强制刷新全页面，将原隐藏的指示按钮栏完美吐出来
             }
         }
 
@@ -1049,6 +1027,7 @@
                 const btnStop = document.getElementById('stop-btn');
                 if(btnSend) btnSend.classList.remove('hidden');
                 if(btnStop) btnStop.classList.add('hidden');
+                renderChat(); // 中断后强制同步渲染，保证已吐出的截断部分立刻拥有按钮栏
             }
         }
 
