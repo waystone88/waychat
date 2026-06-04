@@ -24,8 +24,6 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .message-content pre { padding: 1rem; border-radius: 0.5rem; background-color: #1e293b; color: #e2e8f0; overflow-x: auto; }
         .message-content code { font-family: monospace; }
-        .typing-indicator::after { content: '▋'; animation: blink 1s step-start infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         input[type=range] { accent-color: #4f46e5; }
@@ -988,9 +986,9 @@
             if (session.activePlots && session.activePlots.length > 0) hasAny = true;
             
             if (hasAny) {
-                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
+                bookBtn.className = "w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
             } else {
-                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
+                bookBtn.className = "w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
             }
         }
 
@@ -1184,8 +1182,7 @@
                 const decoder = new TextDecoder("utf-8");
                 let buffer = "";
                 const chatContainer = document.getElementById('chat-container');
-                const lastMsgDiv = chatContainer ? chatContainer.lastElementChild.querySelector('.message-content') : null;
-                if(lastMsgDiv) lastMsgDiv.classList.add('typing-indicator');
+                // 移除了打字机光标的添加逻辑
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -1207,15 +1204,16 @@
                                 activeSession.messages[aiMessageIndex].reasoning = reasoningContent;
                                 activeSession.messages[aiMessageIndex].content = fullContent;
                                 
+                                const lastMsgDiv = chatContainer ? chatContainer.lastElementChild.querySelector('.message-content') : null;
                                 if(lastMsgDiv) lastMsgDiv.innerHTML = buildMessageHTML(fullContent, reasoningContent);
                                 scrollToBottom();
                             } catch (e) {}
                         }
                     }
                 }
-                if(lastMsgDiv) {
-                    lastMsgDiv.classList.remove('typing-indicator');
-                    const detailsNode = lastMsgDiv.querySelector('details');
+                const finalLastMsgDiv = chatContainer ? chatContainer.lastElementChild.querySelector('.message-content') : null;
+                if(finalLastMsgDiv) {
+                    const detailsNode = finalLastMsgDiv.querySelector('details');
                     if(detailsNode) detailsNode.removeAttribute('open');
                 }
 
@@ -1230,15 +1228,13 @@
                 if(btnSend) btnSend.classList.remove('hidden');
                 if(btnStop) btnStop.classList.add('hidden');
                 saveState();
-                renderChat(); // 闭合时刻全量冲刷，将指示按键平滑吐出
+                renderChat(); 
             }
         }
 
         function stopGeneration() {
             if (abortController) {
                 abortController.abort(); abortController = null;
-                const lastMsgDiv = document.getElementById('chat-container')?.lastElementChild?.querySelector('.message-content');
-                if (lastMsgDiv) lastMsgDiv.classList.remove('typing-indicator');
                 const btnSend = document.getElementById('send-btn');
                 const btnStop = document.getElementById('stop-btn');
                 if(btnSend) btnSend.classList.remove('hidden');
@@ -1250,6 +1246,33 @@
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(init, 50);
         });
+
+        // ================= 全局空间坐标捕获与侧边栏抽屉交互 =================
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', e => {
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            
+            // 左侧边缘向右滑出唤醒 (锚点限制在屏幕左边缘 40px 内以防误触)
+            if (touchStartX < 40 && diffX > 50 && Math.abs(diffY) < 50 && !sidebarOpen) {
+                toggleSidebar();
+            }
+            
+            // 任意区域向左横滑折叠
+            if (diffX < -50 && Math.abs(diffY) < 50 && sidebarOpen) {
+                toggleSidebar();
+            }
+        }, { passive: true });
+        // ====================================================================
     </script>
 </body>
 </html>
