@@ -48,10 +48,8 @@
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200 text-lg">
 
-    <!-- Mobile Sidebar Backdrop -->
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
 
-    <!-- Responsive Sidebar -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-200 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
             <h1 class="text-2xl font-bold tracking-tight">WayChat</h1>
@@ -76,10 +74,8 @@
         </div>
     </aside>
 
-    <!-- Main Viewport Arena -->
     <main class="flex-1 min-h-screen relative flex flex-col min-w-0 md:ml-64">
         
-        <!-- 全景悬浮层 -->
         <header class="fixed top-0 left-0 right-0 md:left-64 flex justify-between items-start px-4 md:px-6 z-40 pt-[calc(0.5rem+env(safe-area-inset-top))] pointer-events-none">
             <div class="flex items-start gap-2.5">
                 <button onclick="toggleSidebar()" class="pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-700 dark:text-gray-200 transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5">
@@ -96,20 +92,16 @@
 
         <div id="matrix-banner" class="hidden"></div>
 
-        <!-- 聊天容器 -->
         <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-7 z-10 text-lg md:text-xl" style="padding-top: calc(5.5rem + env(safe-area-inset-top)); padding-bottom: calc(8.5rem + env(safe-area-inset-bottom));"></div>
 
-        <!-- 底部大卡片输入组件 -->
         <div class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pb-6 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             <div class="max-w-4xl mx-auto flex items-end gap-2.5 relative pointer-events-auto">
                 
-                <!-- 深度思考灯泡控制钮 -->
                 <button onclick="toggleThinkingModeViaBtn()" id="thinking-bulb-btn" class="w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 transition-all mb-[11px]">
                     <i class="fa-regular fa-lightbulb text-xl"></i>
                 </button>
                 <input type="checkbox" id="thinking-mode-toggle" class="sr-only">
                 
-                <!-- 输入主体卡片 -->
                 <div class="flex-1 flex items-end gap-2 relative bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 rounded-[24px] p-2 text-base shadow-2xl backdrop-blur-xl transition-all">
                     <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent pl-4 pr-1 py-2.5 text-base md:text-lg focus:outline-none text-gray-900 dark:text-gray-100 min-h-[40px] max-h-[160px] align-bottom border-0" placeholder="输入消息..." onkeydown="handleInputKeydown(event)" oninput="autoResize(this)"></textarea>
                     
@@ -124,7 +116,6 @@
         </div>
     </main>
 
-    <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 70;">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] text-base">
             <h2 class="text-2xl font-bold mb-4 shrink-0 tracking-tight">设置</h2>
@@ -185,7 +176,6 @@
         </div>
     </div>
 
-    <!-- World Matrix Console Modal -->
     <div id="world-matrix-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center md:p-4" style="z-index: 70;">
         <div class="bg-white/95 dark:bg-gray-900/95 border-0 md:border border-gray-200/50 dark:border-gray-800/60 w-full h-full md:h-[85vh] md:max-w-3xl rounded-none md:rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col backdrop-blur-xl pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
             <div class="flex justify-between items-center mb-4 shrink-0">
@@ -199,7 +189,6 @@
                 <button class="tab-btn px-4 py-2.5 text-base font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-b-2 border-transparent transition-all" onclick="switchTab('plots', this)">剧情卡</button>
             </div>
 
-            <!-- Tab Content: System -->
             <div id="tab-system" class="matrix-tab flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-sys-title" placeholder="名称 (如：无共识小说引擎)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -209,7 +198,6 @@
                 <div id="system-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
-            <!-- Tab Content: Characters -->
             <div id="tab-characters" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-char-title" placeholder="角色实体姓名 (如：李慢)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -219,7 +207,6 @@
                 <div id="character-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
-            <!-- Tab Content: Plots -->
             <div id="tab-plots" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-plot-title" placeholder="故事因果卡标识 (如：冰冷触感)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -231,7 +218,6 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
     <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4" style="z-index: 80;">
         <div class="bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-3xl p-5 md:p-6 w-full max-w-2xl shadow-2xl flex flex-col backdrop-blur-xl">
             <h2 class="text-xl font-bold mb-4 tracking-tight">重构既定公理</h2>
@@ -280,7 +266,6 @@
 
         function init() {
             try {
-                // 跃迁至拥有因果时序防护锁的 v28 离散沙箱
                 const savedState = localStorage.getItem('deepseek_client_state_v28');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
@@ -315,7 +300,7 @@
             
             applyDarkMode(); 
             renderSessions(); 
-            renderChat();
+            renderChat('force'); 
             updateThinkingBulbUI();
             
             if (typeof marked !== 'undefined') {
@@ -470,14 +455,14 @@
             };
             state.sessions.unshift(newSession);
             state.activeSessionId = newSession.id;
-            if (render) { renderSessions(); renderChat(); saveState(); }
+            if (render) { renderSessions(); renderChat('force'); saveState(); }
         }
 
         function switchSession(id) {
             if (abortController) stopGeneration();
             state.activeSessionId = id;
             if(window.innerWidth < 768 && sidebarOpen) toggleSidebar();
-            renderSessions(); renderChat(); saveState();
+            renderSessions(); renderChat('force'); saveState();
         }
 
         function deleteSession(id, event) {
@@ -486,7 +471,7 @@
             state.sessions = state.sessions.filter(s => s.id !== id);
             if (state.activeSessionId === id) state.activeSessionId = state.sessions.length > 0 ? state.sessions[0].id : null;
             if (state.sessions.length === 0) createNewSession(false);
-            renderSessions(); renderChat(); saveState();
+            renderSessions(); renderChat('force'); saveState();
         }
 
         function forkSession(messageIndex) {
@@ -503,7 +488,7 @@
             };
             state.sessions.unshift(newSession);
             state.activeSessionId = newSession.id;
-            renderSessions(); renderChat(); saveState();
+            renderSessions(); renderChat('force'); saveState();
         }
 
         function deleteMessage(index) {
@@ -511,7 +496,7 @@
             if (!activeSession) return;
             if (!confirm('确定删除此消息及其之后的所有回复吗？')) return;
             activeSession.messages.splice(index);
-            renderChat(); saveState();
+            renderChat('force'); saveState();
         }
 
         function editMessage(index) {
@@ -524,11 +509,11 @@
                     activeSession.messages.splice(index + 1);
                     if (msg.role === 'user') {
                         const contentToResend = activeSession.messages.pop().content;
-                        renderChat(); triggerSend(contentToResend);
+                        renderChat('force'); triggerSend(contentToResend);
                         return;
                     }
                 }
-                renderChat(); saveState();
+                renderChat('force'); saveState();
             }
         }
 
@@ -548,9 +533,7 @@
                 try {
                     document.execCommand('copy');
                     alert('该段对话已成功复制到剪贴板。');
-                } catch (e) {
-                    console.error('复制流执行中断:', e);
-                }
+                } catch (e) {}
                 document.body.removeChild(textarea);
             });
         }
@@ -571,7 +554,6 @@
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
 
-            // 1. 系统单选设定流
             document.getElementById('system-list').innerHTML = state.systemCards.map(p => {
                 const isActive = activeSession.systemPrompt?.title === p.title;
                 return `
@@ -586,7 +568,6 @@
                 </div>`;
             }).join('');
 
-            // 2. 角色多选卡片流
             document.getElementById('character-list').innerHTML = state.characterCards.map(c => {
                 const isChecked = activeSession.activeCharacters.includes(c.id);
                 return `
@@ -604,7 +585,6 @@
                 </label>`;
             }).join('');
 
-            // 3. 剧情多选卡片流
             document.getElementById('plot-list').innerHTML = state.plotCards.map(p => {
                 const isChecked = activeSession.activePlots.includes(p.id);
                 return `
@@ -634,7 +614,7 @@
                 }
                 saveState();
                 renderWorldMatrix();
-                renderChat();
+                renderChat('force');
             }
         }
 
@@ -649,7 +629,7 @@
                 if(idx > -1) targetArray.splice(idx, 1);
             }
             saveState();
-            renderChat(); 
+            renderChat('force'); 
         }
 
         function addCard(type) {
@@ -684,7 +664,7 @@
                 state.plotCards = state.plotCards.filter(x => x.id !== id);
                 state.sessions.forEach(s => s.activePlots = s.activePlots.filter(pId => pId !== id));
             }
-            saveState(); renderWorldMatrix(); renderChat();
+            saveState(); renderWorldMatrix(); renderChat('force');
         }
 
         function openEditPromptModal(type, id, event) {
@@ -738,8 +718,19 @@
                 
                 saveState();
                 renderWorldMatrix();
-                renderChat();
+                renderChat('force');
                 closeEditPromptModal();
+            }
+        }
+
+        function clearSystemPrompt() {
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (activeSession) {
+                delete activeSession.systemPrompt;
+                activeSession.activeCharacters = [];
+                activeSession.activePlots = [];
+                saveState();
+                renderChat('force');
             }
         }
 
@@ -767,26 +758,6 @@
             }[tag] || tag));
         }
 
-        function buildMessageHTML(content, reasoning) {
-            let html = '';
-            if (reasoning) {
-                html += `
-                    <details class="mb-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800/80 overflow-hidden w-fit max-w-full z-10 relative">
-                        <summary class="cursor-pointer p-3 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2">
-                            <i class="fa-solid fa-brain text-blue-500"></i> 思考过程
-                        </summary>
-                        <div class="p-4 pt-2 text-[0.9em] text-gray-500 dark:text-gray-400 whitespace-pre-wrap border-t border-gray-200 dark:border-gray-700 leading-relaxed">${escapeHTML(reasoning)}</div>
-                    </details>
-                `;
-            }
-            if (content && typeof marked !== 'undefined') {
-                html += marked.parse(content);
-            } else if (content) {
-                html += `<div class="whitespace-pre-wrap">${escapeHTML(content)}</div>`;
-            }
-            return html;
-        }
-
         function updateBanner(session) {
             const bookBtn = document.getElementById('book-matrix-btn');
             if (!bookBtn) return;
@@ -803,7 +774,8 @@
             }
         }
 
-        function renderChat() {
+        // 【要求点重构】将画布重刷与强制滚动剥离，采用参数化控制机制
+        function renderChat(scrollMode = 'conditional') {
             const container = document.getElementById('chat-container');
             if(!container) return;
 
@@ -827,7 +799,6 @@
                 const isUser = msg.role === 'user';
                 const parsedContent = isUser ? `<div class="whitespace-pre-wrap">${escapeHTML(msg.content)}</div>` : buildMessageHTML(msg.content, msg.reasoning);
                 
-                // 核心时序校验线
                 const isGenerating = (index === activeSession.messages.length - 1 && abortController !== null);
 
                 if (isUser) {
@@ -860,11 +831,27 @@
                     </div>`;
                 }
             }).join('');
-            scrollToBottom();
+
+            // 根据传入指令分流视口处理
+            if (scrollMode === 'force') {
+                scrollToBottom(true);
+            } else if (scrollMode === 'conditional') {
+                scrollToBottom(false);
+            }
         }
 
-        function scrollToBottom() { 
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        // 【终极重构点】智能跟随滚动函数：引入 150 像素安全感官屏障，拒绝暴力夺取控制权
+        function scrollToBottom(force = false) { 
+            if (force) {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                return;
+            }
+            // 判断当前视口是否正处于靠近底部 150px 的安全区中
+            const isAtBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 150);
+            if (isAtBottom) {
+                // 采用 'auto' 可以提供比 'smooth' 更加紧密、毫无顿挫感的打字机式自然上推
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'auto' });
+            }
         }
 
         function autoResize(textarea) { 
@@ -895,7 +882,7 @@
             if(window.innerWidth < 768) input.blur();
         }
 
-        // 【时序重组】强制前置通信控制器，确保 Assistant 初始帧即完美继承隐藏状态
+        // 【时序纠偏】在空白槽位开辟瞬间即刚性注入 AbortController，确保 conditional 参数完美覆盖初显帧
         async function triggerSend(content) {
             if (!state.config.apiKey) { 
                 alert('阻断：请先在设置中配置 API Key。');
@@ -912,9 +899,9 @@
             
             activeSession.messages.push({ role: 'assistant', content: '', reasoning: '' });
             
-            // 核心修复点：必须在 renderChat 之前完成新控制器的初始化，否则 isGenerating 会在零点偏转为 false
+            // 刚性前置：由于发送了新消息，此处我们需要采取 'force' 强行推到底部展现 AI 的打字动态
             abortController = new AbortController();
-            renderChat();
+            renderChat('force');
             
             document.getElementById('send-btn').classList.add('hidden');
             document.getElementById('stop-btn').classList.remove('hidden');
@@ -1009,7 +996,9 @@
                                 activeSession.messages[aiMessageIndex].content = fullContent;
                                 
                                 if(lastMsgDiv) lastMsgDiv.innerHTML = buildMessageHTML(fullContent, reasoningContent);
-                                scrollToBottom();
+                                
+                                // 【核心调用点】此处的打字机吐字阶段，采用绝对的 conditional 智能判定，给手势留出绝对支配权
+                                scrollToBottom(false);
                             } catch (e) {}
                         }
                     }
@@ -1031,7 +1020,9 @@
                 if(btnSend) btnSend.classList.remove('hidden');
                 if(btnStop) btnStop.classList.add('hidden');
                 saveState();
-                renderChat(); // 闭合时刻全量冲刷，将指示按键平滑吐出
+                
+                // 通信收尾阶段：采用 conditional，防止你正在往上翻阅小说时被强行拉回到底部
+                renderChat('conditional'); 
             }
         }
 
@@ -1044,7 +1035,7 @@
                 const btnStop = document.getElementById('stop-btn');
                 if(btnSend) btnSend.classList.remove('hidden');
                 if(btnStop) btnStop.classList.add('hidden');
-                renderChat(); 
+                renderChat('conditional'); 
             }
         }
 
