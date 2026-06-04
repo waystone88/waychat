@@ -30,13 +30,12 @@
         details > summary::-webkit-details-marker { display: none; }
         input[type=range] { accent-color: #4f46e5; }
         
-        /* 状态勾选框高级样式融合 */
         .card-checkbox:checked + div { border-color: #4f46e5; background-color: rgba(79, 70, 229, 0.08); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1); }
         .dark .card-checkbox:checked + div { border-color: #6366f1; background-color: rgba(99, 102, 241, 0.15); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
         .prose p:first-child { margin-top: 0; }
         .prose p:last-child { margin-bottom: 0; }
 
-        /* 【要求六】强制扼杀跨页面、跨图层一切组件聚焦点击后的高亮轮廓线与阴影环 */
+        /* 强力压制全局输入框及微件高亮轮廓线 */
         input:focus, textarea:focus, select:focus, button:focus, div:focus, label:focus {
             outline: none !important;
             box-shadow: none !important;
@@ -99,7 +98,7 @@
         <div class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pb-6 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             <div class="max-w-4xl mx-auto flex items-end gap-2.5 relative pointer-events-auto">
                 
-                <button onclick="toggleThinkingModeViaBtn()" id="thinking-bulb-btn" class="w-12 h-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 transition-all mb-2">
+                <button onclick="toggleThinkingModeViaBtn()" id="thinking-bulb-btn" class="w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 transition-all mb-[11px]">
                     <i class="fa-regular fa-lightbulb text-xl"></i>
                 </button>
                 <input type="checkbox" id="thinking-mode-toggle" class="sr-only">
@@ -119,7 +118,7 @@
     </main>
 
     <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 70;">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] text-base">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] text-base">
             <h2 class="text-2xl font-bold mb-4 shrink-0 tracking-tight">设置</h2>
             <div class="space-y-4 overflow-y-auto pr-2 flex-1 text-base">
                 <div>
@@ -246,7 +245,7 @@
                 apiUrl: 'https://api.deepseek.com/v1', 
                 apiKey: '', 
                 model: 'deepseek-v4-flash', 
-                darkMode: false, // 【要求三】默认工厂配置重置为 false (日间模式)
+                darkMode: false, 
                 thinkingMode: false,
                 temperature: 1.0,
                 maxTokens: 2048,
@@ -268,7 +267,6 @@
 
         function init() {
             try {
-                // 【升级点】跃迁至全新的 v26 持久化独立状态存储集群，保证新默认项强制无污染生效
                 const savedState = localStorage.getItem('deepseek_client_state_v26');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
@@ -278,13 +276,12 @@
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
                 } else {
-                    // 数据自适应继承向下兼容
-                    const oldData = localStorage.getItem('deepseek_client_state_v22') || localStorage.getItem('deepseek_client_state_v18');
-                    if (oldData) {
-                        const parsed = JSON.parse(oldData);
-                        state = { ...state, ...parsed };
+                    const fallbacks = ['deepseek_client_state_v22', 'deepseek_client_state_v18', 'deepseek_client_state_v19', 'deepseek_client_state_v17'];
+                    for (const fb of fallbacks) {
+                        const d = localStorage.getItem(fb);
+                        if(d) { state = JSON.parse(d); break; }
                     }
-                    state.config.darkMode = false; // 强行极化初始为日间
+                    state.config.darkMode = false;
                     saveState();
                 }
             } catch (e) {
@@ -356,14 +353,14 @@
             updateThinkingBulbUI();
         }
 
-        // 【要求三】灯泡思考微件未启用时呈现低饱和无色线条，启用后转为深沉的蓝色线条高亮
+        // 【对齐更新】将动态极化样式无缝同步到全新的 w-11 h-11 物理微件架构中
         function updateThinkingBulbUI() {
             const btn = document.getElementById('thinking-bulb-btn');
             if (!btn) return;
             if (state.config.thinkingMode) {
-                btn.className = "w-12 h-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-blue-500/60 dark:border-blue-400/60 shadow-lg backdrop-blur-xl shrink-0 text-blue-500 dark:text-blue-400 font-bold";
+                btn.className = "w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-blue-500/60 dark:border-blue-400/60 shadow-lg backdrop-blur-xl shrink-0 text-blue-500 dark:text-blue-400 font-bold mb-[11px]";
             } else {
-                btn.className = "w-12 h-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300";
+                btn.className = "w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 mb-[11px]";
             }
         }
 
@@ -438,7 +435,7 @@
                     if (currentModel && !data.data.find(m => m.id === currentModel)) {
                         options = `<option value="${currentModel}" selected>${currentModel}</option>` + options;
                     }
-                    modelContainer.innerHTML = `<select id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none cursor-pointer appearance-auto text-base">${options}</select>`;
+                    modelContainer.innerHTML = `<select id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base">${options}</select>`;
                     statusDiv.textContent = `获取成功：已找到 ${data.data.length} 个模型`;
                     statusDiv.className = 'text-sm mt-1 text-green-500';
                 } else {
@@ -534,12 +531,11 @@
             btn.classList.add('text-blue-600', 'border-blue-600');
         }
 
-        // 【要求五】微件里的全部编辑、移除控制图标实施物理级尺寸大一号扩展 (text-sm -> text-base)
         function renderWorldMatrix() {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
 
-            // 1. 系统设定组
+            // 1. 系统单选设定流
             document.getElementById('system-list').innerHTML = state.systemCards.map(p => {
                 const isActive = activeSession.systemPrompt?.title === p.title;
                 return `
@@ -554,13 +550,13 @@
                 </div>`;
             }).join('');
 
-            // 2. 角色实体组
+            // 2. 角色多选卡片流
             document.getElementById('character-list').innerHTML = state.characterCards.map(c => {
                 const isChecked = activeSession.activeCharacters.includes(c.id);
                 return `
                 <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('character', '${c.id}', this.checked)">
-                    <div class="w-full p-3 p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-purple-500/80 bg-purple-50/20 dark:bg-purple-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                    <div class="w-full p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-purple-500/80 bg-purple-50/20 dark:bg-purple-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
                         <div class="flex-1 truncate">
                             <div class="font-bold text-base ${isChecked ? 'text-purple-600 dark:text-purple-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(c.title)}</div>
                         </div>
@@ -572,13 +568,13 @@
                 </label>`;
             }).join('');
 
-            // 3. 剧情节点组
+            // 3. 剧情多选卡片流
             document.getElementById('plot-list').innerHTML = state.plotCards.map(p => {
                 const isChecked = activeSession.activePlots.includes(p.id);
                 return `
                 <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('plot', '${p.id}', this.checked)">
-                    <div class="w-full p-3 p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-green-500/80 bg-green-50/20 dark:bg-green-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
+                    <div class="w-full p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isChecked ? 'border-green-500/80 bg-green-50/20 dark:bg-green-950/10' : 'border-gray-200/40 dark:border-gray-800/40'}">
                         <div class="flex-1 truncate">
                             <div class="font-bold text-base ${isChecked ? 'text-green-600 dark:text-green-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(p.title)}</div>
                         </div>
@@ -675,9 +671,9 @@
             }
         }
 
-        function closeEditPromptModal() {
-            editingPromptId = null;
-            document.getElementById('edit-prompt-modal').classList.add('hidden');
+        function closeModal(id) { 
+            const modal = document.getElementById(id);
+            if(modal) modal.classList.add('hidden'); 
         }
 
         function saveEditedPrompt() {
@@ -722,7 +718,6 @@
             }
         }
 
-        // 【要求二 & 五】侧边栏信息节点尺寸全面升格至 text-lg，微动操作项图标同步物理级大一号扩展
         function renderSessions() {
             const container = document.getElementById('sessions-list');
             if(!container) return;
@@ -747,7 +742,6 @@
             }[tag] || tag));
         }
 
-        // 【要求五】对话记录中隐藏的“修改”、“因果分叉分支”、“物理删除”三项微控微件全量逆向大一号触发
         function buildMessageHTML(content, reasoning) {
             let html = '';
             if (reasoning) {
@@ -768,7 +762,6 @@
             return html;
         }
 
-        // 【要求二】根据设定卡片激活数量进行线条动态变色。有设定激活转为蓝色线条，无设定激活归于系统基色
         function updateBanner(session) {
             const bookBtn = document.getElementById('book-matrix-btn');
             if (!bookBtn) return;
@@ -809,7 +802,6 @@
                 const isUser = msg.role === 'user';
                 const parsedContent = isUser ? `<div class="whitespace-pre-wrap">${escapeHTML(msg.content)}</div>` : buildMessageHTML(msg.content, msg.reasoning);
                 
-                // 【要求五】将操作轴按钮组字号及图标强制膨胀大一号 (text-sm md:text-base -> text-base md:text-lg)
                 if (isUser) {
                     return `
                     <div class="flex flex-col items-end group w-full mb-4 max-w-5xl mx-auto">
