@@ -35,7 +35,7 @@
         .prose p:first-child { margin-top: 0; }
         .prose p:last-child { margin-bottom: 0; }
 
-        /* 【无痕化】强制剥离全场所有微件交互点击、聚焦瞬间产生的蓝色高亮外边框轮廓 */
+        /* 强力剥离全局点击、聚焦聚焦瞬间产生的圈轮廓高亮线 */
         input:focus, textarea:focus, select:focus, button:focus, div:focus, label:focus {
             outline: none !important;
             box-shadow: none !important;
@@ -240,7 +240,7 @@
     </div>
 
     <script>
-        // 【数据基座升级】统一采用无冲突、全新独立的高层级存储键名 v30
+        // 【核心刚性绑定】全量统一升级至单文件最高可用、唯一的 v30 存储集群中
         let state = {
             config: { 
                 apiUrl: 'https://api.deepseek.com/v1', 
@@ -266,7 +266,7 @@
         let editingPromptId = null;
         let sidebarOpen = false;
 
-        // 【安全熔断器】确保会话检索绝不崩溃，一旦错位自动锚定合法边界
+        // 【安全防崩溃熔断器】
         function getActiveSession() {
             let activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession && state.sessions.length > 0) {
@@ -292,14 +292,13 @@
 
         function init() {
             try {
-                // 读取 v30 集群
                 const savedState = localStorage.getItem('deepseek_waychat_state_v30');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     state = { ...state, ...parsed };
                     state.config = { ...{apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 2048, historyTurns: 20, fontSize: 16}, ...parsed.config };
                 } else {
-                    // 全量多级历史缓存兼容迁移引擎，保护数据毫损过渡
+                    // 全谱系缓存跨版本迁移机制
                     const fallbacks = ['deepseek_client_state_v28', 'deepseek_client_state_v26', 'deepseek_client_state_v22', 'deepseek_client_state_v18', 'deepseek_client_state_v15'];
                     for (const fb of fallbacks) {
                         const d = localStorage.getItem(fb);
@@ -318,7 +317,6 @@
                 console.error("State parse error", e);
             }
 
-            // 安全挂载
             getActiveSession();
             
             state.sessions.forEach(s => {
@@ -582,7 +580,6 @@
         function renderWorldMatrix() {
             const activeSession = getActiveSession();
 
-            // 1. 系统单选设定流
             document.getElementById('system-list').innerHTML = state.systemCards.map(p => {
                 const isActive = activeSession.systemPrompt?.title === p.title;
                 return `
@@ -597,7 +594,6 @@
                 </div>`;
             }).join('');
 
-            // 2. 角色多选卡片流
             document.getElementById('character-list').innerHTML = state.characterCards.map(c => {
                 const isChecked = activeSession.activeCharacters.includes(c.id);
                 return `
@@ -615,7 +611,6 @@
                 </label>`;
             }).join('');
 
-            // 3. 剧情多选卡片流
             document.getElementById('plot-list').innerHTML = state.plotCards.map(p => {
                 const isChecked = activeSession.activePlots.includes(p.id);
                 return `
@@ -771,7 +766,6 @@
             }).join('');
         }
 
-        // 【名录修正】修正上一轮底层拼写越界错误
         function exportMarkdown(id, event) {
             if (event) event.stopPropagation();
             const session = state.sessions.find(s => s.id === id);
@@ -792,28 +786,6 @@
             a.download = `${session.title}.md`;
             a.click();
             URL.revokeObjectURL(url);
-        }
-
-        function escapeHTML(str) {
-            return (str || '').replace(/[&<>'"]/g, tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-            }[tag] || tag));
-        }
-
-        function updateBanner(session) {
-            const bookBtn = document.getElementById('book-matrix-btn');
-            if (!bookBtn) return;
-            
-            let hasAny = false;
-            if (session.systemPrompt) hasAny = true;
-            if (session.activeCharacters && session.activeCharacters.length > 0) hasAny = true;
-            if (session.activePlots && session.activePlots.length > 0) hasAny = true;
-            
-            if (hasAny) {
-                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
-            } else {
-                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
-            }
         }
 
         function renderChat(scrollMode = 'conditional') {
@@ -904,22 +876,28 @@
             }
         }
 
-        // 【时序重组闭合】前置 await 锁，彻底打碎清空与发送的冲刷碰撞
-        async function sendMessage() {
-            const input = document.getElementById('message-input');
-            if(!input) return;
-            const content = input.value.trim();
-            if (!content) return;
-            
-            // 刚性挂起：采用 await 确保 triggerSend 全面初始化画布之后，主进程再对文本域执行抹除
-            await triggerSend(content);
-            
-            input.value = ''; 
-            autoResize(input);
-            if(window.innerWidth < 768) input.blur();
+        // 【要求重构点：异步分流解耦】剥离上一版本误用的 await 链，加入绝对全流程高可用异常保护
+        function sendMessage() {
+            try {
+                const input = document.getElementById('message-input');
+                if(!input) return;
+                const content = input.value.trim();
+                if (!content) return;
+                
+                // 异步分流放行：移除了紧贴在起跑线前方的 await 约束，保证字框能零延迟刷新，永不卡死
+                triggerSend(content);
+                
+                // 刚性放行清空
+                input.value = ''; 
+                autoResize(input);
+                if(window.innerWidth < 768) input.blur();
+            } catch (err) {
+                console.error("发送管线意外受阻:", err);
+            }
         }
 
         async function triggerSend(content) {
+            // 前置双安全阀：防止未配置或空指针产生的无感知崩溃
             if (!state.config.apiKey) { 
                 alert('阻断：请先在设置中配置 API Key。');
                 openModal('settings-modal'); 
@@ -927,70 +905,71 @@
             }
             
             const activeSession = getActiveSession();
-            activeSession.messages.push({ role: 'user', content });
             
-            if (activeSession.messages.length === 1) {
-                activeSession.title = content.substring(0, 15) + (content.length > 15 ? '...' : '');
-                renderSessions();
-            }
-            
-            activeSession.messages.push({ role: 'assistant', content: '', reasoning: '' });
-            
-            // 【核心修复】必须在此处火速挂载 Controller 句柄，否则接下来的 renderChat 会发生状态解析滑坡
-            abortController = new AbortController();
-            renderChat('force');
-            
-            const sBtn = document.getElementById('send-btn');
-            const pBtn = document.getElementById('stop-btn');
-            if(sBtn) sBtn.classList.add('hidden');
-            if(pBtn) pBtn.classList.remove('hidden');
-
-            const targetModel = state.config.model || 'deepseek-v4-flash';
-            let apiMessages = activeSession.messages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
-            
-            const maxTurns = state.config.historyTurns || 20;
-            const keepMessageCount = maxTurns * 2;
-            if (apiMessages.length > keepMessageCount) {
-                apiMessages = apiMessages.slice(-keepMessageCount);
-            }
-            
-            let sysContent = '';
-            if (activeSession.systemPrompt) {
-                sysContent += `<Role_Definition>\n必须严格遵循以下设定：\n${activeSession.systemPrompt.content}\n</Role_Definition>\n\n`;
-            }
-            if (activeSession.activeCharacters && activeSession.activeCharacters.length > 0) {
-                sysContent += `<Active_Characters>\n`;
-                activeSession.activeCharacters.forEach(id => {
-                    const c = state.characterCards.find(x => x.id === id);
-                    if (c) sysContent += `<Character name="${c.title}">\n${c.content}\n</Character>\n`;
-                });
-                sysContent += `</Active_Characters>\n\n`;
-            }
-            if (activeSession.activePlots && activeSession.activePlots.length > 0) {
-                sysContent += `<Current_Plot_Node>\n`;
-                activeSession.activePlots.forEach(id => {
-                    const p = state.plotCards.find(x => x.id === id);
-                    if (p) sysContent += `<Plot title="${p.title}">\n${p.content}\n</Plot>\n`;
-                });
-                sysContent += `</Current_Plot_Node>\n`;
-            }
-            if (sysContent.trim()) {
-                apiMessages.unshift({ role: 'system', content: sysContent.trim() });
-            }
-
-            const payload = { 
-                model: targetModel, 
-                messages: apiMessages, 
-                stream: true,
-                temperature: state.config.temperature ?? 1.0,
-                max_tokens: state.config.maxTokens ?? 2048
-            };
-            
-            let aiMessageIndex = activeSession.messages.length - 1;
-            let fullContent = "";
-            let reasoningContent = "";
-
             try {
+                activeSession.messages.push({ role: 'user', content });
+                
+                if (activeSession.messages.length === 1) {
+                    activeSession.title = content.substring(0, 15) + (content.length > 15 ? '...' : '');
+                    renderSessions();
+                }
+                
+                activeSession.messages.push({ role: 'assistant', content: '', reasoning: '' });
+                
+                // 刚性挂载控制柄，在最早期强制开启 isGenerating 锁
+                abortController = new AbortController();
+                renderChat('force');
+                
+                const sBtn = document.getElementById('send-btn');
+                const pBtn = document.getElementById('stop-btn');
+                if(sBtn) sBtn.classList.add('hidden');
+                if(pBtn) pBtn.classList.remove('hidden');
+
+                const targetModel = state.config.model || 'deepseek-v4-flash';
+                let apiMessages = activeSession.messages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
+                
+                const maxTurns = state.config.historyTurns || 20;
+                const keepMessageCount = maxTurns * 2;
+                if (apiMessages.length > keepMessageCount) {
+                    apiMessages = apiMessages.slice(-keepMessageCount);
+                }
+                
+                let sysContent = '';
+                if (activeSession.systemPrompt) {
+                    sysContent += `<Role_Definition>\n必须严格遵循以下设定：\n${activeSession.systemPrompt.content}\n</Role_Definition>\n\n`;
+                }
+                if (activeSession.activeCharacters && activeSession.activeCharacters.length > 0) {
+                    sysContent += `<Active_Characters>\n`;
+                    activeSession.activeCharacters.forEach(id => {
+                        const c = state.characterCards.find(x => x.id === id);
+                        if (c) sysContent += `<Character name="${c.title}">\n${c.content}\n</Character>\n`;
+                    });
+                    sysContent += `</Active_Characters>\n\n`;
+                }
+                if (activeSession.activePlots && activeSession.activePlots.length > 0) {
+                    sysContent += `<Current_Plot_Node>\n`;
+                    activeSession.activePlots.forEach(id => {
+                        const p = state.plotCards.find(x => x.id === id);
+                        if (p) sysContent += `<Plot title="${p.title}">\n${p.content}\n</Plot>\n`;
+                    });
+                    sysContent += `</Current_Plot_Node>\n`;
+                }
+                if (sysContent.trim()) {
+                    apiMessages.unshift({ role: 'system', content: sysContent.trim() });
+                }
+
+                const payload = { 
+                    model: targetModel, 
+                    messages: apiMessages, 
+                    stream: true,
+                    temperature: state.config.temperature ?? 1.0,
+                    max_tokens: state.config.maxTokens ?? 2048
+                };
+                
+                let aiMessageIndex = activeSession.messages.length - 1;
+                let fullContent = "";
+                let reasoningContent = "";
+
                 const response = await fetch(`${state.config.apiUrl.replace(/\/+$/, '')}/chat/completions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.apiKey}` },
@@ -1039,8 +1018,12 @@
                 if(lastMsgDiv) lastMsgDiv.classList.remove('typing-indicator');
 
             } catch (error) {
+                // 网络异常外显捕获网
                 if (error.name !== 'AbortError') { 
-                    activeSession.messages[aiMessageIndex].content += `\n\n[网络错误] ${error.message}`; 
+                    const idx = activeSession.messages.length - 1;
+                    if(idx >= 0 && activeSession.messages[idx]) {
+                        activeSession.messages[idx].content += `\n\n[系统阻断] 通信链路握手失败: ${error.message}。请核对手机网络、API Key 或 Base URL。`; 
+                    }
                 }
             } finally {
                 abortController = null;
