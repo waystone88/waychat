@@ -24,6 +24,8 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .message-content pre { padding: 1rem; border-radius: 0.5rem; background-color: #1e293b; color: #e2e8f0; overflow-x: auto; }
         .message-content code { font-family: monospace; }
+        .typing-indicator::after { content: '▋'; animation: blink 1s step-start infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         input[type=range] { accent-color: #4f46e5; }
@@ -297,7 +299,7 @@
 
         let abortController = null;
         let editingPromptId = null;
-        let editingMessageIndex = null; // 新增：用于追踪当前编辑的消息槽位
+        let editingMessageIndex = null; 
         let sidebarOpen = false;
 
         function init() {
@@ -316,8 +318,6 @@
                         const d = localStorage.getItem(fb);
                         if(d) { state = JSON.parse(d); break; }
                     }
-                    
-                    // 如果是纯净初始化，首次尝试读取系统深色模式配置
                     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                         state.config.darkMode = true;
                     } else {
@@ -373,7 +373,6 @@
 
             const style = document.getElementById('ui-font-style') || document.createElement('style');
             style.id = 'ui-font-style';
-            // 添加了对新增的 #edit-message-modal 的字号支持
             style.innerHTML = `
                 #sidebar, #world-matrix-modal, #settings-modal, #matrix-popover, #edit-prompt-modal, #edit-message-modal { font-size: ${base}px !important; }
                 #sidebar .text-2xl, #world-matrix-modal .text-2xl, #settings-modal .text-2xl, #edit-prompt-modal .text-2xl, #edit-message-modal .text-2xl { font-size: ${text2xl}px !important; line-height: 1.2 !important; }
@@ -716,7 +715,6 @@
             renderChat(); saveState();
         }
 
-        // ================= 重构：替换掉单行的原生 Prompt，启用专门定制的高维多行编辑舱 =================
         function editMessage(index) {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if(!activeSession) return;
@@ -727,7 +725,6 @@
             contentEl.value = msg.content;
             
             document.getElementById('edit-message-modal').classList.remove('hidden');
-            // 延时保障弹性文本域（Textarea）能在 DOM 完全渲染后计算出精确的撑开高度
             setTimeout(() => autoResize(contentEl), 20); 
         }
 
@@ -736,6 +733,7 @@
             document.getElementById('edit-message-modal').classList.add('hidden');
         }
 
+        // ================= 核心修复：对话编辑气泡保存逻辑 =================
         function saveEditedMessage() {
             if (editingMessageIndex === null) return;
             const contentEl = document.getElementById('edit-message-content');
@@ -746,24 +744,28 @@
                 const msg = activeSession.messages[editingMessageIndex];
                 msg.content = newContent;
                 
+                // 1. 先用局部变量锁住这个危险的索引值！
+                const targetIndex = editingMessageIndex;
+                
+                // 2. 安全地关闭面板（这会将全局变量 editingMessageIndex 设为 null）
                 closeEditMessageModal();
                 
-                if(confirm('确定保存修改并重新生成后续对话吗？')) {
-                    activeSession.messages.splice(editingMessageIndex + 1);
-                    if (msg.role === 'user') {
-                        const contentToResend = activeSession.messages.pop().content;
-                        renderChat(); 
-                        triggerSend(contentToResend);
-                        return;
-                    }
+                // 3. 直接执行切割与生成（干掉二次确认弹窗），使用锁定的 targetIndex
+                activeSession.messages.splice(targetIndex + 1);
+                if (msg.role === 'user') {
+                    const contentToResend = activeSession.messages.pop().content;
+                    renderChat(); 
+                    triggerSend(contentToResend);
+                    return;
                 }
+                
                 renderChat(); 
                 saveState();
             } else {
                 closeEditMessageModal();
             }
         }
-        // ==============================================================================================
+        // ====================================================================
 
         function copyMessage(index) {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
@@ -798,46 +800,6 @@
             });
             btn.classList.remove('text-gray-400', 'border-transparent');
             btn.classList.add('text-blue-600', 'border-blue-600');
-        }
-
-        function createChatFromPlot(plotId, event) {
-            if (event) {
-                event.stopPropagation();
-                event.preventDefault();
-            }
-            
-            const plot = state.plotCards.find(p => p.id === plotId);
-            if (!plot) return;
-
-            closeModal('world-matrix-modal');
-            if (abortController) stopGeneration();
-
-            const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
-            const activePlots = currentSession ? [...currentSession.activePlots] : [];
-            
-            if (!activePlots.includes(plotId)) {
-                activePlots.push(plotId);
-            }
-
-            const newSession = { 
-                id: Date.now().toString(), 
-                title: '正在载入剧情...', 
-                messages: [],
-                systemPrompt: currentSession && currentSession.systemPrompt ? JSON.parse(JSON.stringify(currentSession.systemPrompt)) : null,
-                activeCharacters: currentSession ? [...currentSession.activeCharacters] : [],
-                activePlots: activePlots
-            };
-            
-            state.sessions.unshift(newSession);
-            state.activeSessionId = newSession.id;
-            
-            saveState();
-            renderSessions();
-            renderChat(); 
-            
-            setTimeout(() => {
-                triggerSend(plot.content);
-            }, 50);
         }
 
         function renderWorldMatrix() {
@@ -886,7 +848,6 @@
                         </div>
                         <div class="flex items-center gap-3 shrink-0 z-10">
                             <button type="button" onclick="createChatFromPlot('${p.id}', event)" class="text-gray-400 hover:text-indigo-500 transition-colors p-1.5" title="以此剧情创建新对话"><i class="fa-solid fa-paper-plane text-base"></i></button>
-                            
                             <button type="button" onclick="openEditPromptModal('plot', '${p.id}', event)" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-base"></i></button>
                             <button type="button" onclick="deleteCard('plot', '${p.id}'); event.preventDefault();" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors p-1.5"><i class="fa-solid fa-trash text-base"></i></button>
                         </div>
@@ -906,8 +867,6 @@
                 }
                 saveState();
                 renderWorldMatrix();
-                
-                // 仅更新局部状态指示灯与悬浮窗数据，避免重绘整个聊天容器引起闪烁
                 updateBanner(activeSession);
                 renderMatrixPopover();
             }
@@ -924,7 +883,6 @@
                 if(idx > -1) targetArray.splice(idx, 1);
             }
             saveState();
-            
             updateBanner(activeSession);
             renderMatrixPopover();
         }
@@ -963,7 +921,6 @@
             }
             saveState(); 
             renderWorldMatrix(); 
-            
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if(activeSession) updateBanner(activeSession);
             renderMatrixPopover();
@@ -1020,13 +977,51 @@
                 
                 saveState();
                 renderWorldMatrix();
-                
                 const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
                 if(activeSession) updateBanner(activeSession);
                 renderMatrixPopover();
-                
                 closeEditPromptModal();
             }
+        }
+
+        function createChatFromPlot(plotId, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            
+            const plot = state.plotCards.find(p => p.id === plotId);
+            if (!plot) return;
+
+            closeModal('world-matrix-modal');
+            if (abortController) stopGeneration();
+
+            const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
+            const activePlots = currentSession ? [...currentSession.activePlots] : [];
+            
+            if (!activePlots.includes(plotId)) {
+                activePlots.push(plotId);
+            }
+
+            const newSession = { 
+                id: Date.now().toString(), 
+                title: '正在载入剧情...', 
+                messages: [],
+                systemPrompt: currentSession && currentSession.systemPrompt ? JSON.parse(JSON.stringify(currentSession.systemPrompt)) : null,
+                activeCharacters: currentSession ? [...currentSession.activeCharacters] : [],
+                activePlots: activePlots
+            };
+            
+            state.sessions.unshift(newSession);
+            state.activeSessionId = newSession.id;
+            
+            saveState();
+            renderSessions();
+            renderChat(); 
+            
+            setTimeout(() => {
+                triggerSend(plot.content);
+            }, 50);
         }
 
         function renderSessions() {
@@ -1083,9 +1078,9 @@
             if (session.activePlots && session.activePlots.length > 0) hasAny = true;
             
             if (hasAny) {
-                bookBtn.className = "w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
+                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
             } else {
-                bookBtn.className = "w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
+                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
             }
         }
 
@@ -1113,7 +1108,6 @@
                 const isUser = msg.role === 'user';
                 const parsedContent = isUser ? `<div class="whitespace-pre-wrap">${escapeHTML(msg.content)}</div>` : buildMessageHTML(msg.content, msg.reasoning);
                 
-                // 核心时序校验线
                 const isGenerating = (index === activeSession.messages.length - 1 && abortController !== null);
 
                 if (isUser) {
@@ -1151,7 +1145,6 @@
 
         let userScrolledUp = false;
         
-        // 核心改动：监听滚动事件以控制悬浮按钮的隐现
         window.addEventListener('scroll', () => {
             const isNearBottom = (document.body.scrollHeight - (window.scrollY + window.innerHeight)) <= 150;
             const btn = document.getElementById('scroll-to-bottom-btn');
@@ -1171,7 +1164,6 @@
             }
         }, { passive: true });
 
-        // 手动干预后的平滑坠底
         function forceScrollToBottom() {
             userScrolledUp = false;
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
@@ -1179,12 +1171,10 @@
 
         function scrollToBottom() { 
             if (!userScrolledUp) {
-                // 核心改动：剥离了 behavior: 'smooth'，彻底消除高频生成时的动画死结
                 window.scrollTo({ top: document.body.scrollHeight });
             }
         }
 
-        // ================= 改良：适配多处弹出框的自适应高度计算 =================
         function autoResize(textarea) { 
             if(!textarea) return;
             textarea.style.height = 'auto'; 
@@ -1215,7 +1205,6 @@
             if(window.innerWidth < 768) input.blur();
         }
 
-        // 【时序重组】强制前置通信控制器，确保 Assistant 初始帧即完美继承隐藏状态
         async function triggerSend(content) {
             if (!state.config.apiKey) { 
                 alert('阻断：请先在设置中配置 API Key。');
@@ -1232,7 +1221,6 @@
             
             activeSession.messages.push({ role: 'assistant', content: '', reasoning: '' });
             
-            // 核心修复点：必须在 renderChat 之前完成新控制器的初始化，否则 isGenerating 会在零点偏转为 false
             abortController = new AbortController();
             renderChat();
             
@@ -1307,8 +1295,12 @@
                 const chatContainer = document.getElementById('chat-container');
 
                 while (true) {
+                    // ================= 核心修复：强行截断底层流式读取 =================
+                    if (!abortController) break; 
+                    
                     const { done, value } = await reader.read();
                     if (done) break;
+                    
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
                     buffer = lines.pop();
@@ -1354,13 +1346,20 @@
             }
         }
 
+        // ================= 重构：确保停止生成不仅触发 abort，还清理状态 =================
         function stopGeneration() {
             if (abortController) {
-                abortController.abort(); abortController = null;
+                abortController.abort(); 
+                abortController = null; // 置空这一步将触发上面 while 循环里的 break
+                
                 const btnSend = document.getElementById('send-btn');
                 const btnStop = document.getElementById('stop-btn');
                 if(btnSend) btnSend.classList.remove('hidden');
                 if(btnStop) btnStop.classList.add('hidden');
+                
+                const lastMsgDiv = document.getElementById('chat-container')?.lastElementChild?.querySelector('.message-content');
+                if (lastMsgDiv) lastMsgDiv.classList.remove('typing-indicator');
+                
                 renderChat(); 
             }
         }
@@ -1369,7 +1368,6 @@
             setTimeout(init, 50);
         });
 
-        // ================= 全局空间坐标捕获与侧边栏抽屉交互 =================
         let touchStartX = 0;
         let touchStartY = 0;
         
@@ -1384,18 +1382,14 @@
             const diffX = touchEndX - touchStartX;
             const diffY = touchEndY - touchStartY;
             
-            // 左侧边缘向右滑出唤醒 (锚点限制在屏幕左边缘 40px 内以防误触)
             if (touchStartX < 40 && diffX > 50 && Math.abs(diffY) < 50 && !sidebarOpen) {
                 toggleSidebar();
             }
-            
-            // 任意区域向左横滑折叠
             if (diffX < -50 && Math.abs(diffY) < 50 && sidebarOpen) {
                 toggleSidebar();
             }
         }, { passive: true });
 
-        // ================= 系统级日夜模式自动跟随探针 =================
         if (window.matchMedia) {
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
             mediaQuery.addEventListener('change', e => {
@@ -1404,7 +1398,6 @@
                 saveState();
             });
         }
-        // ==============================================================
     </script>
 </body>
 </html>
