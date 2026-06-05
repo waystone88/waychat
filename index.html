@@ -749,6 +749,52 @@
             btn.classList.add('text-blue-600', 'border-blue-600');
         }
 
+        // ================= 新增：从剧情卡越级直通创建会话 =================
+        function createChatFromPlot(plotId, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            
+            const plot = state.plotCards.find(p => p.id === plotId);
+            if (!plot) return;
+
+            // 1. 关闭世界观沙盘遮罩，中止进行中的线程
+            closeModal('world-matrix-modal');
+            if (abortController) stopGeneration();
+
+            // 2. 捕获当前会话的生态参数（系统/角色/剧情），保证切换时世界线不断裂
+            const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
+            const activePlots = currentSession ? [...currentSession.activePlots] : [];
+            
+            // 3. 将当前剧情卡硬挂载入约束队列
+            if (!activePlots.includes(plotId)) {
+                activePlots.push(plotId);
+            }
+
+            const newSession = { 
+                id: Date.now().toString(), 
+                title: '正在载入剧情...', 
+                messages: [],
+                systemPrompt: currentSession && currentSession.systemPrompt ? JSON.parse(JSON.stringify(currentSession.systemPrompt)) : null,
+                activeCharacters: currentSession ? [...currentSession.activeCharacters] : [],
+                activePlots: activePlots
+            };
+            
+            state.sessions.unshift(newSession);
+            state.activeSessionId = newSession.id;
+            
+            saveState();
+            renderSessions();
+            renderChat(); 
+            
+            // 4. 延迟 50ms 避开 DOM 重绘拥堵，直接越级发射剧情卡内容
+            setTimeout(() => {
+                triggerSend(plot.content);
+            }, 50);
+        }
+        // =================================================================
+
         function renderWorldMatrix() {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
@@ -797,6 +843,8 @@
                             <div class="font-bold text-base ${isChecked ? 'text-green-600 dark:text-green-400' : 'text-gray-800 dark:text-gray-200'} truncate">${escapeHTML(p.title)}</div>
                         </div>
                         <div class="flex items-center gap-3 shrink-0 z-10">
+                            <button type="button" onclick="createChatFromPlot('${p.id}', event)" class="text-gray-400 hover:text-indigo-500 transition-colors p-1.5" title="以此剧情创建新对话"><i class="fa-solid fa-paper-plane text-base"></i></button>
+                            
                             <button type="button" onclick="openEditPromptModal('plot', '${p.id}', event)" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors p-1.5" title="编辑"><i class="fa-solid fa-pen text-base"></i></button>
                             <button type="button" onclick="deleteCard('plot', '${p.id}'); event.preventDefault();" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors p-1.5"><i class="fa-solid fa-trash text-base"></i></button>
                         </div>
