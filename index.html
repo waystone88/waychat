@@ -239,7 +239,7 @@
         </div>
     </div>
 
-    <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4" style="z-index: 80;">
+    <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4">
         <div class="bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-3xl p-5 md:p-6 w-full max-w-2xl shadow-2xl flex flex-col backdrop-blur-xl">
             <h2 class="text-xl font-bold mb-4 tracking-tight">重构既定公理</h2>
             <div class="space-y-4 text-base">
@@ -255,6 +255,19 @@
             <div class="mt-6 flex justify-end gap-2 shrink-0">
                 <button onclick="closeEditPromptModal()" class="px-5 py-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium transition-all">取消</button>
                 <button onclick="saveEditedPrompt()" class="px-6 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md transition-all">保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-message-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4">
+        <div class="bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-3xl p-5 md:p-6 w-full max-w-2xl shadow-2xl flex flex-col backdrop-blur-xl">
+            <h2 class="text-xl font-bold mb-4 tracking-tight">修改消息内容</h2>
+            <div class="space-y-4 text-base">
+                <textarea id="edit-message-content" rows="4" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[220px] text-gray-900 dark:text-gray-100" oninput="autoResize(this)"></textarea>
+            </div>
+            <div class="mt-6 flex justify-end gap-2 shrink-0">
+                <button onclick="closeEditMessageModal()" class="px-5 py-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium transition-all">取消</button>
+                <button onclick="saveEditedMessage()" class="px-6 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md transition-all">保存并提交</button>
             </div>
         </div>
     </div>
@@ -284,11 +297,11 @@
 
         let abortController = null;
         let editingPromptId = null;
+        let editingMessageIndex = null; // 新增：用于追踪当前编辑的消息槽位
         let sidebarOpen = false;
 
         function init() {
             try {
-                // 跃迁至拥有因果时序防护锁的 v28 离散沙箱
                 const savedState = localStorage.getItem('deepseek_client_state_v28');
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
@@ -303,7 +316,13 @@
                         const d = localStorage.getItem(fb);
                         if(d) { state = JSON.parse(d); break; }
                     }
-                    state.config.darkMode = false;
+                    
+                    // 如果是纯净初始化，首次尝试读取系统深色模式配置
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        state.config.darkMode = true;
+                    } else {
+                        state.config.darkMode = false;
+                    }
                     saveState();
                 }
             } catch (e) {
@@ -343,7 +362,6 @@
             }));
         }
 
-        // ================= 系统界面字体控制引擎 =================
         function applyUiFontSize() {
             const base = state.config.uiFontSize || 16;
             const lg = Math.round(base * 1.125);
@@ -351,19 +369,19 @@
             const text2xl = Math.round(base * 1.5);
             const sm = Math.round(base * 0.875);
             const xs = Math.round(base * 0.75);
-            // iOS Safari 保护机制：输入框字体强制不小于 16px 防止自动放大
             const inputSize = Math.max(16, base);
 
             const style = document.getElementById('ui-font-style') || document.createElement('style');
             style.id = 'ui-font-style';
+            // 添加了对新增的 #edit-message-modal 的字号支持
             style.innerHTML = `
-                #sidebar, #world-matrix-modal, #settings-modal, #matrix-popover, #edit-prompt-modal { font-size: ${base}px !important; }
-                #sidebar .text-2xl, #world-matrix-modal .text-2xl, #settings-modal .text-2xl, #edit-prompt-modal .text-2xl { font-size: ${text2xl}px !important; line-height: 1.2 !important; }
-                #sidebar .text-xl, #world-matrix-modal .text-xl, #settings-modal .text-xl, #edit-prompt-modal .text-xl { font-size: ${xl}px !important; line-height: 1.4 !important; }
-                #sidebar .text-lg, #world-matrix-modal .text-lg, #settings-modal .text-lg, #matrix-popover .text-lg, #edit-prompt-modal .text-lg { font-size: ${lg}px !important; line-height: 1.5 !important; }
-                #sidebar .text-base, #world-matrix-modal .text-base, #settings-modal .text-base, #matrix-popover .text-base, #edit-prompt-modal .text-base { font-size: ${base}px !important; line-height: 1.5 !important; }
-                #sidebar .text-sm, #world-matrix-modal .text-sm, #settings-modal .text-sm, #matrix-popover .text-sm, #edit-prompt-modal .text-sm { font-size: ${sm}px !important; line-height: 1.5 !important; }
-                #sidebar .text-xs, #world-matrix-modal .text-xs, #settings-modal .text-xs, #matrix-popover .text-xs, #edit-prompt-modal .text-xs { font-size: ${xs}px !important; line-height: 1.5 !important; }
+                #sidebar, #world-matrix-modal, #settings-modal, #matrix-popover, #edit-prompt-modal, #edit-message-modal { font-size: ${base}px !important; }
+                #sidebar .text-2xl, #world-matrix-modal .text-2xl, #settings-modal .text-2xl, #edit-prompt-modal .text-2xl, #edit-message-modal .text-2xl { font-size: ${text2xl}px !important; line-height: 1.2 !important; }
+                #sidebar .text-xl, #world-matrix-modal .text-xl, #settings-modal .text-xl, #edit-prompt-modal .text-xl, #edit-message-modal .text-xl { font-size: ${xl}px !important; line-height: 1.4 !important; }
+                #sidebar .text-lg, #world-matrix-modal .text-lg, #settings-modal .text-lg, #matrix-popover .text-lg, #edit-prompt-modal .text-lg, #edit-message-modal .text-lg { font-size: ${lg}px !important; line-height: 1.5 !important; }
+                #sidebar .text-base, #world-matrix-modal .text-base, #settings-modal .text-base, #matrix-popover .text-base, #edit-prompt-modal .text-base, #edit-message-modal .text-base { font-size: ${base}px !important; line-height: 1.5 !important; }
+                #sidebar .text-sm, #world-matrix-modal .text-sm, #settings-modal .text-sm, #matrix-popover .text-sm, #edit-prompt-modal .text-sm, #edit-message-modal .text-sm { font-size: ${sm}px !important; line-height: 1.5 !important; }
+                #sidebar .text-xs, #world-matrix-modal .text-xs, #settings-modal .text-xs, #matrix-popover .text-xs, #edit-prompt-modal .text-xs, #edit-message-modal .text-xs { font-size: ${xs}px !important; line-height: 1.5 !important; }
                 
                 input[type=text], input[type=password], textarea, select { font-size: ${inputSize}px !important; }
             `;
@@ -371,9 +389,7 @@
                 document.head.appendChild(style);
             }
         }
-        // ==============================================================
 
-        // ================= 悬浮窗局部解耦交互 =================
         function toggleMatrixPopover(event) {
             if(event) event.stopPropagation();
             const popover = document.getElementById('matrix-popover');
@@ -462,7 +478,6 @@
             renderMatrixPopover();
             updateBanner(activeSession);
         }
-        // ==============================================================
 
         function toggleSidebar() {
             sidebarOpen = !sidebarOpen;
@@ -480,7 +495,12 @@
             }
         }
 
-        function toggleDarkMode() { state.config.darkMode = !state.config.darkMode; applyDarkMode(); saveState(); }
+        function toggleDarkMode() { 
+            state.config.darkMode = !state.config.darkMode; 
+            applyDarkMode(); 
+            saveState(); 
+        }
+        
         function applyDarkMode() { document.documentElement.classList.toggle('dark', state.config.darkMode); }
 
         function toggleThinkingModeViaBtn() {
@@ -696,23 +716,54 @@
             renderChat(); saveState();
         }
 
+        // ================= 重构：替换掉单行的原生 Prompt，启用专门定制的高维多行编辑舱 =================
         function editMessage(index) {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if(!activeSession) return;
             const msg = activeSession.messages[index];
-            const newContent = prompt("修改消息内容：", msg.content);
-            if (newContent !== null && newContent.trim() !== '') {
+            
+            editingMessageIndex = index;
+            const contentEl = document.getElementById('edit-message-content');
+            contentEl.value = msg.content;
+            
+            document.getElementById('edit-message-modal').classList.remove('hidden');
+            // 延时保障弹性文本域（Textarea）能在 DOM 完全渲染后计算出精确的撑开高度
+            setTimeout(() => autoResize(contentEl), 20); 
+        }
+
+        function closeEditMessageModal() {
+            editingMessageIndex = null;
+            document.getElementById('edit-message-modal').classList.add('hidden');
+        }
+
+        function saveEditedMessage() {
+            if (editingMessageIndex === null) return;
+            const contentEl = document.getElementById('edit-message-content');
+            const newContent = contentEl.value.trim();
+            
+            if (newContent !== '') {
+                const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+                const msg = activeSession.messages[editingMessageIndex];
                 msg.content = newContent;
+                
+                closeEditMessageModal();
+                
                 if(confirm('确定保存修改并重新生成后续对话吗？')) {
-                    activeSession.messages.splice(index + 1);
+                    activeSession.messages.splice(editingMessageIndex + 1);
                     if (msg.role === 'user') {
                         const contentToResend = activeSession.messages.pop().content;
-                        renderChat(); triggerSend(contentToResend);
+                        renderChat(); 
+                        triggerSend(contentToResend);
                         return;
                     }
                 }
-                renderChat(); saveState();
+                renderChat(); 
+                saveState();
+            } else {
+                closeEditMessageModal();
             }
         }
+        // ==============================================================================================
 
         function copyMessage(index) {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
@@ -749,7 +800,6 @@
             btn.classList.add('text-blue-600', 'border-blue-600');
         }
 
-        // ================= 从剧情卡越级直通创建会话 =================
         function createChatFromPlot(plotId, event) {
             if (event) {
                 event.stopPropagation();
@@ -759,15 +809,12 @@
             const plot = state.plotCards.find(p => p.id === plotId);
             if (!plot) return;
 
-            // 1. 关闭世界观沙盘遮罩，中止进行中的线程
             closeModal('world-matrix-modal');
             if (abortController) stopGeneration();
 
-            // 2. 捕获当前会话的生态参数（系统/角色/剧情），保证切换时世界线不断裂
             const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
             const activePlots = currentSession ? [...currentSession.activePlots] : [];
             
-            // 3. 将当前剧情卡硬挂载入约束队列
             if (!activePlots.includes(plotId)) {
                 activePlots.push(plotId);
             }
@@ -788,18 +835,15 @@
             renderSessions();
             renderChat(); 
             
-            // 4. 延迟 50ms 避开 DOM 重绘拥堵，直接越级发射剧情卡内容
             setTimeout(() => {
                 triggerSend(plot.content);
             }, 50);
         }
-        // =================================================================
 
         function renderWorldMatrix() {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
 
-            // 1. 系统单选设定流
             document.getElementById('system-list').innerHTML = state.systemCards.map(p => {
                 const isActive = activeSession.systemPrompt?.title === p.title;
                 return `
@@ -814,7 +858,6 @@
                 </div>`;
             }).join('');
 
-            // 2. 角色多选卡片流
             document.getElementById('character-list').innerHTML = state.characterCards.map(c => {
                 const isChecked = activeSession.activeCharacters.includes(c.id);
                 return `
@@ -832,7 +875,6 @@
                 </label>`;
             }).join('');
 
-            // 3. 剧情多选卡片流
             document.getElementById('plot-list').innerHTML = state.plotCards.map(p => {
                 const isChecked = activeSession.activePlots.includes(p.id);
                 return `
@@ -1142,10 +1184,13 @@
             }
         }
 
+        // ================= 改良：适配多处弹出框的自适应高度计算 =================
         function autoResize(textarea) { 
             if(!textarea) return;
             textarea.style.height = 'auto'; 
-            const maxH = textarea.id === 'message-input' ? 140 : 120;
+            let maxH = 120;
+            if (textarea.id === 'message-input') maxH = 140;
+            if (textarea.id === 'edit-prompt-content' || textarea.id === 'edit-message-content') maxH = 220;
             textarea.style.height = Math.min(textarea.scrollHeight, maxH) + 'px'; 
         }
 
@@ -1349,7 +1394,17 @@
                 toggleSidebar();
             }
         }, { passive: true });
-        // ====================================================================
+
+        // ================= 系统级日夜模式自动跟随探针 =================
+        if (window.matchMedia) {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            mediaQuery.addEventListener('change', e => {
+                state.config.darkMode = e.matches;
+                applyDarkMode();
+                saveState();
+            });
+        }
+        // ==============================================================
     </script>
 </body>
 </html>
