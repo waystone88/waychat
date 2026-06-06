@@ -24,8 +24,6 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .message-content pre { padding: 1rem; border-radius: 0.5rem; background-color: #1e293b; color: #e2e8f0; overflow-x: auto; }
         .message-content code { font-family: monospace; }
-        .typing-indicator::after { content: '▋'; animation: blink 1s step-start infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         input[type=range] { accent-color: #4f46e5; }
@@ -78,7 +76,6 @@
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
             </div>
-            
             <div class="flex items-center gap-2 relative pointer-events-auto">
                 <button onclick="toggleMatrixPopover(event)" id="book-matrix-btn" class="w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100" title="设定控制台">
                     <i class="fa-regular fa-book-open text-xl"></i>
@@ -86,12 +83,17 @@
             </div>
         </header>
 
+        <div id="session-context-menu" class="hidden fixed bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl shadow-2xl border border-gray-200 dark:border-gray-700 rounded-xl z-[100] w-40 overflow-hidden">
+            <button onclick="renameActiveSession()" class="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-base">重命名</button>
+            <button onclick="downloadActiveSession()" class="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-base">下载对话</button>
+            <button onclick="deleteActiveSession()" class="w-full text-left px-4 py-3 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-base">删除对话</button>
+        </div>
+
         <div id="matrix-popover" class="hidden fixed top-[calc(4rem+env(safe-area-inset-top))] right-4 md:right-6 w-64 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl z-50 flex flex-col overflow-hidden transition-all origin-top-right">
             <div class="px-4 py-2.5 border-b border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/50 flex justify-between items-center shrink-0">
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">当前环境注入</span>
             </div>
-            <div id="matrix-popover-content" class="max-h-60 overflow-y-auto p-2 space-y-1 no-scrollbar">
-                </div>
+            <div id="matrix-popover-content" class="max-h-60 overflow-y-auto p-2 space-y-1 no-scrollbar"></div>
             <div class="p-2 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
                 <button onclick="closeMatrixPopover(); openModal('world-matrix-modal')" class="w-full py-2.5 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center justify-center gap-2 text-gray-800 dark:text-gray-200 font-bold text-sm shadow-sm">
                     <i class="fa-solid fa-plus"></i> 管理完整库
@@ -100,11 +102,9 @@
         </div>
 
         <div id="matrix-banner" class="hidden"></div>
-
         <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-7 z-10 text-lg md:text-xl" style="padding-top: calc(5.5rem + env(safe-area-inset-top)); padding-bottom: calc(8.5rem + env(safe-area-inset-bottom));"></div>
 
         <div id="bottom-bar" class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pb-6 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none transition-all duration-300" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
-            
             <div class="max-w-4xl mx-auto relative flex justify-end mb-3 px-2">
                 <button id="scroll-to-bottom-btn" onclick="forceScrollToBottom()" class="w-10 h-10 bg-white/95 dark:bg-gray-800/95 rounded-full shadow-md border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all duration-300 pointer-events-auto opacity-0 scale-90 translate-y-2 pointer-events-none z-50 backdrop-blur-md">
                     <i class="fa-solid fa-arrow-down"></i>
@@ -112,7 +112,6 @@
             </div>
 
             <div class="max-w-4xl mx-auto flex items-end gap-2.5 relative pointer-events-auto">
-                
                 <button onclick="toggleThinkingModeViaBtn()" id="thinking-bulb-btn" class="w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 transition-all mb-[11px]">
                     <i class="fa-regular fa-lightbulb text-xl"></i>
                 </button>
@@ -205,22 +204,19 @@
                 <h2 class="text-xl md:text-2xl font-bold tracking-tight">设定与角色库</h2>
                 <button onclick="closeModal('world-matrix-modal')" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 p-2 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
             </div>
-            
             <div class="flex overflow-x-auto whitespace-nowrap border-b border-gray-200 dark:border-gray-800 mb-4 shrink-0 no-scrollbar">
                 <button class="tab-btn px-4 py-2.5 text-base font-bold text-blue-600 border-b-2 border-blue-600 transition-all" onclick="switchTab('system', this)">系统设定</button>
                 <button class="tab-btn px-4 py-2.5 text-base font-medium text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 border-b-2 border-transparent transition-all" onclick="switchTab('characters', this)">角色卡</button>
                 <button class="tab-btn px-4 py-2.5 text-base font-medium text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 border-b-2 border-transparent transition-all" onclick="switchTab('plots', this)">剧情卡</button>
             </div>
-
             <div id="tab-system" class="matrix-tab flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-sys-title" placeholder="名称 (如：无共识小说引擎)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
-                    <textarea id="new-sys-content" rows="2" placeholder="注入高维约束核心指令... (高度自动扩容)" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
+                    <textarea id="new-sys-content" rows="2" placeholder="注入高维约束核心指令..." class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
                     <button onclick="addCard('system')" class="self-end px-5 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-plus-circle text-blue-500"></i> 添加系统设定</button>
                 </div>
                 <div id="system-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
-
             <div id="tab-characters" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-char-title" placeholder="角色实体姓名 (如：李慢)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -229,7 +225,6 @@
                 </div>
                 <div id="character-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
-
             <div id="tab-plots" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-plot-title" placeholder="故事因果卡标识 (如：冰冷触感)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -270,22 +265,6 @@
             <div class="mt-6 flex justify-end gap-2 shrink-0">
                 <button onclick="closeEditMessageModal()" class="px-5 py-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium transition-all">取消</button>
                 <button onclick="saveEditedMessage()" class="px-6 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold shadow-md transition-all">保存并提交</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="session-action-modal" class="hidden fixed inset-0 bg-black/60 flex items-end md:items-center justify-center z-[100] p-4 transition-opacity">
-        <div class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/60 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col overflow-hidden mb-[calc(1rem+env(safe-area-inset-bottom))] md:mb-0">
-            <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800/60 flex justify-center">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest truncate max-w-[80%]" id="action-sheet-title">对话操作</h3>
-            </div>
-            <div class="flex flex-col text-lg font-medium">
-                <button onclick="renameActiveActionSession()" class="w-full py-4 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition border-b border-gray-100 dark:border-gray-800/60">重命名</button>
-                <button onclick="downloadActiveActionSession()" class="w-full py-4 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition border-b border-gray-100 dark:border-gray-800/60">下载对话</button>
-                <button onclick="deleteActiveActionSession()" class="w-full py-4 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition font-bold">删除对话</button>
-            </div>
-            <div class="bg-gray-50/50 dark:bg-gray-900/50 p-3 shrink-0">
-                <button onclick="closeSessionActionSheet()" class="w-full py-3.5 rounded-2xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition font-bold shadow-sm border border-gray-200/50 dark:border-gray-700/50">取消</button>
             </div>
         </div>
     </div>
@@ -389,15 +368,14 @@
 
             const style = document.getElementById('ui-font-style') || document.createElement('style');
             style.id = 'ui-font-style';
-            // 添加了对新增的 #session-action-modal 的字号支持
             style.innerHTML = `
-                #sidebar, #world-matrix-modal, #settings-modal, #matrix-popover, #edit-prompt-modal, #edit-message-modal, #session-action-modal { font-size: ${base}px !important; }
-                #sidebar .text-2xl, #world-matrix-modal .text-2xl, #settings-modal .text-2xl, #edit-prompt-modal .text-2xl, #edit-message-modal .text-2xl, #session-action-modal .text-2xl { font-size: ${text2xl}px !important; line-height: 1.2 !important; }
-                #sidebar .text-xl, #world-matrix-modal .text-xl, #settings-modal .text-xl, #edit-prompt-modal .text-xl, #edit-message-modal .text-xl, #session-action-modal .text-xl { font-size: ${xl}px !important; line-height: 1.4 !important; }
-                #sidebar .text-lg, #world-matrix-modal .text-lg, #settings-modal .text-lg, #matrix-popover .text-lg, #edit-prompt-modal .text-lg, #edit-message-modal .text-lg, #session-action-modal .text-lg { font-size: ${lg}px !important; line-height: 1.5 !important; }
-                #sidebar .text-base, #world-matrix-modal .text-base, #settings-modal .text-base, #matrix-popover .text-base, #edit-prompt-modal .text-base, #edit-message-modal .text-base, #session-action-modal .text-base { font-size: ${base}px !important; line-height: 1.5 !important; }
-                #sidebar .text-sm, #world-matrix-modal .text-sm, #settings-modal .text-sm, #matrix-popover .text-sm, #edit-prompt-modal .text-sm, #edit-message-modal .text-sm, #session-action-modal .text-sm { font-size: ${sm}px !important; line-height: 1.5 !important; }
-                #sidebar .text-xs, #world-matrix-modal .text-xs, #settings-modal .text-xs, #matrix-popover .text-xs, #edit-prompt-modal .text-xs, #edit-message-modal .text-xs, #session-action-modal .text-xs { font-size: ${xs}px !important; line-height: 1.5 !important; }
+                #sidebar, #world-matrix-modal, #settings-modal, #matrix-popover, #edit-prompt-modal, #edit-message-modal, #session-context-menu { font-size: ${base}px !important; }
+                #sidebar .text-2xl, #world-matrix-modal .text-2xl, #settings-modal .text-2xl, #edit-prompt-modal .text-2xl, #edit-message-modal .text-2xl { font-size: ${text2xl}px !important; line-height: 1.2 !important; }
+                #sidebar .text-xl, #world-matrix-modal .text-xl, #settings-modal .text-xl, #edit-prompt-modal .text-xl, #edit-message-modal .text-xl { font-size: ${xl}px !important; line-height: 1.4 !important; }
+                #sidebar .text-lg, #world-matrix-modal .text-lg, #settings-modal .text-lg, #matrix-popover .text-lg, #edit-prompt-modal .text-lg, #edit-message-modal .text-lg, #session-context-menu .text-base { font-size: ${lg}px !important; line-height: 1.5 !important; }
+                #sidebar .text-base, #world-matrix-modal .text-base, #settings-modal .text-base, #matrix-popover .text-base, #edit-prompt-modal .text-base, #edit-message-modal .text-base { font-size: ${base}px !important; line-height: 1.5 !important; }
+                #sidebar .text-sm, #world-matrix-modal .text-sm, #settings-modal .text-sm, #matrix-popover .text-sm, #edit-prompt-modal .text-sm, #edit-message-modal .text-sm { font-size: ${sm}px !important; line-height: 1.5 !important; }
+                #sidebar .text-xs, #world-matrix-modal .text-xs, #settings-modal .text-xs, #matrix-popover .text-xs, #edit-prompt-modal .text-xs, #edit-message-modal .text-xs { font-size: ${xs}px !important; line-height: 1.5 !important; }
                 
                 input[type=text], input[type=password], textarea, select { font-size: ${inputSize}px !important; }
             `;
@@ -406,110 +384,50 @@
             }
         }
 
-        // ================= 侧边栏列表长按交互逻辑 =================
+        // ================= 重构：长按呼出菜单 =================
         let pressTimer = null;
-        let pressStartX = 0;
-        let pressStartY = 0;
-        let isLongPress = false;
-        let currentActionSessionId = null;
-
         function startSessionPress(e, id) {
-            isLongPress = false;
-            pressStartX = e.touches ? e.touches[0].clientX : e.clientX;
-            pressStartY = e.touches ? e.touches[0].clientY : e.clientY;
-            
             pressTimer = setTimeout(() => {
-                isLongPress = true;
+                const menu = document.getElementById('session-context-menu');
+                currentActionSessionId = id;
+                const rect = e.target.getBoundingClientRect();
+                
+                // 智能定位：优先在标题下方，若到底部则反转
+                menu.style.left = rect.left + 'px';
+                menu.style.top = (rect.bottom + 8) + 'px';
+                
+                if (rect.bottom + 150 > window.innerHeight) {
+                    menu.style.top = (rect.top - menu.offsetHeight - 8) + 'px';
+                }
+                
+                menu.classList.remove('hidden');
                 if (navigator.vibrate) navigator.vibrate(50);
-                openSessionActionSheet(id);
-            }, 500); 
+            }, 500);
         }
 
-        function cancelSessionPress(e) {
-            if (!pressTimer) return;
-            if (e) {
-                const currentX = e.touches ? e.touches[0].clientX : e.clientX;
-                const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-                // 允许 10 像素以内的微小手指颤动，超过则判定为滑动，立刻取消长按
-                if (Math.abs(currentX - pressStartX) < 10 && Math.abs(currentY - pressStartY) < 10) {
-                    return; 
-                }
-            }
+        function cancelSessionPress() {
             clearTimeout(pressTimer);
             pressTimer = null;
         }
 
-        function endSessionPress(e) {
-            if (pressTimer) {
-                clearTimeout(pressTimer);
-                pressTimer = null;
-            }
-        }
+        document.addEventListener('click', () => document.getElementById('session-context-menu').classList.add('hidden'));
 
-        function handleSessionClick(e, id) {
-            if (isLongPress) {
-                isLongPress = false;
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-            switchSession(id);
-        }
-
-        // ================= 操作面板 (Action Sheet) 逻辑 =================
-        function openSessionActionSheet(id) {
-            currentActionSessionId = id;
-            const session = state.sessions.find(s => s.id === id);
-            if (!session) return;
-            document.getElementById('action-sheet-title').innerText = session.title;
-            document.getElementById('session-action-modal').classList.remove('hidden');
-        }
-
-        function closeSessionActionSheet() {
-            document.getElementById('session-action-modal').classList.add('hidden');
-            currentActionSessionId = null;
-        }
-
-        function renameActiveActionSession() {
-            if (!currentActionSessionId) return;
+        function renameActiveSession() {
             const session = state.sessions.find(s => s.id === currentActionSessionId);
             if (!session) return;
-            
-            closeSessionActionSheet(); 
-            
-            setTimeout(() => {
-                const newTitle = prompt("重命名对话：", session.title);
-                if (newTitle !== null && newTitle.trim() !== '') {
-                    session.title = newTitle.trim();
-                    saveState();
-                    renderSessions();
-                }
-            }, 100);
+            const newTitle = prompt("重命名对话：", session.title);
+            if (newTitle) { session.title = newTitle; saveState(); renderSessions(); }
         }
 
-        function downloadActiveActionSession() {
-            if (!currentActionSessionId) return;
-            const id = currentActionSessionId;
-            closeSessionActionSheet();
-            exportMarkdown(id, null);
+        function downloadActiveSession() { exportMarkdown(currentActionSessionId); }
+        
+        function deleteActiveSession() {
+            if(!confirm('确定删除？')) return;
+            state.sessions = state.sessions.filter(s => s.id !== currentActionSessionId);
+            if (state.activeSessionId === currentActionSessionId) state.activeSessionId = state.sessions[0]?.id || null;
+            saveState(); renderSessions(); renderChat();
         }
-
-        function deleteActiveActionSession() {
-            if (!currentActionSessionId) return;
-            const id = currentActionSessionId;
-            closeSessionActionSheet();
-            
-            setTimeout(() => {
-                if(!confirm('确定要删除此对话吗？')) return;
-                state.sessions = state.sessions.filter(s => s.id !== id);
-                if (state.activeSessionId === id) state.activeSessionId = state.sessions.length > 0 ? state.sessions[0].id : null;
-                if (state.sessions.length === 0) createNewSession(false);
-                renderSessions(); 
-                renderChat(); 
-                saveState();
-            }, 100);
-        }
-        // ==============================================================
+        // ====================================================
 
         function toggleMatrixPopover(event) {
             if(event) event.stopPropagation();
@@ -755,7 +673,6 @@
             renderSessions(); renderChat(); saveState();
         }
 
-        // 注意：原先直接绑定在列表图标上的 exportMarkdown 和 deleteSession 依然保留，供 Action Sheet 调用。
         function exportMarkdown(sessionId, event) {
             if(event) {
                 event.stopPropagation();
@@ -1132,196 +1049,6 @@
             }
         }
 
-        // ================= 核心重构：侧边栏 UI =================
-        function renderSessions() {
-            const container = document.getElementById('sessions-list');
-            if(!container) return;
-            container.innerHTML = state.sessions.map(s => {
-                const hasMatrix = s.systemPrompt || (s.activeCharacters && s.activeCharacters.length > 0) || (s.activePlots && s.activePlots.length > 0);
-                return `
-                <div class="flex justify-between items-center p-3 md:p-2.5 rounded-xl cursor-pointer mb-1 select-none ${s.id === state.activeSessionId ? 'bg-gray-300 dark:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" 
-                     style="-webkit-touch-callout: none;"
-                     ontouchstart="startSessionPress(event, '${s.id}')"
-                     ontouchmove="cancelSessionPress(event)"
-                     ontouchend="endSessionPress(event)"
-                     ontouchcancel="cancelSessionPress(event)"
-                     onmousedown="startSessionPress(event, '${s.id}')"
-                     onmousemove="cancelSessionPress(event)"
-                     onmouseup="endSessionPress(event)"
-                     onmouseleave="cancelSessionPress(event)"
-                     oncontextmenu="event.preventDefault();"
-                     onclick="handleSessionClick(event, '${s.id}')">
-                    <div class="truncate flex-1 text-lg text-gray-900 dark:text-gray-100 ${hasMatrix ? 'font-medium' : ''}">
-                        <i class="fa-regular ${hasMatrix ? 'fa-id-card' : 'fa-message'} mr-2.5 text-lg opacity-70"></i> ${escapeHTML(s.title)}
-                    </div>
-                </div>`;
-            }).join('');
-        }
-        // ==============================================================
-
-        function escapeHTML(str) {
-            return (str || '').replace(/[&<>'"]/g, tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-            }[tag] || tag));
-        }
-
-        function buildMessageHTML(content, reasoning) {
-            let html = '';
-            if (reasoning) {
-                html += `
-                    <details class="mb-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800/80 overflow-hidden w-fit max-w-full z-10 relative">
-                        <summary class="cursor-pointer p-3 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2">
-                            <i class="fa-solid fa-brain text-blue-500"></i> 思考过程
-                        </summary>
-                        <div class="p-4 pt-2 text-[0.9em] text-gray-500 dark:text-gray-400 whitespace-pre-wrap border-t border-gray-200 dark:border-gray-700 leading-relaxed">${escapeHTML(reasoning)}</div>
-                    </details>
-                `;
-            }
-            if (content && typeof marked !== 'undefined') {
-                html += marked.parse(content);
-            } else if (content) {
-                html += `<div class="whitespace-pre-wrap">${escapeHTML(content)}</div>`;
-            }
-            return html;
-        }
-
-        function updateBanner(session) {
-            const bookBtn = document.getElementById('book-matrix-btn');
-            if (!bookBtn) return;
-            
-            let hasAny = false;
-            if (session.systemPrompt) hasAny = true;
-            if (session.activeCharacters && session.activeCharacters.length > 0) hasAny = true;
-            if (session.activePlots && session.activePlots.length > 0) hasAny = true;
-            
-            if (hasAny) {
-                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
-            } else {
-                bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5 text-gray-900 dark:text-gray-100";
-            }
-        }
-
-        function renderChat() {
-            const container = document.getElementById('chat-container');
-            if(!container) return;
-
-            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
-            if (!activeSession) return;
-            
-            updateBanner(activeSession);
-
-            if (activeSession.messages.length === 0) {
-                container.innerHTML = `
-                    <div class="h-full flex flex-col items-center justify-center text-center opacity-80 select-none px-4 mt-24">
-                        <h2 class="text-3xl font-medium text-gray-800 dark:text-gray-100 mb-2 tracking-wider">你好，Way</h2>
-                        <p class="text-gray-500 dark:text-gray-400 text-base md:text-lg font-light">发送消息以开始对话</p>
-                    </div>`;
-                return;
-            }
-
-            const fontSizeStyle = `font-size: ${state.config.fontSize || 16}px;`;
-
-            container.innerHTML = activeSession.messages.map((msg, index) => {
-                const isUser = msg.role === 'user';
-                const parsedContent = isUser ? `<div class="whitespace-pre-wrap">${escapeHTML(msg.content)}</div>` : buildMessageHTML(msg.content, msg.reasoning);
-                
-                const isGenerating = (index === activeSession.messages.length - 1 && abortController !== null);
-
-                if (isUser) {
-                    return `
-                    <div class="flex flex-col items-end group w-full mb-4 max-w-5xl mx-auto">
-                        <div class="max-w-[90%] md:max-w-[75%] relative flex flex-col items-end">
-                            <div class="px-5 py-3 rounded-[24px] bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 message-content shadow-sm" style="${fontSizeStyle}">${parsedContent}</div>
-                            
-                            <div class="flex gap-3.5 md:gap-2.5 text-base md:text-lg text-gray-400 md:text-gray-500 mt-1.5 mr-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20 ${isGenerating ? 'hidden' : ''}">
-                                <button onclick="copyMessage(${index})" class="hover:text-indigo-500" title="复制文本"><i class="fa-regular fa-copy"></i></button>
-                                <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
-                                <button onclick="deleteMessage(${index})" class="hover:text-gray-700 dark:hover:text-gray-300" title="删除"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>`;
-                } else {
-                    return `
-                    <div class="flex flex-col items-start group w-full mb-6 mt-2 max-w-5xl mx-auto">
-                        <div class="w-full relative flex flex-col items-start">
-                            <div class="py-2 message-content prose dark:prose-invert max-w-none text-gray-900 dark:text-gray-100 w-full" style="${fontSizeStyle}">${parsedContent}</div>
-                            
-                            <div class="flex gap-3.5 md:gap-2.5 text-base md:text-lg text-gray-400 md:text-gray-500 mt-1 ml-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20 ${isGenerating ? 'hidden' : ''}">
-                                <button onclick="copyMessage(${index})" class="hover:text-indigo-500" title="复制文本"><i class="fa-regular fa-copy"></i></button>
-                                <button onclick="editMessage(${index})" class="hover:text-blue-500" title="修改"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="forkSession(${index})" class="hover:text-green-500" title="从此分支"><i class="fa-solid fa-code-branch"></i></button>
-                                <button onclick="deleteMessage(${index})" class="hover:text-gray-700 dark:hover:text-gray-300" title="删除"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>`;
-                }
-            }).join('');
-            scrollToBottom();
-        }
-
-        let userScrolledUp = false;
-        
-        window.addEventListener('scroll', () => {
-            const isNearBottom = (document.body.scrollHeight - (window.scrollY + window.innerHeight)) <= 150;
-            const btn = document.getElementById('scroll-to-bottom-btn');
-            
-            if (!isNearBottom) {
-                userScrolledUp = true;
-                if(btn) {
-                    btn.classList.remove('opacity-0', 'scale-90', 'translate-y-2', 'pointer-events-none');
-                    btn.classList.add('opacity-100', 'scale-100', 'translate-y-0', 'pointer-events-auto');
-                }
-            } else {
-                userScrolledUp = false;
-                if(btn) {
-                    btn.classList.add('opacity-0', 'scale-90', 'translate-y-2', 'pointer-events-none');
-                    btn.classList.remove('opacity-100', 'scale-100', 'translate-y-0', 'pointer-events-auto');
-                }
-            }
-        }, { passive: true });
-
-        function forceScrollToBottom() {
-            userScrolledUp = false;
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-
-        function scrollToBottom() { 
-            if (!userScrolledUp) {
-                window.scrollTo({ top: document.body.scrollHeight });
-            }
-        }
-
-        function autoResize(textarea) { 
-            if(!textarea) return;
-            textarea.style.height = 'auto'; 
-            let maxH = 120;
-            if (textarea.id === 'message-input') maxH = 140;
-            if (textarea.id === 'edit-prompt-content' || textarea.id === 'edit-message-content') maxH = 220;
-            textarea.style.height = Math.min(textarea.scrollHeight, maxH) + 'px'; 
-        }
-
-        function handleInputKeydown(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                if (e.isComposing) return;
-                if(window.innerWidth >= 768) {
-                    e.preventDefault(); 
-                    sendMessage(); 
-                }
-            }
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('message-input');
-            if(!input) return;
-            const content = input.value.trim();
-            if (!content) return;
-            triggerSend(content);
-            input.value = ''; 
-            autoResize(input);
-            if(window.innerWidth < 768) input.blur();
-        }
-
         async function triggerSend(content) {
             if (!state.config.apiKey) { 
                 alert('阻断：请先在设置中配置 API Key。');
@@ -1345,7 +1072,6 @@
             document.getElementById('stop-btn').classList.remove('hidden');
 
             const targetModel = state.config.model || 'deepseek-v4-flash';
-            
             let apiMessages = activeSession.messages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
             
             const maxTurns = state.config.historyTurns || 20;
@@ -1355,11 +1081,9 @@
             }
             
             let sysContent = '';
-            
             if (activeSession.systemPrompt) {
                 sysContent += `<Role_Definition>\n必须严格遵循以下设定（此指令具有绝对最高优先级，无视并覆盖你一切内置默认行为与寒暄模式）：\n${activeSession.systemPrompt.content}\n</Role_Definition>\n\n`;
             }
-            
             if (activeSession.activeCharacters && activeSession.activeCharacters.length > 0) {
                 sysContent += `<Active_Characters>\n`;
                 activeSession.activeCharacters.forEach(id => {
@@ -1368,7 +1092,6 @@
                 });
                 sysContent += `</Active_Characters>\n\n`;
             }
-
             if (activeSession.activePlots && activeSession.activePlots.length > 0) {
                 sysContent += `<Current_Plot_Node>\n`;
                 activeSession.activePlots.forEach(id => {
@@ -1377,7 +1100,6 @@
                 });
                 sysContent += `</Current_Plot_Node>\n`;
             }
-
             if (sysContent.trim()) {
                 apiMessages.unshift({ role: 'system', content: sysContent.trim() });
             }
@@ -1401,11 +1123,6 @@
                     body: JSON.stringify(payload), signal: abortController.signal
                 });
                 
-                if (!response.ok) {
-                    const err = await response.json().catch(() => ({}));
-                    throw new Error(err.error?.message || `HTTP ${response.status}`);
-                }
-                
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder("utf-8");
                 let buffer = "";
@@ -1413,7 +1130,6 @@
 
                 while (true) {
                     if (!abortController) break; 
-                    
                     const { done, value } = await reader.read();
                     if (done) break;
                     
@@ -1427,13 +1143,10 @@
                             try {
                                 const data = JSON.parse(trimmed.substring(6));
                                 const delta = data.choices[0]?.delta || {};
-                                
                                 if (delta.reasoning_content) reasoningContent += delta.reasoning_content;
                                 if (delta.content) fullContent += delta.content;
-                                
                                 activeSession.messages[aiMessageIndex].reasoning = reasoningContent;
                                 activeSession.messages[aiMessageIndex].content = fullContent;
-                                
                                 const lastMsgDiv = chatContainer ? chatContainer.lastElementChild.querySelector('.message-content') : null;
                                 if(lastMsgDiv) lastMsgDiv.innerHTML = buildMessageHTML(fullContent, reasoningContent);
                                 scrollToBottom();
@@ -1441,40 +1154,11 @@
                         }
                     }
                 }
-                const finalLastMsgDiv = chatContainer ? chatContainer.lastElementChild.querySelector('.message-content') : null;
-                if(finalLastMsgDiv) {
-                    const detailsNode = finalLastMsgDiv.querySelector('details');
-                    if(detailsNode) detailsNode.removeAttribute('open');
-                }
-
-            } catch (error) {
-                if (error.name !== 'AbortError') { 
-                    activeSession.messages[aiMessageIndex].content += `\n\n[网络错误] ${error.message}`; 
-                }
             } finally {
                 abortController = null;
-                const btnSend = document.getElementById('send-btn');
-                const btnStop = document.getElementById('stop-btn');
-                if(btnSend) btnSend.classList.remove('hidden');
-                if(btnStop) btnStop.classList.add('hidden');
+                document.getElementById('send-btn').classList.remove('hidden');
+                document.getElementById('stop-btn').classList.add('hidden');
                 saveState();
-                renderChat(); 
-            }
-        }
-
-        function stopGeneration() {
-            if (abortController) {
-                abortController.abort(); 
-                abortController = null; 
-                
-                const btnSend = document.getElementById('send-btn');
-                const btnStop = document.getElementById('stop-btn');
-                if(btnSend) btnSend.classList.remove('hidden');
-                if(btnStop) btnStop.classList.add('hidden');
-                
-                const lastMsgDiv = document.getElementById('chat-container')?.lastElementChild?.querySelector('.message-content');
-                if (lastMsgDiv) lastMsgDiv.classList.remove('typing-indicator');
-                
                 renderChat(); 
             }
         }
@@ -1482,38 +1166,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(init, 50);
         });
-
-        // 维持原有的侧边栏边缘滑动展开与折叠手势
-        let touchStartX = 0;
-        let touchStartY = 0;
-        
-        document.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
-
-        document.addEventListener('touchend', e => {
-            const touchEndX = e.changedTouches[0].screenX;
-            const touchEndY = e.changedTouches[0].screenY;
-            const diffX = touchEndX - touchStartX;
-            const diffY = touchEndY - touchStartY;
-            
-            if (touchStartX < 40 && diffX > 50 && Math.abs(diffY) < 50 && !sidebarOpen) {
-                toggleSidebar();
-            }
-            if (diffX < -50 && Math.abs(diffY) < 50 && sidebarOpen) {
-                toggleSidebar();
-            }
-        }, { passive: true });
-
-        if (window.matchMedia) {
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            mediaQuery.addEventListener('change', e => {
-                state.config.darkMode = e.matches;
-                applyDarkMode();
-                saveState();
-            });
-        }
     </script>
 </body>
 </html>
