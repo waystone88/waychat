@@ -274,6 +274,22 @@
         </div>
     </div>
 
+    <div id="session-action-modal" class="hidden fixed inset-0 bg-black/60 flex items-end md:items-center justify-center z-[100] p-4 transition-opacity">
+        <div class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/60 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col overflow-hidden mb-[calc(1rem+env(safe-area-inset-bottom))] md:mb-0">
+            <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800/60 flex justify-center">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest truncate max-w-[80%]" id="action-sheet-title">对话操作</h3>
+            </div>
+            <div class="flex flex-col text-lg font-medium">
+                <button onclick="renameActiveActionSession()" class="w-full py-4 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition border-b border-gray-100 dark:border-gray-800/60">重命名</button>
+                <button onclick="downloadActiveActionSession()" class="w-full py-4 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition border-b border-gray-100 dark:border-gray-800/60">下载对话</button>
+                <button onclick="deleteActiveActionSession()" class="w-full py-4 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition font-bold">删除对话</button>
+            </div>
+            <div class="bg-gray-50/50 dark:bg-gray-900/50 p-3 shrink-0">
+                <button onclick="closeSessionActionSheet()" class="w-full py-3.5 rounded-2xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition font-bold shadow-sm border border-gray-200/50 dark:border-gray-700/50">取消</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let state = {
             config: { 
@@ -373,14 +389,15 @@
 
             const style = document.getElementById('ui-font-style') || document.createElement('style');
             style.id = 'ui-font-style';
+            // 添加了对新增的 #session-action-modal 的字号支持
             style.innerHTML = `
-                #sidebar, #world-matrix-modal, #settings-modal, #matrix-popover, #edit-prompt-modal, #edit-message-modal { font-size: ${base}px !important; }
-                #sidebar .text-2xl, #world-matrix-modal .text-2xl, #settings-modal .text-2xl, #edit-prompt-modal .text-2xl, #edit-message-modal .text-2xl { font-size: ${text2xl}px !important; line-height: 1.2 !important; }
-                #sidebar .text-xl, #world-matrix-modal .text-xl, #settings-modal .text-xl, #edit-prompt-modal .text-xl, #edit-message-modal .text-xl { font-size: ${xl}px !important; line-height: 1.4 !important; }
-                #sidebar .text-lg, #world-matrix-modal .text-lg, #settings-modal .text-lg, #matrix-popover .text-lg, #edit-prompt-modal .text-lg, #edit-message-modal .text-lg { font-size: ${lg}px !important; line-height: 1.5 !important; }
-                #sidebar .text-base, #world-matrix-modal .text-base, #settings-modal .text-base, #matrix-popover .text-base, #edit-prompt-modal .text-base, #edit-message-modal .text-base { font-size: ${base}px !important; line-height: 1.5 !important; }
-                #sidebar .text-sm, #world-matrix-modal .text-sm, #settings-modal .text-sm, #matrix-popover .text-sm, #edit-prompt-modal .text-sm, #edit-message-modal .text-sm { font-size: ${sm}px !important; line-height: 1.5 !important; }
-                #sidebar .text-xs, #world-matrix-modal .text-xs, #settings-modal .text-xs, #matrix-popover .text-xs, #edit-prompt-modal .text-xs, #edit-message-modal .text-xs { font-size: ${xs}px !important; line-height: 1.5 !important; }
+                #sidebar, #world-matrix-modal, #settings-modal, #matrix-popover, #edit-prompt-modal, #edit-message-modal, #session-action-modal { font-size: ${base}px !important; }
+                #sidebar .text-2xl, #world-matrix-modal .text-2xl, #settings-modal .text-2xl, #edit-prompt-modal .text-2xl, #edit-message-modal .text-2xl, #session-action-modal .text-2xl { font-size: ${text2xl}px !important; line-height: 1.2 !important; }
+                #sidebar .text-xl, #world-matrix-modal .text-xl, #settings-modal .text-xl, #edit-prompt-modal .text-xl, #edit-message-modal .text-xl, #session-action-modal .text-xl { font-size: ${xl}px !important; line-height: 1.4 !important; }
+                #sidebar .text-lg, #world-matrix-modal .text-lg, #settings-modal .text-lg, #matrix-popover .text-lg, #edit-prompt-modal .text-lg, #edit-message-modal .text-lg, #session-action-modal .text-lg { font-size: ${lg}px !important; line-height: 1.5 !important; }
+                #sidebar .text-base, #world-matrix-modal .text-base, #settings-modal .text-base, #matrix-popover .text-base, #edit-prompt-modal .text-base, #edit-message-modal .text-base, #session-action-modal .text-base { font-size: ${base}px !important; line-height: 1.5 !important; }
+                #sidebar .text-sm, #world-matrix-modal .text-sm, #settings-modal .text-sm, #matrix-popover .text-sm, #edit-prompt-modal .text-sm, #edit-message-modal .text-sm, #session-action-modal .text-sm { font-size: ${sm}px !important; line-height: 1.5 !important; }
+                #sidebar .text-xs, #world-matrix-modal .text-xs, #settings-modal .text-xs, #matrix-popover .text-xs, #edit-prompt-modal .text-xs, #edit-message-modal .text-xs, #session-action-modal .text-xs { font-size: ${xs}px !important; line-height: 1.5 !important; }
                 
                 input[type=text], input[type=password], textarea, select { font-size: ${inputSize}px !important; }
             `;
@@ -388,6 +405,111 @@
                 document.head.appendChild(style);
             }
         }
+
+        // ================= 侧边栏列表长按交互逻辑 =================
+        let pressTimer = null;
+        let pressStartX = 0;
+        let pressStartY = 0;
+        let isLongPress = false;
+        let currentActionSessionId = null;
+
+        function startSessionPress(e, id) {
+            isLongPress = false;
+            pressStartX = e.touches ? e.touches[0].clientX : e.clientX;
+            pressStartY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            pressTimer = setTimeout(() => {
+                isLongPress = true;
+                if (navigator.vibrate) navigator.vibrate(50);
+                openSessionActionSheet(id);
+            }, 500); 
+        }
+
+        function cancelSessionPress(e) {
+            if (!pressTimer) return;
+            if (e) {
+                const currentX = e.touches ? e.touches[0].clientX : e.clientX;
+                const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+                // 允许 10 像素以内的微小手指颤动，超过则判定为滑动，立刻取消长按
+                if (Math.abs(currentX - pressStartX) < 10 && Math.abs(currentY - pressStartY) < 10) {
+                    return; 
+                }
+            }
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+
+        function endSessionPress(e) {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        }
+
+        function handleSessionClick(e, id) {
+            if (isLongPress) {
+                isLongPress = false;
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            switchSession(id);
+        }
+
+        // ================= 操作面板 (Action Sheet) 逻辑 =================
+        function openSessionActionSheet(id) {
+            currentActionSessionId = id;
+            const session = state.sessions.find(s => s.id === id);
+            if (!session) return;
+            document.getElementById('action-sheet-title').innerText = session.title;
+            document.getElementById('session-action-modal').classList.remove('hidden');
+        }
+
+        function closeSessionActionSheet() {
+            document.getElementById('session-action-modal').classList.add('hidden');
+            currentActionSessionId = null;
+        }
+
+        function renameActiveActionSession() {
+            if (!currentActionSessionId) return;
+            const session = state.sessions.find(s => s.id === currentActionSessionId);
+            if (!session) return;
+            
+            closeSessionActionSheet(); 
+            
+            setTimeout(() => {
+                const newTitle = prompt("重命名对话：", session.title);
+                if (newTitle !== null && newTitle.trim() !== '') {
+                    session.title = newTitle.trim();
+                    saveState();
+                    renderSessions();
+                }
+            }, 100);
+        }
+
+        function downloadActiveActionSession() {
+            if (!currentActionSessionId) return;
+            const id = currentActionSessionId;
+            closeSessionActionSheet();
+            exportMarkdown(id, null);
+        }
+
+        function deleteActiveActionSession() {
+            if (!currentActionSessionId) return;
+            const id = currentActionSessionId;
+            closeSessionActionSheet();
+            
+            setTimeout(() => {
+                if(!confirm('确定要删除此对话吗？')) return;
+                state.sessions = state.sessions.filter(s => s.id !== id);
+                if (state.activeSessionId === id) state.activeSessionId = state.sessions.length > 0 ? state.sessions[0].id : null;
+                if (state.sessions.length === 0) createNewSession(false);
+                renderSessions(); 
+                renderChat(); 
+                saveState();
+            }, 100);
+        }
+        // ==============================================================
 
         function toggleMatrixPopover(event) {
             if(event) event.stopPropagation();
@@ -633,15 +755,7 @@
             renderSessions(); renderChat(); saveState();
         }
 
-        function deleteSession(id, event) {
-            event.stopPropagation();
-            if(!confirm('确定要删除此对话吗？')) return;
-            state.sessions = state.sessions.filter(s => s.id !== id);
-            if (state.activeSessionId === id) state.activeSessionId = state.sessions.length > 0 ? state.sessions[0].id : null;
-            if (state.sessions.length === 0) createNewSession(false);
-            renderSessions(); renderChat(); saveState();
-        }
-
+        // 注意：原先直接绑定在列表图标上的 exportMarkdown 和 deleteSession 依然保留，供 Action Sheet 调用。
         function exportMarkdown(sessionId, event) {
             if(event) {
                 event.stopPropagation();
@@ -733,7 +847,6 @@
             document.getElementById('edit-message-modal').classList.add('hidden');
         }
 
-        // ================= 核心修复：对话编辑气泡保存逻辑 =================
         function saveEditedMessage() {
             if (editingMessageIndex === null) return;
             const contentEl = document.getElementById('edit-message-content');
@@ -744,13 +857,9 @@
                 const msg = activeSession.messages[editingMessageIndex];
                 msg.content = newContent;
                 
-                // 1. 先用局部变量锁住这个危险的索引值！
                 const targetIndex = editingMessageIndex;
-                
-                // 2. 安全地关闭面板（这会将全局变量 editingMessageIndex 设为 null）
                 closeEditMessageModal();
                 
-                // 3. 直接执行切割与生成（干掉二次确认弹窗），使用锁定的 targetIndex
                 activeSession.messages.splice(targetIndex + 1);
                 if (msg.role === 'user') {
                     const contentToResend = activeSession.messages.pop().content;
@@ -765,7 +874,6 @@
                 closeEditMessageModal();
             }
         }
-        // ====================================================================
 
         function copyMessage(index) {
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
@@ -800,6 +908,46 @@
             });
             btn.classList.remove('text-gray-400', 'border-transparent');
             btn.classList.add('text-blue-600', 'border-blue-600');
+        }
+
+        function createChatFromPlot(plotId, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            
+            const plot = state.plotCards.find(p => p.id === plotId);
+            if (!plot) return;
+
+            closeModal('world-matrix-modal');
+            if (abortController) stopGeneration();
+
+            const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
+            const activePlots = currentSession ? [...currentSession.activePlots] : [];
+            
+            if (!activePlots.includes(plotId)) {
+                activePlots.push(plotId);
+            }
+
+            const newSession = { 
+                id: Date.now().toString(), 
+                title: '正在载入剧情...', 
+                messages: [],
+                systemPrompt: currentSession && currentSession.systemPrompt ? JSON.parse(JSON.stringify(currentSession.systemPrompt)) : null,
+                activeCharacters: currentSession ? [...currentSession.activeCharacters] : [],
+                activePlots: activePlots
+            };
+            
+            state.sessions.unshift(newSession);
+            state.activeSessionId = newSession.id;
+            
+            saveState();
+            renderSessions();
+            renderChat(); 
+            
+            setTimeout(() => {
+                triggerSend(plot.content);
+            }, 50);
         }
 
         function renderWorldMatrix() {
@@ -984,63 +1132,32 @@
             }
         }
 
-        function createChatFromPlot(plotId, event) {
-            if (event) {
-                event.stopPropagation();
-                event.preventDefault();
-            }
-            
-            const plot = state.plotCards.find(p => p.id === plotId);
-            if (!plot) return;
-
-            closeModal('world-matrix-modal');
-            if (abortController) stopGeneration();
-
-            const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
-            const activePlots = currentSession ? [...currentSession.activePlots] : [];
-            
-            if (!activePlots.includes(plotId)) {
-                activePlots.push(plotId);
-            }
-
-            const newSession = { 
-                id: Date.now().toString(), 
-                title: '正在载入剧情...', 
-                messages: [],
-                systemPrompt: currentSession && currentSession.systemPrompt ? JSON.parse(JSON.stringify(currentSession.systemPrompt)) : null,
-                activeCharacters: currentSession ? [...currentSession.activeCharacters] : [],
-                activePlots: activePlots
-            };
-            
-            state.sessions.unshift(newSession);
-            state.activeSessionId = newSession.id;
-            
-            saveState();
-            renderSessions();
-            renderChat(); 
-            
-            setTimeout(() => {
-                triggerSend(plot.content);
-            }, 50);
-        }
-
+        // ================= 核心重构：侧边栏 UI =================
         function renderSessions() {
             const container = document.getElementById('sessions-list');
             if(!container) return;
             container.innerHTML = state.sessions.map(s => {
                 const hasMatrix = s.systemPrompt || (s.activeCharacters && s.activeCharacters.length > 0) || (s.activePlots && s.activePlots.length > 0);
                 return `
-                <div class="flex justify-between items-center p-3 md:p-2.5 rounded-xl cursor-pointer mb-1 ${s.id === state.activeSessionId ? 'bg-gray-300 dark:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" onclick="switchSession('${s.id}')">
-                    <div class="truncate flex-1 text-lg ${hasMatrix ? 'text-indigo-700 dark:text-indigo-400 font-medium' : ''}">
-                        <i class="fa-regular ${hasMatrix ? 'fa-id-card' : 'fa-message'} mr-2.5 text-lg"></i> ${escapeHTML(s.title)}
-                    </div>
-                    <div class="flex items-center gap-3.5 shrink-0 opacity-100 md:opacity-60 md:hover:opacity-100">
-                        <button onclick="exportMarkdown('${s.id}', event)" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 transition p-1" title="导出Markdown"><i class="fa-solid fa-download text-base"></i></button>
-                        <button onclick="deleteSession('${s.id}', event)" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 transition p-1" title="删除"><i class="fa-solid fa-xmark text-base"></i></button>
+                <div class="flex justify-between items-center p-3 md:p-2.5 rounded-xl cursor-pointer mb-1 select-none ${s.id === state.activeSessionId ? 'bg-gray-300 dark:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" 
+                     style="-webkit-touch-callout: none;"
+                     ontouchstart="startSessionPress(event, '${s.id}')"
+                     ontouchmove="cancelSessionPress(event)"
+                     ontouchend="endSessionPress(event)"
+                     ontouchcancel="cancelSessionPress(event)"
+                     onmousedown="startSessionPress(event, '${s.id}')"
+                     onmousemove="cancelSessionPress(event)"
+                     onmouseup="endSessionPress(event)"
+                     onmouseleave="cancelSessionPress(event)"
+                     oncontextmenu="event.preventDefault();"
+                     onclick="handleSessionClick(event, '${s.id}')">
+                    <div class="truncate flex-1 text-lg text-gray-900 dark:text-gray-100 ${hasMatrix ? 'font-medium' : ''}">
+                        <i class="fa-regular ${hasMatrix ? 'fa-id-card' : 'fa-message'} mr-2.5 text-lg opacity-70"></i> ${escapeHTML(s.title)}
                     </div>
                 </div>`;
             }).join('');
         }
+        // ==============================================================
 
         function escapeHTML(str) {
             return (str || '').replace(/[&<>'"]/g, tag => ({
@@ -1295,7 +1412,6 @@
                 const chatContainer = document.getElementById('chat-container');
 
                 while (true) {
-                    // ================= 核心修复：强行截断底层流式读取 =================
                     if (!abortController) break; 
                     
                     const { done, value } = await reader.read();
@@ -1346,11 +1462,10 @@
             }
         }
 
-        // ================= 重构：确保停止生成不仅触发 abort，还清理状态 =================
         function stopGeneration() {
             if (abortController) {
                 abortController.abort(); 
-                abortController = null; // 置空这一步将触发上面 while 循环里的 break
+                abortController = null; 
                 
                 const btnSend = document.getElementById('send-btn');
                 const btnStop = document.getElementById('stop-btn');
@@ -1368,6 +1483,7 @@
             setTimeout(init, 50);
         });
 
+        // 维持原有的侧边栏边缘滑动展开与折叠手势
         let touchStartX = 0;
         let touchStartY = 0;
         
