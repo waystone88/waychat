@@ -309,6 +309,11 @@
         let sidebarOpen = false;
 
         function init() {
+            // 核心修改 1：关闭 iOS Safari 的原生滚动记忆，防止它在加载时强行回拉导致卡在中间
+            if ('scrollRestoration' in history) {
+                history.scrollRestoration = 'manual';
+            }
+            
             try {
                 const savedState = localStorage.getItem('deepseek_client_state_v28');
                 if (savedState) {
@@ -355,6 +360,17 @@
             if (typeof marked !== 'undefined') {
                 marked.setOptions({ breaks: true, gfm: true });
             }
+
+            // 核心修改 2：在 DOM 绘制完成后，强行切断一切向上滚动的误判标记，执行绝对坠底
+            setTimeout(() => {
+                userScrolledUp = false;
+                scrollToBottom();
+                const btn = document.getElementById('scroll-to-bottom-btn');
+                if(btn) {
+                    btn.classList.add('opacity-0', 'scale-90', 'translate-y-2', 'pointer-events-none');
+                    btn.classList.remove('opacity-100', 'scale-100', 'translate-y-0', 'pointer-events-auto');
+                }
+            }, 50);
         }
 
         function saveState() {
@@ -395,7 +411,6 @@
             }
         }
 
-        // ================= 侧边栏列表长按交互逻辑 =================
         let pressTimer = null;
         let pressStartX = 0;
         let pressStartY = 0;
@@ -445,7 +460,6 @@
             switchSession(id);
         }
 
-        // ================= 上下文菜单 (Context Menu) 逻辑 =================
         function openSessionContextMenu(id, targetEl) {
             currentActionSessionId = id;
             const menu = document.getElementById('session-action-menu');
@@ -529,7 +543,6 @@
                 saveState();
             }, 200);
         }
-        // ==============================================================
 
         function toggleMatrixPopover(event) {
             if(event) event.stopPropagation();
@@ -1151,7 +1164,6 @@
             }
         }
 
-        // 修改：完全解绑标题颜色的硬编码
         function renderSessions() {
             const container = document.getElementById('sessions-list');
             if(!container) return;
@@ -1275,7 +1287,9 @@
                     </div>`;
                 }
             }).join('');
-            scrollToBottom();
+            
+            // 核心修改 3：在普通的重新渲染时，不再强制坠底，除非是初次加载或手动发送。这里只起一个保险作用，真正的坠底由发送动作和 init 控制。
+            // 移除了 scrollToBottom() 避免编辑保存时的乱跳
         }
 
         let userScrolledUp = false;
@@ -1357,7 +1371,9 @@
             activeSession.messages.push({ role: 'assistant', content: '', reasoning: '' });
             
             abortController = new AbortController();
+            userScrolledUp = false; // 发送新消息时，强行重置拦截状态，确保一定会滑到底部
             renderChat();
+            scrollToBottom();
             
             document.getElementById('send-btn').classList.add('hidden');
             document.getElementById('stop-btn').classList.remove('hidden');
@@ -1477,6 +1493,7 @@
                 if(btnStop) btnStop.classList.add('hidden');
                 saveState();
                 renderChat(); 
+                scrollToBottom();
             }
         }
 
@@ -1501,7 +1518,6 @@
             setTimeout(init, 50);
         });
 
-        // ================= 全局空间坐标捕获与触控逻辑 =================
         let touchStartX = 0;
         let touchStartY = 0;
         
@@ -1509,7 +1525,6 @@
             touchStartX = e.changedTouches[0].screenX;
             touchStartY = e.changedTouches[0].screenY;
             
-            // 点击屏幕其他区域自动收起长按菜单
             const actionMenu = document.getElementById('session-action-menu');
             if(actionMenu && !actionMenu.classList.contains('hidden') && !actionMenu.contains(e.target)) {
                 closeSessionContextMenu();
