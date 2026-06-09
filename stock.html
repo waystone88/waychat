@@ -14,23 +14,23 @@
         @page {
             size: A4;
             margin: 0;
+            background-color: #f4f5f7;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background-color: #0b0e11;
-            color: #eaecef;
+            background-color: #f4f5f7;
+            color: #333333;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.4;
             -webkit-font-smoothing: antialiased;
             user-select: none;
         }
 
-        /* Container designed to fit iOS viewport screen boundaries beautifully */
         .app-container {
             width: 100%;
-            max-width: 430px; /* iPhone 14/15 Pro Max width standard */
+            max-width: 430px;
             margin: 0 auto;
             min-height: 100vh;
             display: block;
@@ -42,9 +42,9 @@
         .header-meta {
             display: table;
             width: 100%;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             font-size: 11pt;
-            color: #848e9c;
+            color: #666666;
         }
         .header-left {
             display: table-cell;
@@ -54,95 +54,102 @@
         .header-right {
             display: table-cell;
             text-align: right;
-            color: #f0b90b;
+            color: #fa8c16;
             font-weight: bold;
         }
 
-        /* Market Indices Grid Layout simulated via Tables for WeasyPrint/Mobile rendering stability */
+        /* Market Indices Grid */
         .market-grid {
             display: table;
             width: 100%;
             table-layout: fixed;
             border-collapse: separate;
-            border-spacing: 6px 0;
-            margin-bottom: 16px;
+            border-spacing: 10px 0;
+            margin-bottom: 20px;
         }
         .market-card {
             display: table-cell;
-            background-color: #181a20;
-            border-radius: 8px;
-            padding: 10px 8px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 14px 8px;
             text-align: center;
-            border: 1px solid #2b2f36;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
         }
         .index-name {
             font-size: 9.5pt;
-            color: #848e9c;
-            margin-bottom: 2px;
+            color: #888888;
+            margin-bottom: 4px;
         }
         .index-value {
-            font-size: 12.5pt;
+            font-size: 13.5pt;
             font-weight: bold;
             font-family: 'Times New Roman', serif;
+            transition: color 0.3s ease;
         }
         .index-change {
             font-size: 9pt;
-            margin-top: 2px;
-            font-weight: 500;
+            margin-top: 4px;
+            font-weight: 600;
+            transition: color 0.3s ease;
         }
-        .color-up { color: #0ecb81; }   /* Traditional global green/red up-down adjusted for crypto/modern UI theme context */
-        .color-down { color: #f6465d; }
+
+        /* A-Share Color Code: Red Up, Green Down */
+        .color-up { color: #eb2f96; } /* Default fallback, will be overwritten by JS to #f2334e */
+        .color-down { color: #52c41a; }
+        .color-flat { color: #888888; }
 
         /* ADVANCE/DECLINE STATS PANEL */
         .stats-panel {
-            background-color: #181a20;
-            border-radius: 12px;
-            padding: 14px;
-            border: 1px solid #2b2f36;
-            margin-bottom: 16px;
+            background-color: #ffffff;
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
         }
         .stats-title {
             font-size: 11pt;
-            color: #eaecef;
-            margin-bottom: 10px;
+            color: #333333;
+            margin-bottom: 12px;
             font-weight: 600;
         }
         .ratio-bar-container {
             width: 100%;
-            height: 10px;
-            background-color: #f6465d;
-            border-radius: 5px;
+            height: 12px;
+            background-color: #00a86b; /* Green for decline */
+            border-radius: 6px;
             overflow: hidden;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            position: relative;
         }
         .ratio-bar-fill {
             height: 100%;
-            width: 58%; /* Mock Data: 3042 / (3042 + 1856 + 322) */
-            background-color: #0ecb81;
+            width: 60%; /* Will be dynamically updated */
+            background-color: #f2334e; /* Red for advance */
+            transition: width 0.5s ease-in-out;
+            border-right: 2px solid #ffffff;
         }
         .ratio-numbers {
             display: table;
             width: 100%;
             font-size: 10pt;
         }
-        .stat-up { display: table-cell; text-align: left; color: #0ecb81; font-weight: bold; }
-        .stat-flat { display: table-cell; text-align: center; color: #848e9c; }
-        .stat-down { display: table-cell; text-align: right; color: #f6465d; font-weight: bold; }
+        .stat-up { display: table-cell; text-align: left; color: #f2334e; font-weight: bold; width: 33%; }
+        .stat-flat { display: table-cell; text-align: center; color: #999999; width: 33%; }
+        .stat-down { display: table-cell; text-align: right; color: #00a86b; font-weight: bold; width: 33%; }
 
         /* HISTORICAL CHART CONTAINER */
         .chart-container {
-            background-color: #181a20;
-            border-radius: 12px;
-            padding: 14px 10px;
-            border: 1px solid #2b2f36;
-            margin-bottom: 18px;
-            position: relative;
+            background-color: #ffffff;
+            border-radius: 14px;
+            padding: 16px 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
         }
         .chart-header {
             font-size: 11pt;
-            color: #eaecef;
+            color: #333333;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             padding-left: 4px;
         }
         .svg-chart-wrapper {
@@ -153,28 +160,33 @@
 
         /* ADVICE CARD PANEL */
         .advice-panel {
-            background-color: rgba(240, 185, 11, 0.08);
-            border-left: 4px solid #f0b90b;
-            border-radius: 4px 12px 12px 4px;
-            padding: 14px;
+            background-color: #fffbe6;
+            border-left: 4px solid #faad14;
+            border-radius: 6px 12px 12px 6px;
+            padding: 16px;
             margin-bottom: 24px;
-            border-top: 1px solid rgba(240, 185, 11, 0.15);
-            border-right: 1px solid rgba(240, 185, 11, 0.15);
-            border-bottom: 1px solid rgba(240, 185, 11, 0.15);
+            border-top: 1px solid #ffe58f;
+            border-right: 1px solid #ffe58f;
+            border-bottom: 1px solid #ffe58f;
         }
         .advice-tag {
-            font-size: 9pt;
-            text-transform: uppercase;
-            color: #f0b90b;
+            font-size: 9.5pt;
+            color: #d46b08;
             font-weight: bold;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+        }
+        .advice-tag::before {
+            content: "💡";
+            margin-right: 4px;
         }
         .advice-text {
             font-size: 11pt;
-            color: #eaecef;
+            color: #595959;
             font-weight: 500;
             text-align: justify;
+            line-height: 1.5;
         }
 
         /* ACTION BUTTONS DOCK */
@@ -192,27 +204,27 @@
         .btn {
             display: block;
             width: 100%;
-            padding: 15px 0;
-            border-radius: 12px;
+            padding: 16px 0;
+            border-radius: 14px;
             font-size: 13pt;
             font-weight: bold;
             text-align: center;
             text-decoration: none;
-            transition: transform 0.1s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
         }
         .btn:active {
-            transform: scale(0.97);
+            transform: scale(0.96);
         }
         .btn-buy {
-            background-image: linear-gradient(135deg, #0ecb81, #0a9d63);
+            background-color: #f2334e;
             color: #ffffff;
+            box-shadow: 0 4px 12px rgba(242, 51, 78, 0.3);
             border: none;
         }
         .btn-hold {
-            background-image: linear-gradient(135deg, #2b2f36, #1e2026);
-            color: #eaecef;
-            border: 1px solid #474f5a;
+            background-color: #f0f2f5;
+            color: #595959;
+            border: 1px solid #d9d9d9;
         }
     </style>
 </head>
@@ -221,111 +233,214 @@
 <div class="app-container">
     <!-- Header Area -->
     <div class="header-meta">
-        <div class="header-left">2026年6月9日 星期二</div>
-        <div class="header-right">● 交易实时盘中</div>
+        <div class="header-left" id="current-date">日期加载中...</div>
+        <div class="header-right" id="market-status">● 数据连接中</div>
     </div>
 
     <!-- Market Indices Grid -->
     <div class="market-grid">
         <div class="market-card">
             <div class="index-name">上证指数</div>
-            <div class="index-value color-up">3124.53</div>
-            <div class="index-change color-up">+0.42%</div>
+            <div class="index-value color-flat" id="sh-price">--.--</div>
+            <div class="index-change color-flat" id="sh-change">--.--%</div>
         </div>
         <div class="market-card">
             <div class="index-name">深证成指</div>
-            <div class="index-value color-down">9542.10</div>
-            <div class="index-change color-down">-0.15%</div>
+            <div class="index-value color-flat" id="sz-price">--.--</div>
+            <div class="index-change color-flat" id="sz-change">--.--%</div>
         </div>
         <div class="market-card">
             <div class="index-name">创业板指</div>
-            <div class="index-value color-down">1844.25</div>
-            <div class="index-change color-down">-0.38%</div>
+            <div class="index-value color-flat" id="cyb-price">--.--</div>
+            <div class="index-change color-flat" id="cyb-change">--.--%</div>
         </div>
     </div>
 
     <!-- Advance / Decline Stats Panel -->
     <div class="stats-panel">
-        <div class="stats-title">当前全市场涨跌家数</div>
+        <div class="stats-title">今日全市场涨跌家数</div>
         <div class="ratio-bar-container">
-            <div class="ratio-bar-fill"></div>
+            <div class="ratio-bar-fill" id="ratio-fill" style="width: 50%;"></div>
         </div>
         <div class="ratio-numbers">
-            <div class="stat-up">涨 3042</div>
-            <div class="stat-flat">平 322</div>
-            <div class="stat-down">跌 1856</div>
+            <div class="stat-up" id="stat-up-text">涨 ----</div>
+            <div class="stat-flat" id="stat-flat-text">平 --</div>
+            <div class="stat-down" id="stat-down-text">跌 ----</div>
         </div>
     </div>
 
     <!-- Historical Chart Area -->
     <div class="chart-container">
-        <div class="chart-header">历史上涨家数波动轨迹</div>
+        <div class="chart-header">历史收盘上涨家数波动轨迹 (近20交易日)</div>
         <div class="svg-chart-wrapper">
-            <!-- Using standard scalable vector graphics to draw the requested line chart with thresholds -->
+            <!-- Scalable vector graphics dynamically generated/styled -->
             <svg viewBox="0 0 380 160" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                <!-- Grid Lines -->
-                <line x1="20" y1="20" x2="370" y2="20" stroke="#2b2f36" stroke-width="1" stroke-dasharray="2,2"/>
-                <line x1="20" y1="55" x2="370" y2="55" stroke="#2b2f36" stroke-width="1" stroke-dasharray="2,2"/>
-                <line x1="20" y1="90" x2="370" y2="90" stroke="#2b2f36" stroke-width="1" stroke-dasharray="2,2"/>
-                <line x1="20" y1="125" x2="370" y2="125" stroke="#2b2f36" stroke-width="1" stroke-dasharray="2,2"/>
+                <!-- Grid Lines (Light mode) -->
+                <line x1="25" y1="20" x2="370" y2="20" stroke="#e8e8e8" stroke-width="1" stroke-dasharray="2,2"/>
+                <line x1="25" y1="55" x2="370" y2="55" stroke="#e8e8e8" stroke-width="1" stroke-dasharray="2,2"/>
+                <line x1="25" y1="90" x2="370" y2="90" stroke="#e8e8e8" stroke-width="1" stroke-dasharray="2,2"/>
+                <line x1="25" y1="125" x2="370" y2="125" stroke="#e8e8e8" stroke-width="1" stroke-dasharray="2,2"/>
                 
                 <!-- Y-Axis Text Labels -->
-                <text x="15" y="24" fill="#848e9c" font-size="8" text-anchor="end">4000</text>
-                <text x="15" y="59" fill="#848e9c" font-size="8" text-anchor="end">3000</text>
-                <text x="15" y="94" fill="#848e9c" font-size="8" text-anchor="end">2000</text>
-                <text x="15" y="129" fill="#848e9c" font-size="8" text-anchor="end">1000</text>
+                <text x="20" y="24" fill="#999999" font-size="9" text-anchor="end">4000</text>
+                <text x="20" y="59" fill="#999999" font-size="9" text-anchor="end">3000</text>
+                <text x="20" y="94" fill="#999999" font-size="9" text-anchor="end">2000</text>
+                <text x="20" y="129" fill="#999999" font-size="9" text-anchor="end">1000</text>
                 
                 <!-- Lower Threshold Critical Baseline (Blue Dashed Line representing market extreme low) -->
-                <line x1="20" y1="125" x2="370" y2="125" stroke="#0055ff" stroke-width="1.5" stroke-dasharray="4,4"/>
+                <line x1="25" y1="125" x2="370" y2="125" stroke="#1890ff" stroke-width="1.5" stroke-dasharray="4,4"/>
                 
                 <!-- Polyline representing the historical data fluctuation -->
-                <polyline fill="none" stroke="#f6465d" stroke-width="2" 
-                    points="25,115 40,35 55,135 70,105 85,75 100,25 115,110 130,145 145,18 160,82 175,120 190,132 205,42 220,122 235,22 250,122 265,112 280,128 295,32 310,142 325,65" />
+                <!-- The JS below will update this polygon dynamically if connected to a real DB, here we mock recent trend -->
+                <polyline id="history-line" fill="none" stroke="#f2334e" stroke-width="2" stroke-linejoin="round"
+                    points="30,115 45,35 60,135 75,105 90,75 105,25 120,110 135,145 150,18 165,82 180,120 195,132 210,42 225,122 240,22 255,122 270,112 285,128 300,32 315,142 330,65 345,95 360,40" />
                 
-                <!-- Data Nodes (Diamonds / Circles) -->
-                <circle cx="25" cy="115" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="40" cy="35" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="55" cy="135" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="70" cy="105" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="85" cy="75" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="100" cy="25" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="115" cy="110" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="130" cy="145" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="145" cy="18" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="160" cy="82" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="175" cy="120" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="190" cy="132" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="205" cy="42" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="220" cy="122" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="235" cy="22" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="250" cy="122" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="265" cy="112" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="280" cy="128" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="295" cy="32" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="310" cy="142" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
-                <circle cx="325" cy="65" r="2" fill="#ffffff" stroke="#f6465d" stroke-width="1"/>
+                <!-- Data Nodes overlay (Circles) -->
+                <g id="history-nodes" fill="#ffffff" stroke="#f2334e" stroke-width="1.5">
+                    <circle cx="30" cy="115" r="2.5"/> <circle cx="45" cy="35" r="2.5"/> <circle cx="60" cy="135" r="2.5"/>
+                    <circle cx="75" cy="105" r="2.5"/> <circle cx="90" cy="75" r="2.5"/> <circle cx="105" cy="25" r="2.5"/>
+                    <circle cx="120" cy="110" r="2.5"/> <circle cx="135" cy="145" r="2.5"/> <circle cx="150" cy="18" r="2.5"/>
+                    <circle cx="165" cy="82" r="2.5"/> <circle cx="180" cy="120" r="2.5"/> <circle cx="195" cy="132" r="2.5"/>
+                    <circle cx="210" cy="42" r="2.5"/> <circle cx="225" cy="122" r="2.5"/> <circle cx="240" cy="22" r="2.5"/>
+                    <circle cx="255" cy="122" r="2.5"/> <circle cx="270" cy="112" r="2.5"/> <circle cx="285" cy="128" r="2.5"/>
+                    <circle cx="300" cy="32" r="2.5"/> <circle cx="315" cy="142" r="2.5"/> <circle cx="330" cy="65" r="2.5"/>
+                    <circle cx="345" cy="95" r="2.5"/> <circle cx="360" cy="40" r="2.5"/>
+                </g>
             </svg>
         </div>
     </div>
 
     <!-- Custom Personalized Advice Card Component -->
     <div class="advice-panel">
-        <div class="advice-tag">当前交易心法提示</div>
-        <div class="advice-text">
-            “大盘虽有分化，但全市场上涨家数超3000家，赚钱效应处于良性循环。历史轨迹处于中轨震荡，此处不盲目看空。严格执行个股战法，若不满足买入条件，坚决执行空仓待机。”
+        <div class="advice-tag">日内交易心法</div>
+        <div class="advice-text" id="advice-text">
+            系统正在分析今日盘面...
         </div>
     </div>
 
     <!-- Two-Button Decision Dock Area (iOS Ergonomic Bottom Positioning) -->
     <div class="action-dock">
         <div class="btn-cell">
-            <div class="btn btn-buy">符合策略：买入</div>
+            <div class="btn btn-buy" onclick="alert('执行交易纪律检查清单！请确认是否满足买入条件。')">确认买入</div>
         </div>
         <div class="btn-cell">
-            <div class="btn btn-hold">知行合一：空仓</div>
+            <div class="btn btn-hold" onclick="alert('知行合一。管住手就是最好的操作。')">空仓观望</div>
         </div>
     </div>
 </div>
+
+<!-- ========================================== -->
+<!-- REAL DATA FETCHING & LOGIC (CLIENT-SIDE)   -->
+<!-- ========================================== -->
+<script>
+    // A-Share strict color code
+    const COLOR_UP = '#f2334e';   // Red
+    const COLOR_DOWN = '#00a86b'; // Green
+    const COLOR_FLAT = '#888888'; // Grey
+
+    // Format Date
+    function updateDate() {
+        const now = new Date();
+        const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        document.getElementById('current-date').innerText = 
+            `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${days[now.getDay()]}`;
+    }
+
+    // JSONP method to bypass CORS and fetch Real-time Tencent Stock API
+    function fetchLiveIndexData() {
+        const script = document.createElement('script');
+        // s_sh000001=上证, s_sz399001=深证, s_sz399006=创业板
+        script.src = 'https://qt.gtimg.cn/q=s_sh000001,s_sz399001,s_sz399006&r=' + Math.random();
+        
+        script.onload = function() {
+            try {
+                // The Tencent API sets global window variables
+                if(window.v_s_sh000001) renderIndex('sh', window.v_s_sh000001);
+                if(window.v_s_sz399001) renderIndex('sz', window.v_s_sz399001);
+                if(window.v_s_sz399006) renderIndex('cyb', window.v_s_sz399006);
+                
+                document.getElementById('market-status').innerText = '● 实时更新中';
+                document.getElementById('market-status').style.color = '#52c41a'; // Green dot for live
+            } catch (e) {
+                console.error("Parse error", e);
+            }
+            document.head.removeChild(script);
+        };
+        
+        script.onerror = function() {
+            document.getElementById('market-status').innerText = '○ 连接断开';
+            document.getElementById('market-status').style.color = '#999';
+        };
+        
+        document.head.appendChild(script);
+    }
+
+    function renderIndex(id_prefix, data_str) {
+        // Tencent format: 1~名称~代码~最新价~涨跌额~涨跌幅~成交量~成交额~~
+        const parts = data_str.split('~');
+        if (parts.length >= 6) {
+            const price = parseFloat(parts[3]).toFixed(2);
+            const changeVal = parseFloat(parts[4]);
+            const changePct = parseFloat(parts[5]);
+            
+            const priceEl = document.getElementById(id_prefix + '-price');
+            const changeEl = document.getElementById(id_prefix + '-change');
+            
+            priceEl.innerText = price;
+            changeEl.innerText = (changeVal > 0 ? '+' : '') + changePct.toFixed(2) + '%';
+            
+            let color = COLOR_FLAT;
+            if (changeVal > 0) color = COLOR_UP;
+            else if (changeVal < 0) color = COLOR_DOWN;
+            
+            priceEl.style.color = color;
+            changeEl.style.color = color;
+        }
+    }
+
+    // Simulate the Advance/Decline logic since this data usually requires a backend.
+    // In a real scenario, this would fetch from an API like EastMoney's real-time stats.
+    function simulateMarketBreadth() {
+        // Mock data logic to show how the UI reacts to data
+        const totalStocks = 5300;
+        // Randomly simulate an advancing market today for demonstration
+        const upCount = Math.floor(Math.random() * 2000) + 1500; 
+        const flatCount = Math.floor(Math.random() * 200) + 100;
+        const downCount = totalStocks - upCount - flatCount;
+
+        // Render UI
+        document.getElementById('stat-up-text').innerText = `涨 ${upCount}`;
+        document.getElementById('stat-flat-text').innerText = `平 ${flatCount}`;
+        document.getElementById('stat-down-text').innerText = `跌 ${downCount}`;
+        
+        const upRatio = (upCount / (upCount + downCount)) * 100;
+        document.getElementById('ratio-fill').style.width = upRatio + '%';
+
+        // Update Advice Text based on data logic
+        const adviceBox = document.getElementById('advice-text');
+        if (upCount > 3500) {
+            adviceBox.innerHTML = "情绪极度高潮，普涨格局已成。<b>切勿在此处头脑发热追高跟风票</b>，手中有利润的注意逢高分批止盈。";
+            adviceBox.style.color = COLOR_UP;
+        } else if (upCount < 1000) {
+            adviceBox.innerHTML = "市场处于冰点极寒期，赚钱效应极差。<b>严格执行空仓纪律！</b>不要抱有抄底侥幸心理，耐心等待历史曲线企稳。";
+            adviceBox.style.color = COLOR_DOWN;
+        } else {
+            adviceBox.innerHTML = "指数震荡，市场分化严重。仅关注具备核心逻辑的主线龙头。<b>看不懂就不做，空仓也是一种完美的交易。</b>";
+            adviceBox.style.color = "#595959";
+        }
+    }
+
+    // Initialization
+    updateDate();
+    fetchLiveIndexData();     // Fetch indices instantly
+    simulateMarketBreadth();  // Update breadth logic
+
+    // Set polling interval: Update indices every 5 seconds (5000 ms)
+    setInterval(fetchLiveIndexData, 5000);
+    // Breadth updates every 15 seconds
+    setInterval(simulateMarketBreadth, 15000);
+
+</script>
 
 </body>
 </html>
