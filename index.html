@@ -44,10 +44,8 @@
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200 text-lg">
 
-    <!-- Mobile Sidebar Backdrop -->
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
 
-    <!-- Responsive Sidebar -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-200 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
             <h1 class="text-2xl font-bold tracking-tight">WayChat</h1>
@@ -72,10 +70,8 @@
         </div>
     </aside>
 
-    <!-- Main Viewport Arena -->
     <main class="flex-1 min-h-screen relative flex flex-col min-w-0 md:ml-64">
         
-        <!-- 全景悬浮层 -->
         <header class="fixed top-0 left-0 right-0 md:left-64 flex justify-between items-start px-4 md:px-6 z-40 pt-[calc(0.5rem+env(safe-area-inset-top))] pointer-events-none">
             <div class="flex items-start gap-2.5">
                 <button onclick="toggleSidebar()" class="pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-700 dark:text-gray-200 transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5">
@@ -90,14 +86,12 @@
             </div>
         </header>
 
-        <!-- 设定管理快捷悬浮窗 -->
         <div id="matrix-popover" class="hidden fixed top-[calc(4rem+env(safe-area-inset-top))] right-4 md:right-6 w-64 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl z-50 flex flex-col overflow-hidden transition-all origin-top-right">
             <div class="px-4 py-2.5 border-b border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/50 flex justify-between items-center shrink-0">
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">当前环境注入</span>
             </div>
             <div id="matrix-popover-content" class="max-h-60 overflow-y-auto p-2 space-y-1 no-scrollbar">
-                <!-- 动态内容载入点 -->
-            </div>
+                </div>
             <div class="p-2 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/50 shrink-0">
                 <button onclick="closeMatrixPopover(); openModal('world-matrix-modal')" class="w-full py-2.5 rounded-xl bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center justify-center gap-2 text-gray-800 dark:text-gray-200 font-bold text-sm shadow-sm">
                     <i class="fa-solid fa-plus"></i> 管理完整库
@@ -107,13 +101,10 @@
 
         <div id="matrix-banner" class="hidden"></div>
 
-        <!-- 聊天容器 -->
         <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-7 z-10 text-lg md:text-xl" style="padding-top: calc(5.5rem + env(safe-area-inset-top)); padding-bottom: calc(8.5rem + env(safe-area-inset-bottom));"></div>
 
-        <!-- 底部大卡片输入组件 -->
         <div id="bottom-bar" class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pb-6 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none transition-all duration-300" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             
-            <!-- 下拉追踪悬浮按钮 -->
             <div class="max-w-4xl mx-auto relative flex justify-end mb-3 px-2">
                 <button id="scroll-to-bottom-btn" onclick="forceScrollToBottom()" class="w-10 h-10 bg-white/95 dark:bg-gray-800/95 rounded-full shadow-md border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all duration-300 pointer-events-auto opacity-0 scale-90 translate-y-2 pointer-events-none z-50 backdrop-blur-md">
                     <i class="fa-solid fa-arrow-down"></i>
@@ -122,13 +113,11 @@
 
             <div class="max-w-4xl mx-auto flex items-end gap-2.5 relative pointer-events-auto">
                 
-                <!-- 深度思考灯泡控制钮 -->
                 <button onclick="toggleThinkingModeViaBtn()" id="thinking-bulb-btn" class="w-11 h-11 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 shadow-lg backdrop-blur-xl shrink-0 text-gray-700 dark:text-gray-300 transition-all mb-[11px]">
                     <i class="fa-regular fa-lightbulb text-xl"></i>
                 </button>
                 <input type="checkbox" id="thinking-mode-toggle" class="sr-only">
                 
-                <!-- 输入主体卡片 -->
                 <div class="flex-1 flex items-end gap-2 relative bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 rounded-[24px] p-2 text-base shadow-2xl backdrop-blur-xl transition-all">
                     <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent pl-4 pr-1 py-2.5 text-base md:text-lg focus:outline-none text-gray-900 dark:text-gray-100 min-h-[40px] max-h-[160px] align-bottom border-0" placeholder="输入消息..." onkeydown="handleInputKeydown(event)" oninput="autoResize(this)" onfocus="document.getElementById('bottom-bar').style.paddingBottom = '8px'" onblur="document.getElementById('bottom-bar').style.paddingBottom = 'calc(1rem + env(safe-area-inset-bottom))'"></textarea>
                     
@@ -143,7 +132,6 @@
         </div>
     </main>
 
-    <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 70;">
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] text-base">
             <h2 class="text-2xl font-bold mb-4 shrink-0 tracking-tight">设置</h2>
@@ -211,7 +199,6 @@
         </div>
     </div>
 
-    <!-- World Matrix Console Modal -->
     <div id="world-matrix-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center md:p-4" style="z-index: 70;">
         <div class="bg-white/95 dark:bg-gray-900/95 border-0 md:border border-gray-200/50 dark:border-gray-800/60 w-full h-full md:h-[85vh] md:max-w-3xl rounded-none md:rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col backdrop-blur-xl pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
             <div class="flex justify-between items-center mb-4 shrink-0">
@@ -225,7 +212,6 @@
                 <button class="tab-btn px-4 py-2.5 text-base font-medium text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 border-b-2 border-transparent transition-all" onclick="switchTab('plots', this)">剧情卡</button>
             </div>
 
-            <!-- Tab Content: System -->
             <div id="tab-system" class="matrix-tab flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-sys-title" placeholder="名称 (如：无共识小说引擎)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -235,7 +221,6 @@
                 <div id="system-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
-            <!-- Tab Content: Characters -->
             <div id="tab-characters" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-char-title" placeholder="角色实体姓名 (如：李慢)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -245,7 +230,6 @@
                 <div id="character-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
-            <!-- Tab Content: Plots -->
             <div id="tab-plots" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
                     <input type="text" id="new-plot-title" placeholder="故事因果卡标识 (如：冰冷触感)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
@@ -257,7 +241,6 @@
         </div>
     </div>
 
-    <!-- Edit Prompt Modal (设定卡片编辑器) -->
     <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4">
         <div class="bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-3xl p-5 md:p-6 w-full max-w-2xl shadow-2xl flex flex-col backdrop-blur-xl">
             <h2 class="text-xl font-bold mb-4 tracking-tight">重构既定公理</h2>
@@ -278,7 +261,6 @@
         </div>
     </div>
 
-    <!-- Edit Message Modal (对话气泡专属弹窗) -->
     <div id="edit-message-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[80] p-4">
         <div class="bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-3xl p-5 md:p-6 w-full max-w-2xl shadow-2xl flex flex-col backdrop-blur-xl">
             <h2 class="text-xl font-bold mb-4 tracking-tight">修改消息内容</h2>
@@ -292,7 +274,6 @@
         </div>
     </div>
 
-    <!-- 侧边栏长按上下文菜单 (Context Menu) -->
     <div id="session-action-menu" class="hidden fixed z-[100] bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-xl flex flex-col overflow-hidden w-36 origin-top-left transition-all duration-200 scale-95 opacity-0">
         <button onclick="renameActiveActionSession()" class="w-full px-5 py-3.5 text-left text-base font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-800/60">重命名</button>
         <button onclick="downloadActiveActionSession()" class="w-full px-5 py-3.5 text-left text-base font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-800/60">下载</button>
@@ -1460,6 +1441,9 @@
 
                 while (true) {
                     if (!abortController) break; 
+                    
+                    // 新增：强制让出主线程，防饿死
+                    await new Promise(resolve => setTimeout(resolve, 0));
                     
                     const { done, value } = await reader.read();
                     if (done) break;
