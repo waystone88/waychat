@@ -1327,7 +1327,6 @@
             textarea.style.height = Math.min(textarea.scrollHeight, maxH) + 'px'; 
         }
 
-        // 修改了此处的按键监听逻辑，在生成态接管回车键赋予制动权
         function handleInputKeydown(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 if (e.isComposing) return;
@@ -1445,10 +1444,8 @@
                 const chatContainer = document.getElementById('chat-container');
 
                 while (true) {
-                    // 修改了此处的探针，加入 signal 硬件校验
                     if (!abortController || abortController.signal.aborted) break; 
                     
-                    // 强制让出主线程，防饿死
                     await new Promise(resolve => setTimeout(resolve, 0));
                     
                     const { done, value } = await reader.read();
@@ -1457,6 +1454,9 @@
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
                     buffer = lines.pop();
+                    
+                    let hasUpdate = false;
+                    
                     for (const line of lines) {
                         const trimmed = line.trim();
                         if (trimmed === '' || trimmed === 'data: [DONE]') continue;
@@ -1468,16 +1468,22 @@
                                 if (delta.reasoning_content) reasoningContent += delta.reasoning_content;
                                 if (delta.content) fullContent += delta.content;
                                 
-                                activeSession.messages[aiMessageIndex].reasoning = reasoningContent;
-                                activeSession.messages[aiMessageIndex].content = fullContent;
-                                
-                                const lastMsgDiv = chatContainer ? chatContainer.lastElementChild.querySelector('.message-content') : null;
-                                if(lastMsgDiv) lastMsgDiv.innerHTML = buildMessageHTML(fullContent, reasoningContent);
-                                scrollToBottom();
+                                hasUpdate = true;
                             } catch (e) {}
                         }
                     }
+                    
+                    // 将渲染剥离至单次数据块的尾端
+                    if (hasUpdate) {
+                        activeSession.messages[aiMessageIndex].reasoning = reasoningContent;
+                        activeSession.messages[aiMessageIndex].content = fullContent;
+                        
+                        const lastMsgDiv = chatContainer ? chatContainer.lastElementChild.querySelector('.message-content') : null;
+                        if(lastMsgDiv) lastMsgDiv.innerHTML = buildMessageHTML(fullContent, reasoningContent);
+                        scrollToBottom();
+                    }
                 }
+                
                 const finalLastMsgDiv = chatContainer ? chatContainer.lastElementChild.querySelector('.message-content') : null;
                 if(finalLastMsgDiv) {
                     const detailsNode = finalLastMsgDiv.querySelector('details');
