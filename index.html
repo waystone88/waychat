@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="h-full bg-gray-50 dark:bg-gray-900">
+<html lang="zh-CN" class="h-full bg-white dark:bg-gray-900">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -42,14 +42,14 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200 text-lg">
+<body class="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen w-full flex transition-colors duration-200 text-lg">
 
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
 
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-200 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none" style="z-index: 60;">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-80 bg-gray-100 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
             <h1 class="text-2xl font-bold tracking-tight">WayChat</h1>
-            <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
+            <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
                 <i class="fa-solid fa-moon dark:hidden text-xl"></i>
                 <i class="fa-solid fa-sun hidden dark:inline text-xl"></i>
             </button>
@@ -57,22 +57,22 @@
         
         <div class="flex-1 overflow-y-auto p-2 text-lg" id="sessions-list"></div>
 
-        <div class="p-2 border-t border-gray-300 dark:border-gray-700 space-y-2 shrink-0 bg-gray-200 dark:bg-gray-800 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
-            <button onclick="createNewSession(); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition font-bold text-lg text-gray-900 dark:text-gray-100 flex items-center">
+        <div class="p-2 border-t border-gray-300 dark:border-gray-700 space-y-2 shrink-0 bg-gray-100 dark:bg-gray-800 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+            <button onclick="createNewSession(); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition font-bold text-lg text-gray-900 dark:text-gray-100 flex items-center">
                 <i class="fa-solid fa-plus mr-2.5 text-lg"></i>新建对话
             </button>
-            <button onclick="openModal('world-matrix-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
+            <button onclick="openModal('world-matrix-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
                 <i class="fa-solid fa-mask mr-2.5 text-lg"></i>设定与角色库
             </button>
-            <button onclick="openModal('settings-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
+            <button onclick="openModal('settings-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
                 <i class="fa-solid fa-gear mr-2.5 text-lg"></i>设置
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 min-h-screen relative flex flex-col min-w-0 md:ml-64">
+    <main class="flex-1 min-h-screen relative flex flex-col min-w-0 md:ml-80">
         
-        <header class="fixed top-0 left-0 right-0 md:left-64 flex justify-between items-start px-4 md:px-6 z-40 pt-[calc(0.5rem+env(safe-area-inset-top))] pointer-events-none">
+        <header class="fixed top-0 left-0 right-0 md:left-80 flex justify-between items-start px-4 md:px-6 z-40 pt-[calc(0.5rem+env(safe-area-inset-top))] pointer-events-none">
             <div class="flex items-start gap-2.5">
                 <button onclick="toggleSidebar()" class="pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-gray-700 dark:text-gray-200 transition-colors shadow-sm border border-gray-200/50 dark:border-gray-700/50 mt-0.5">
                     <i class="fa-solid fa-bars text-xl"></i>
@@ -103,7 +103,7 @@
 
         <div id="chat-container" class="w-full max-w-none px-4 md:px-8 lg:px-20 mx-auto space-y-7 z-10 text-lg md:text-xl" style="padding-top: calc(5.5rem + env(safe-area-inset-top)); padding-bottom: calc(8.5rem + env(safe-area-inset-bottom));"></div>
 
-        <div id="bottom-bar" class="fixed bottom-0 left-0 right-0 md:left-64 px-4 pb-6 pt-16 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none transition-all duration-300" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
+        <div id="bottom-bar" class="fixed bottom-0 left-0 right-0 md:left-80 px-4 pb-6 pt-16 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none transition-all duration-300" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             
             <div class="max-w-4xl mx-auto relative flex justify-end mb-3 px-2">
                 <button id="scroll-to-bottom-btn" onclick="forceScrollToBottom()" class="w-10 h-10 bg-white/95 dark:bg-gray-800/95 rounded-full shadow-md border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all duration-300 pointer-events-auto opacity-0 scale-90 translate-y-2 pointer-events-none z-50 backdrop-blur-md">
@@ -1167,7 +1167,7 @@
             container.innerHTML = state.sessions.map(s => {
                 const hasMatrix = s.systemPrompt || (s.activeCharacters && s.activeCharacters.length > 0) || (s.activePlots && s.activePlots.length > 0);
                 return `
-                <div class="flex justify-between items-center p-3 md:p-2.5 rounded-xl cursor-pointer mb-1 select-none ${s.id === state.activeSessionId ? 'bg-gray-300 dark:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" 
+                <div class="flex justify-between items-center p-3 md:p-2.5 rounded-xl cursor-pointer mb-1 select-none ${s.id === state.activeSessionId ? 'bg-gray-200 dark:bg-gray-700' : 'hover:bg-gray-200/60 dark:hover:bg-gray-700'}" 
                      style="-webkit-touch-callout: none;"
                      ontouchstart="startSessionPress(event, '${s.id}')"
                      ontouchmove="cancelSessionPress(event)"
@@ -1180,7 +1180,7 @@
                      oncontextmenu="event.preventDefault();"
                      onclick="handleSessionClick(event, '${s.id}')">
                     <div class="truncate flex-1 text-lg text-gray-900 dark:text-gray-100 ${hasMatrix ? 'font-medium' : ''}">
-                        <i class="fa-regular ${hasMatrix ? 'fa-id-card' : 'fa-message'} mr-2.5 text-lg opacity-70"></i> ${escapeHTML(s.title)}
+                        ${escapeHTML(s.title)}
                     </div>
                 </div>`;
             }).join('');
@@ -1473,7 +1473,6 @@
                         }
                     }
                     
-                    // 将渲染剥离至单次数据块的尾端
                     if (hasUpdate) {
                         activeSession.messages[aiMessageIndex].reasoning = reasoningContent;
                         activeSession.messages[aiMessageIndex].content = fullContent;
