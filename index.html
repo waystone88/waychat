@@ -61,7 +61,7 @@
             <button onclick="createNewSession(); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition font-bold text-lg text-gray-900 dark:text-gray-100 flex items-center">
                 <i class="fa-solid fa-plus mr-2.5 text-lg"></i>新建对话
             </button>
-            <button onclick="openModal('world-matrix-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
+            <button onclick="matrixMode='draft'; openModal('world-matrix-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
                 <i class="fa-solid fa-mask mr-2.5 text-lg"></i>设定与角色库
             </button>
             <button onclick="openModal('settings-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
@@ -308,6 +308,23 @@
         let editingMessageIndex = null; 
         let sidebarOpen = false;
 
+        let draftSystemPrompt = null;
+        let draftCharacters = [];
+        let draftPlots = [];
+        let matrixMode = 'session';
+
+        function getMatrixContext() {
+            if (matrixMode === 'draft') {
+                return {
+                    systemPrompt: draftSystemPrompt,
+                    activeCharacters: draftCharacters,
+                    activePlots: draftPlots
+                };
+            }
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            return activeSession || null;
+        }
+
         function init() {
             if ('scrollRestoration' in history) {
                 history.scrollRestoration = 'manual';
@@ -322,6 +339,9 @@
                     if(parsed.prompts && !parsed.systemCards) state.systemCards = parsed.prompts;
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
+                    if(parsed.draftSystemPrompt !== undefined) draftSystemPrompt = parsed.draftSystemPrompt;
+                    if(parsed.draftCharacters) draftCharacters = parsed.draftCharacters;
+                    if(parsed.draftPlots) draftPlots = parsed.draftPlots;
                 } else {
                     const fallbacks = ['deepseek_client_state_v26', 'deepseek_client_state_v22', 'deepseek_client_state_v18'];
                     for (const fb of fallbacks) {
@@ -377,7 +397,10 @@
                 activeSessionId: state.activeSessionId, 
                 systemCards: state.systemCards,
                 characterCards: state.characterCards,
-                plotCards: state.plotCards
+                plotCards: state.plotCards,
+                draftSystemPrompt: draftSystemPrompt,
+                draftCharacters: draftCharacters,
+                draftPlots: draftPlots
             }));
         }
 
@@ -710,6 +733,7 @@
         function closeModal(id) { 
             const modal = document.getElementById(id);
             if(modal) modal.classList.add('hidden'); 
+            if (id === 'world-matrix-modal') matrixMode = 'session';
         }
 
         function saveSettings() {
@@ -948,23 +972,34 @@
             const plot = state.plotCards.find(p => p.id === plotId);
             if (!plot) return;
 
+            const isDraftMode = (matrixMode === 'draft');
             closeModal('world-matrix-modal');
             if (abortController) stopGeneration();
 
-            const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
-            const activePlots = currentSession ? [...currentSession.activePlots] : [];
-            
-            if (!activePlots.includes(plotId)) {
-                activePlots.push(plotId);
+            let sourceSystemPrompt, sourceCharacters, sourcePlots;
+
+            if (isDraftMode) {
+                sourceSystemPrompt = draftSystemPrompt ? JSON.parse(JSON.stringify(draftSystemPrompt)) : null;
+                sourceCharacters = [...draftCharacters];
+                sourcePlots = [...draftPlots];
+            } else {
+                const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
+                sourceSystemPrompt = currentSession && currentSession.systemPrompt ? JSON.parse(JSON.stringify(currentSession.systemPrompt)) : null;
+                sourceCharacters = currentSession ? [...currentSession.activeCharacters] : [];
+                sourcePlots = currentSession ? [...currentSession.activePlots] : [];
+            }
+
+            if (!sourcePlots.includes(plotId)) {
+                sourcePlots.push(plotId);
             }
 
             const newSession = { 
                 id: Date.now().toString(), 
                 title: '正在载入剧情...', 
                 messages: [],
-                systemPrompt: currentSession && currentSession.systemPrompt ? JSON.parse(JSON.stringify(currentSession.systemPrompt)) : null,
-                activeCharacters: currentSession ? [...currentSession.activeCharacters] : [],
-                activePlots: activePlots
+                systemPrompt: sourceSystemPrompt,
+                activeCharacters: sourceCharacters,
+                activePlots: sourcePlots
             };
             
             state.sessions.unshift(newSession);
@@ -980,11 +1015,11 @@
         }
 
         function renderWorldMatrix() {
-            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
-            if (!activeSession) return;
+            const ctx = getMatrixContext();
+            if (!ctx) return;
 
             document.getElementById('system-list').innerHTML = state.systemCards.map(p => {
-                const isActive = activeSession.systemPrompt?.title === p.title;
+                const isActive = ctx.systemPrompt?.title === p.title;
                 return `
                 <div class="p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isActive ? 'border-blue-500/80 bg-blue-50/40 dark:bg-blue-950/20 shadow-sm' : 'border-gray-200/40 dark:border-gray-800/40'}">
                     <div class="flex-1 cursor-pointer truncate" onclick="toggleSystem('${p.id}')">
@@ -998,7 +1033,7 @@
             }).join('');
 
             document.getElementById('character-list').innerHTML = state.characterCards.map(c => {
-                const isChecked = activeSession.activeCharacters.includes(c.id);
+                const isChecked = ctx.activeCharacters.includes(c.id);
                 return `
                 <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('character', '${c.id}', this.checked)">
@@ -1015,7 +1050,7 @@
             }).join('');
 
             document.getElementById('plot-list').innerHTML = state.plotCards.map(p => {
-                const isChecked = activeSession.activePlots.includes(p.id);
+                const isChecked = ctx.activePlots.includes(p.id);
                 return `
                 <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('plot', '${p.id}', this.checked)">
@@ -1035,8 +1070,18 @@
 
         function toggleSystem(id) {
             const p = state.systemCards.find(x => x.id === id);
-            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
-            if (p && activeSession) {
+            if (!p) return;
+            if (matrixMode === 'draft') {
+                if(draftSystemPrompt?.title === p.title) {
+                    draftSystemPrompt = null;
+                } else {
+                    draftSystemPrompt = { title: p.title, content: p.content };
+                }
+                saveState();
+                renderWorldMatrix();
+            } else {
+                const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+                if (!activeSession) return;
                 if(activeSession.systemPrompt?.title === p.title) {
                     delete activeSession.systemPrompt; 
                 } else {
@@ -1050,18 +1095,29 @@
         }
 
         function toggleMatrixItem(type, id, isChecked) {
-            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
-            if (!activeSession) return;
-            const targetArray = type === 'character' ? activeSession.activeCharacters : activeSession.activePlots;
-            if (isChecked) {
-                if(!targetArray.includes(id)) targetArray.push(id);
+            if (matrixMode === 'draft') {
+                const targetArray = type === 'character' ? draftCharacters : draftPlots;
+                if (isChecked) {
+                    if(!targetArray.includes(id)) targetArray.push(id);
+                } else {
+                    const idx = targetArray.indexOf(id);
+                    if(idx > -1) targetArray.splice(idx, 1);
+                }
+                saveState();
             } else {
-                const idx = targetArray.indexOf(id);
-                if(idx > -1) targetArray.splice(idx, 1);
+                const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+                if (!activeSession) return;
+                const targetArray = type === 'character' ? activeSession.activeCharacters : activeSession.activePlots;
+                if (isChecked) {
+                    if(!targetArray.includes(id)) targetArray.push(id);
+                } else {
+                    const idx = targetArray.indexOf(id);
+                    if(idx > -1) targetArray.splice(idx, 1);
+                }
+                saveState();
+                updateBanner(activeSession);
+                renderMatrixPopover();
             }
-            saveState();
-            updateBanner(activeSession);
-            renderMatrixPopover();
         }
 
         function addCard(type) {
@@ -1089,12 +1145,15 @@
                 state.sessions.forEach(s => {
                     if(s.systemPrompt && !state.systemCards.find(c => c.title === s.systemPrompt.title)) delete s.systemPrompt;
                 });
+                if (draftSystemPrompt && !state.systemCards.find(c => c.title === draftSystemPrompt.title)) draftSystemPrompt = null;
             } else if (type === 'character') {
                 state.characterCards = state.characterCards.filter(x => x.id !== id);
                 state.sessions.forEach(s => s.activeCharacters = s.activeCharacters.filter(cId => cId !== id));
+                draftCharacters = draftCharacters.filter(cId => cId !== id);
             } else {
                 state.plotCards = state.plotCards.filter(x => x.id !== id);
                 state.sessions.forEach(s => s.activePlots = s.activePlots.filter(pId => pId !== id));
+                draftPlots = draftPlots.filter(pId => pId !== id);
             }
             saveState(); 
             renderWorldMatrix(); 
@@ -1149,6 +1208,9 @@
                     const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
                     if (activeSession && activeSession.systemPrompt && activeSession.systemPrompt.title === targetArray[idx].title) {
                         activeSession.systemPrompt.content = content;
+                    }
+                    if (draftSystemPrompt && draftSystemPrompt.title === targetArray[idx].title) {
+                        draftSystemPrompt.content = content;
                     }
                 }
                 
