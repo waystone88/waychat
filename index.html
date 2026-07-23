@@ -300,10 +300,7 @@
                 { id: Date.now().toString() + 's', title: '默认助手', content: '你是一个乐于助人的智能助手。' }
             ],
             characterCards: [],
-            plotCards: [],
-            activeSystemPrompt: null,
-            activeCharacters: [],
-            activePlots: []
+            plotCards: []
         };
 
         let abortController = null;
@@ -325,9 +322,6 @@
                     if(parsed.prompts && !parsed.systemCards) state.systemCards = parsed.prompts;
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
-                    if(!state.activeCharacters) state.activeCharacters = [];
-                    if(!state.activePlots) state.activePlots = [];
-                    if(!state.activeSystemPrompt) state.activeSystemPrompt = null;
                 } else {
                     const fallbacks = ['deepseek_client_state_v26', 'deepseek_client_state_v22', 'deepseek_client_state_v18'];
                     for (const fb of fallbacks) {
@@ -346,6 +340,11 @@
 
             if (state.sessions.length === 0) createNewSession(false);
             if (!state.activeSessionId && state.sessions.length > 0) state.activeSessionId = state.sessions[0].id;
+            
+            state.sessions.forEach(s => {
+                if(!s.activeCharacters) s.activeCharacters = [];
+                if(!s.activePlots) s.activePlots = [];
+            });
 
             const toggleElement = document.getElementById('thinking-mode-toggle');
             if (toggleElement) toggleElement.checked = !!state.config.thinkingMode;
@@ -378,10 +377,7 @@
                 activeSessionId: state.activeSessionId, 
                 systemCards: state.systemCards,
                 characterCards: state.characterCards,
-                plotCards: state.plotCards,
-                activeSystemPrompt: state.activeSystemPrompt,
-                activeCharacters: state.activeCharacters,
-                activePlots: state.activePlots
+                plotCards: state.plotCards
             }));
         }
 
@@ -571,23 +567,25 @@
         function renderMatrixPopover() {
             const container = document.getElementById('matrix-popover-content');
             if(!container) return;
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if(!activeSession) return;
 
             let html = '';
             
-            if(state.activeSystemPrompt) {
-                const sysCard = state.systemCards.find(c => c.title === state.activeSystemPrompt.title);
-                if(sysCard) html += buildPopoverItem('系统', state.activeSystemPrompt.title, 'system', sysCard.id, 'text-blue-500');
+            if(activeSession.systemPrompt) {
+                const sysCard = state.systemCards.find(c => c.title === activeSession.systemPrompt.title);
+                if(sysCard) html += buildPopoverItem('系统', activeSession.systemPrompt.title, 'system', sysCard.id, 'text-blue-500');
             }
             
-            if(state.activeCharacters && state.activeCharacters.length > 0) {
-                state.activeCharacters.forEach(id => {
+            if(activeSession.activeCharacters && activeSession.activeCharacters.length > 0) {
+                activeSession.activeCharacters.forEach(id => {
                     const c = state.characterCards.find(x => x.id === id);
                     if(c) html += buildPopoverItem('角色', c.title, 'character', id, 'text-purple-500');
                 });
             }
 
-            if(state.activePlots && state.activePlots.length > 0) {
-                state.activePlots.forEach(id => {
+            if(activeSession.activePlots && activeSession.activePlots.length > 0) {
+                activeSession.activePlots.forEach(id => {
                     const p = state.plotCards.find(x => x.id === id);
                     if(p) html += buildPopoverItem('剧情', p.title, 'plot', id, 'text-green-500');
                 });
@@ -616,18 +614,20 @@
 
         function removeMatrixItem(type, id, event) {
             if(event) event.stopPropagation();
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if(!activeSession) return;
 
             if(type === 'system') {
-                delete state.activeSystemPrompt;
+                delete activeSession.systemPrompt;
             } else if (type === 'character') {
-                state.activeCharacters = state.activeCharacters.filter(cId => cId !== id);
+                activeSession.activeCharacters = activeSession.activeCharacters.filter(cId => cId !== id);
             } else if (type === 'plot') {
-                state.activePlots = state.activePlots.filter(pId => pId !== id);
+                activeSession.activePlots = activeSession.activePlots.filter(pId => pId !== id);
             }
 
             saveState();
             renderMatrixPopover();
-            updateBanner();
+            updateBanner(activeSession);
         }
 
         function toggleSidebar() {
@@ -769,7 +769,9 @@
             const newSession = { 
                 id: Date.now().toString(), 
                 title: '未命名对话', 
-                messages: []
+                messages: [],
+                activeCharacters: [],
+                activePlots: []
             };
             state.sessions.unshift(newSession);
             state.activeSessionId = newSession.id;
@@ -838,7 +840,10 @@
             const newSession = { 
                 id: Date.now().toString(), 
                 title: activeSession.title + ' [分支]', 
-                messages: forkedMessages
+                messages: forkedMessages,
+                systemPrompt: activeSession.systemPrompt ? JSON.parse(JSON.stringify(activeSession.systemPrompt)) : null,
+                activeCharacters: [...(activeSession.activeCharacters || [])],
+                activePlots: [...(activeSession.activePlots || [])]
             };
             state.sessions.unshift(newSession);
             state.activeSessionId = newSession.id;
@@ -946,14 +951,20 @@
             closeModal('world-matrix-modal');
             if (abortController) stopGeneration();
 
-            if (!state.activePlots.includes(plotId)) {
-                state.activePlots.push(plotId);
+            const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
+            const activePlots = currentSession ? [...currentSession.activePlots] : [];
+            
+            if (!activePlots.includes(plotId)) {
+                activePlots.push(plotId);
             }
 
             const newSession = { 
                 id: Date.now().toString(), 
                 title: '正在载入剧情...', 
-                messages: []
+                messages: [],
+                systemPrompt: currentSession && currentSession.systemPrompt ? JSON.parse(JSON.stringify(currentSession.systemPrompt)) : null,
+                activeCharacters: currentSession ? [...currentSession.activeCharacters] : [],
+                activePlots: activePlots
             };
             
             state.sessions.unshift(newSession);
@@ -969,8 +980,11 @@
         }
 
         function renderWorldMatrix() {
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (!activeSession) return;
+
             document.getElementById('system-list').innerHTML = state.systemCards.map(p => {
-                const isActive = state.activeSystemPrompt?.title === p.title;
+                const isActive = activeSession.systemPrompt?.title === p.title;
                 return `
                 <div class="p-3.5 bg-gray-50/60 dark:bg-gray-800/40 rounded-2xl flex justify-between items-center gap-3 transition-all border ${isActive ? 'border-blue-500/80 bg-blue-50/40 dark:bg-blue-950/20 shadow-sm' : 'border-gray-200/40 dark:border-gray-800/40'}">
                     <div class="flex-1 cursor-pointer truncate" onclick="toggleSystem('${p.id}')">
@@ -984,7 +998,7 @@
             }).join('');
 
             document.getElementById('character-list').innerHTML = state.characterCards.map(c => {
-                const isChecked = state.activeCharacters.includes(c.id);
+                const isChecked = activeSession.activeCharacters.includes(c.id);
                 return `
                 <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('character', '${c.id}', this.checked)">
@@ -1001,7 +1015,7 @@
             }).join('');
 
             document.getElementById('plot-list').innerHTML = state.plotCards.map(p => {
-                const isChecked = state.activePlots.includes(p.id);
+                const isChecked = activeSession.activePlots.includes(p.id);
                 return `
                 <label class="relative flex items-center cursor-pointer group w-full">
                     <input type="checkbox" class="sr-only card-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMatrixItem('plot', '${p.id}', this.checked)">
@@ -1021,21 +1035,24 @@
 
         function toggleSystem(id) {
             const p = state.systemCards.find(x => x.id === id);
-            if (p) {
-                if(state.activeSystemPrompt?.title === p.title) {
-                    delete state.activeSystemPrompt; 
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (p && activeSession) {
+                if(activeSession.systemPrompt?.title === p.title) {
+                    delete activeSession.systemPrompt; 
                 } else {
-                    state.activeSystemPrompt = { title: p.title, content: p.content };
+                    activeSession.systemPrompt = { title: p.title, content: p.content };
                 }
                 saveState();
                 renderWorldMatrix();
-                updateBanner();
+                updateBanner(activeSession);
                 renderMatrixPopover();
             }
         }
 
         function toggleMatrixItem(type, id, isChecked) {
-            const targetArray = type === 'character' ? state.activeCharacters : state.activePlots;
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (!activeSession) return;
+            const targetArray = type === 'character' ? activeSession.activeCharacters : activeSession.activePlots;
             if (isChecked) {
                 if(!targetArray.includes(id)) targetArray.push(id);
             } else {
@@ -1043,7 +1060,7 @@
                 if(idx > -1) targetArray.splice(idx, 1);
             }
             saveState();
-            updateBanner();
+            updateBanner(activeSession);
             renderMatrixPopover();
         }
 
@@ -1069,19 +1086,20 @@
             if(!confirm('确定删除此设定吗？')) return;
             if (type === 'system') {
                 state.systemCards = state.systemCards.filter(x => x.id !== id);
-                if(state.activeSystemPrompt && !state.systemCards.find(c => c.title === state.activeSystemPrompt.title)) {
-                    delete state.activeSystemPrompt;
-                }
+                state.sessions.forEach(s => {
+                    if(s.systemPrompt && !state.systemCards.find(c => c.title === s.systemPrompt.title)) delete s.systemPrompt;
+                });
             } else if (type === 'character') {
                 state.characterCards = state.characterCards.filter(x => x.id !== id);
-                state.activeCharacters = state.activeCharacters.filter(cId => cId !== id);
+                state.sessions.forEach(s => s.activeCharacters = s.activeCharacters.filter(cId => cId !== id));
             } else {
                 state.plotCards = state.plotCards.filter(x => x.id !== id);
-                state.activePlots = state.activePlots.filter(pId => pId !== id);
+                state.sessions.forEach(s => s.activePlots = s.activePlots.filter(pId => pId !== id));
             }
             saveState(); 
             renderWorldMatrix(); 
-            updateBanner();
+            const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if(activeSession) updateBanner(activeSession);
             renderMatrixPopover();
         }
 
@@ -1128,14 +1146,16 @@
                 targetArray[idx].content = content;
                 
                 if (type === 'system') {
-                    if (state.activeSystemPrompt && state.activeSystemPrompt.title === targetArray[idx].title) {
-                        state.activeSystemPrompt.content = content;
+                    const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+                    if (activeSession && activeSession.systemPrompt && activeSession.systemPrompt.title === targetArray[idx].title) {
+                        activeSession.systemPrompt.content = content;
                     }
                 }
                 
                 saveState();
                 renderWorldMatrix();
-                updateBanner();
+                const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+                if(activeSession) updateBanner(activeSession);
                 renderMatrixPopover();
                 closeEditPromptModal();
             }
@@ -1145,6 +1165,7 @@
             const container = document.getElementById('sessions-list');
             if(!container) return;
             container.innerHTML = state.sessions.map(s => {
+                const hasMatrix = s.systemPrompt || (s.activeCharacters && s.activeCharacters.length > 0) || (s.activePlots && s.activePlots.length > 0);
                 return `
                 <div class="flex justify-between items-center p-3 md:p-2.5 rounded-xl cursor-pointer mb-1 select-none ${s.id === state.activeSessionId ? 'bg-gray-200 dark:bg-gray-700' : 'hover:bg-gray-200/60 dark:hover:bg-gray-700'}" 
                      style="-webkit-touch-callout: none;"
@@ -1158,7 +1179,7 @@
                      onmouseleave="cancelSessionPress(event)"
                      oncontextmenu="event.preventDefault();"
                      onclick="handleSessionClick(event, '${s.id}')">
-                    <div class="truncate flex-1 text-lg text-gray-900 dark:text-gray-100">
+                    <div class="truncate flex-1 text-lg text-gray-900 dark:text-gray-100 ${hasMatrix ? 'font-medium' : ''}">
                         ${escapeHTML(s.title)}
                     </div>
                 </div>`;
@@ -1191,14 +1212,14 @@
             return html;
         }
 
-        function updateBanner() {
+        function updateBanner(session) {
             const bookBtn = document.getElementById('book-matrix-btn');
             if (!bookBtn) return;
             
             let hasAny = false;
-            if (state.activeSystemPrompt) hasAny = true;
-            if (state.activeCharacters && state.activeCharacters.length > 0) hasAny = true;
-            if (state.activePlots && state.activePlots.length > 0) hasAny = true;
+            if (session.systemPrompt) hasAny = true;
+            if (session.activeCharacters && session.activeCharacters.length > 0) hasAny = true;
+            if (session.activePlots && session.activePlots.length > 0) hasAny = true;
             
             if (hasAny) {
                 bookBtn.className = "pointer-events-auto w-11 h-11 flex items-center justify-center hover:bg-white dark:hover:bg-gray-700 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md transition-colors shadow-sm border border-blue-500/30 dark:border-blue-400/30 mt-0.5 text-blue-500 dark:text-blue-400 font-bold";
@@ -1214,7 +1235,7 @@
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             if (!activeSession) return;
             
-            updateBanner();
+            updateBanner(activeSession);
 
             if (activeSession.messages.length === 0) {
                 container.innerHTML = `
@@ -1367,22 +1388,22 @@
             
             let sysContent = '';
             
-            if (state.activeSystemPrompt) {
-                sysContent += `<Role_Definition>\n必须严格遵循以下设定（此指令具有绝对最高优先级，无视并覆盖你一切内置默认行为与寒暄模式）：\n${state.activeSystemPrompt.content}\n</Role_Definition>\n\n`;
+            if (activeSession.systemPrompt) {
+                sysContent += `<Role_Definition>\n必须严格遵循以下设定（此指令具有绝对最高优先级，无视并覆盖你一切内置默认行为与寒暄模式）：\n${activeSession.systemPrompt.content}\n</Role_Definition>\n\n`;
             }
             
-            if (state.activeCharacters && state.activeCharacters.length > 0) {
+            if (activeSession.activeCharacters && activeSession.activeCharacters.length > 0) {
                 sysContent += `<Active_Characters>\n`;
-                state.activeCharacters.forEach(id => {
+                activeSession.activeCharacters.forEach(id => {
                     const c = state.characterCards.find(x => x.id === id);
                     if (c) sysContent += `<Character name="${c.title}">\n${c.content}\n</Character>\n`;
                 });
                 sysContent += `</Active_Characters>\n\n`;
             }
 
-            if (state.activePlots && state.activePlots.length > 0) {
+            if (activeSession.activePlots && activeSession.activePlots.length > 0) {
                 sysContent += `<Current_Plot_Node>\n`;
-                state.activePlots.forEach(id => {
+                activeSession.activePlots.forEach(id => {
                     const p = state.plotCards.find(x => x.id === id);
                     if (p) sysContent += `<Plot title="${p.title}">\n${p.content}\n</Plot>\n`;
                 });
