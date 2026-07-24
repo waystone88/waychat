@@ -121,7 +121,7 @@
                 <div class="flex-1 flex items-end gap-2 relative bg-white/90 dark:bg-gray-800/90 border border-gray-300/50 dark:border-gray-700/50 rounded-[24px] p-2 text-base shadow-2xl backdrop-blur-xl transition-all">
                     <textarea id="message-input" rows="1" class="flex-1 resize-none bg-transparent pl-4 pr-1 py-2.5 text-base md:text-lg focus:outline-none text-gray-900 dark:text-gray-100 min-h-[40px] max-h-[160px] align-bottom border-0" placeholder="输入消息..." onkeydown="handleInputKeydown(event)" oninput="autoResize(this)" onfocus="document.getElementById('bottom-bar').style.paddingBottom = '8px'" onblur="document.getElementById('bottom-bar').style.paddingBottom = 'calc(1rem + env(safe-area-inset-bottom))'"></textarea>
                     
-                    <button onclick="sendMessage()" id="send-btn" class="bg-gray-900 dark:bg-white text-white dark:text-gray-900 p-3 rounded-full hover:bg-black dark:hover:bg-gray-100 transition w-11 h-11 flex items-center justify-center shrink-0 shadow-md">
+                    <button onclick="sendMessage()" id="send-btn" class="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition w-11 h-11 flex items-center justify-center shrink-0 shadow-md">
                         <i class="fa-solid fa-arrow-up text-base font-bold"></i>
                     </button>
                     <button onmousedown="stopGeneration(); event.preventDefault();" ontouchstart="stopGeneration(); event.preventDefault();" id="stop-btn" class="hidden bg-gray-900 dark:bg-white text-white dark:text-gray-900 p-3 rounded-full hover:bg-black dark:hover:bg-gray-100 transition w-11 h-11 flex items-center justify-center shrink-0 shadow-md">
