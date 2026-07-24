@@ -1422,6 +1422,61 @@
             if(window.innerWidth < 768) input.blur();
         }
 
+        async function generateTitleFromResponse(sessionId, aiResponse) {
+            const session = state.sessions.find(s => s.id === sessionId);
+            if (!session) return;
+
+            let plotTitles = [];
+            if (session.activePlots && session.activePlots.length > 0) {
+                plotTitles = session.activePlots
+                    .map(id => state.plotCards.find(x => x.id === id)?.title)
+                    .filter(Boolean);
+            }
+
+            let useFallback = true;
+
+            try {
+                const response = await fetch(`${state.config.apiUrl.replace(/\/+$/, '')}/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.apiKey}` },
+                    body: JSON.stringify({
+                        model: state.config.model || 'deepseek-v4-flash',
+                        stream: false,
+                        max_tokens: 100,
+                        messages: [
+                            { role: 'user', content: `从以下文字中提取女性主角的名字，只返回名字，多人用空格隔开，无人则返回空。文字：\n${aiResponse.substring(0, 2000)}` }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+                let names = data.choices[0]?.message?.content?.trim() || '';
+
+                if (names && names !== '无' && names.length > 0 && names.length < 50) {
+                    const nameList = names.split(/[\s,，、]+/).filter(n => n && n.length <= 10 && n !== '无');
+                    if (nameList.length > 0) {
+                        session.title = [...plotTitles, ...nameList].join('、');
+                        useFallback = false;
+                    }
+                }
+            } catch (error) {
+            }
+
+            if (useFallback) {
+                if (plotTitles.length > 0) {
+                    session.title = plotTitles.join('、');
+                } else {
+                    const firstUserMsg = session.messages.find(m => m.role === 'user');
+                    if (firstUserMsg) {
+                        session.title = firstUserMsg.content.substring(0, 15) + (firstUserMsg.content.length > 15 ? '...' : '');
+                    }
+                }
+            }
+
+            saveState();
+            renderSessions();
+        }
+
         async function triggerSend(content) {
             if (!state.config.apiKey) { 
                 alert('阻断：请先在设置中配置 API Key。');
@@ -1431,8 +1486,16 @@
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
             activeSession.messages.push({ role: 'user', content });
             
+            let needsTitleGeneration = false;
             if (activeSession.messages.length === 1) {
-                activeSession.title = content.substring(0, 15) + (content.length > 15 ? '...' : '');
+                needsTitleGeneration = true;
+                let plotTitles = [];
+                if (activeSession.activePlots && activeSession.activePlots.length > 0) {
+                    plotTitles = activeSession.activePlots.map(id => state.plotCards.find(x => x.id === id)?.title).filter(Boolean);
+                }
+                if (plotTitles.length > 0) {
+                    activeSession.title = plotTitles.join('、');
+                }
                 renderSessions();
             }
             
@@ -1572,6 +1635,9 @@
                 saveState();
                 renderChat(); 
                 scrollToBottom();
+                if (needsTitleGeneration && fullContent.trim()) {
+                    generateTitleFromResponse(activeSession.id, fullContent);
+                }
             }
         }
 
