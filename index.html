@@ -214,27 +214,27 @@
 
             <div id="tab-system" class="matrix-tab flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
-                    <input type="text" id="new-sys-title" placeholder="名称 (如：无共识小说引擎)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
-                    <textarea id="new-sys-content" rows="2" placeholder="注入高维约束核心指令... (高度自动扩容)" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
-                    <button onclick="addCard('system')" class="self-end px-5 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-plus-circle text-blue-500"></i> 添加系统设定</button>
+                    <input type="text" id="new-sys-title" placeholder="名称" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
+                    <textarea id="new-sys-content" rows="2" placeholder="输入指令详情" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
+                    <button onclick="addCard('system')" class="self-end px-5 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-plus-circle text-blue-500"></i> 保存并添加</button>
                 </div>
                 <div id="system-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
             <div id="tab-characters" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
-                    <input type="text" id="new-char-title" placeholder="角色实体姓名 (如：李慢)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
-                    <textarea id="new-char-content" rows="2" placeholder="录入性格矩阵与故事轨迹..." class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
-                    <button onclick="addCard('character')" class="self-end px-5 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-user-plus text-purple-500"></i> 添加角色实体</button>
+                    <input type="text" id="new-char-title" placeholder="名称" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
+                    <textarea id="new-char-content" rows="2" placeholder="输入指令详情" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
+                    <button onclick="addCard('character')" class="self-end px-5 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-user-plus text-purple-500"></i> 保存并添加</button>
                 </div>
                 <div id="character-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
 
             <div id="tab-plots" class="matrix-tab hidden flex-1 flex flex-col overflow-hidden text-base">
                 <div class="pb-4 mb-2 space-y-3 shrink-0 flex flex-col border-b border-gray-100 dark:border-gray-800/50">
-                    <input type="text" id="new-plot-title" placeholder="故事因果卡标识 (如：冰冷触感)" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
-                    <textarea id="new-plot-content" rows="2" placeholder="植入主线大纲碎片或宏观变数..." class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
-                    <button onclick="addCard('plot')" class="self-end px-5 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-map-marker-alt text-green-500"></i> 锚定剧情槽位</button>
+                    <input type="text" id="new-plot-title" placeholder="名称" class="w-full px-4 py-3 rounded-full bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base font-medium">
+                    <textarea id="new-plot-content" rows="2" placeholder="输入指令详情" class="w-full px-4 py-3 rounded-2xl bg-gray-100/70 dark:bg-gray-800/60 border border-gray-200/40 dark:border-gray-700/40 focus:outline-none text-base resize-none overflow-y-auto max-h-[120px]" oninput="autoResize(this)"></textarea>
+                    <button onclick="addCard('plot')" class="self-end px-5 py-2.5 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300/60 dark:border-gray-700/60 rounded-full text-sm font-bold shadow-sm transition-all flex items-center gap-1.5"><i class="fa-solid fa-map-marker-alt text-green-500"></i> 保存并添加</button>
                 </div>
                 <div id="plot-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar"></div>
             </div>
