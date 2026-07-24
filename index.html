@@ -358,8 +358,8 @@
                 console.error("State parse error", e);
             }
 
-            if (state.sessions.length === 0) createNewSession(false);
-            if (!state.activeSessionId && state.sessions.length > 0) state.activeSessionId = state.sessions[0].id;
+            state.sessions = state.sessions.filter(s => s.messages && s.messages.length > 0);
+            createNewSession(false);
             
             state.sessions.forEach(s => {
                 if(!s.activeCharacters) s.activeCharacters = [];
@@ -790,6 +790,10 @@
         }
 
         function createNewSession(render = true) {
+            const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (currentSession && currentSession.messages.length === 0) {
+                state.sessions = state.sessions.filter(s => s.id !== currentSession.id);
+            }
             const newSession = { 
                 id: Date.now().toString(), 
                 title: '未命名对话', 
@@ -804,6 +808,10 @@
 
         function switchSession(id) {
             if (abortController) stopGeneration();
+            const currentSession = state.sessions.find(s => s.id === state.activeSessionId);
+            if (currentSession && currentSession.messages.length === 0 && currentSession.id !== id) {
+                state.sessions = state.sessions.filter(s => s.id !== currentSession.id);
+            }
             state.activeSessionId = id;
             if(window.innerWidth < 768 && sidebarOpen) toggleSidebar();
             renderSessions(); renderChat(); saveState();
@@ -1226,7 +1234,7 @@
         function renderSessions() {
             const container = document.getElementById('sessions-list');
             if(!container) return;
-            container.innerHTML = state.sessions.map(s => {
+            container.innerHTML = state.sessions.filter(s => s.messages && s.messages.length > 0).map(s => {
                 const hasMatrix = s.systemPrompt || (s.activeCharacters && s.activeCharacters.length > 0) || (s.activePlots && s.activePlots.length > 0);
                 return `
                 <div class="flex justify-between items-center p-3 md:p-2.5 rounded-xl cursor-pointer mb-1 select-none ${s.id === state.activeSessionId ? 'bg-gray-200 dark:bg-gray-700' : 'hover:bg-gray-200/60 dark:hover:bg-gray-700'}" 
