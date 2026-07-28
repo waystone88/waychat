@@ -8,6 +8,7 @@
     <title>WayChat</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
@@ -391,17 +392,24 @@
         }
 
         function saveState() {
-            localStorage.setItem('deepseek_client_state_v28', JSON.stringify({
-                config: state.config, 
-                sessions: state.sessions, 
-                activeSessionId: state.activeSessionId, 
-                systemCards: state.systemCards,
-                characterCards: state.characterCards,
-                plotCards: state.plotCards,
-                draftSystemPrompt: draftSystemPrompt,
-                draftCharacters: draftCharacters,
-                draftPlots: draftPlots
-            }));
+            try {
+                localStorage.setItem('deepseek_client_state_v28', JSON.stringify({
+                    config: state.config, 
+                    sessions: state.sessions, 
+                    activeSessionId: state.activeSessionId, 
+                    systemCards: state.systemCards,
+                    characterCards: state.characterCards,
+                    plotCards: state.plotCards,
+                    draftSystemPrompt: draftSystemPrompt,
+                    draftCharacters: draftCharacters,
+                    draftPlots: draftPlots
+                }));
+            } catch (e) {
+                console.error('localStorage save failed:', e);
+                if (e.name === 'QuotaExceededError') {
+                    alert('存储空间已满（5MB 上限）。建议导出部分对话后删除，释放空间。');
+                }
+            }
         }
 
         function applyUiFontSize() {
@@ -1275,7 +1283,8 @@
                 `;
             }
             if (content && typeof marked !== 'undefined') {
-                html += marked.parse(content);
+                const parsed = marked.parse(content);
+                html += (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(parsed) : parsed;
             } else if (content) {
                 html += `<div class="whitespace-pre-wrap">${escapeHTML(content)}</div>`;
             }
@@ -1455,7 +1464,7 @@
                 if (names && names !== '无' && names.length > 0 && names.length < 50) {
                     const nameList = names.split(/[\s,，、]+/).filter(n => n && n.length <= 10 && n !== '无');
                     if (nameList.length > 0) {
-                        session.title = [...plotTitles, ...nameList].join('、');
+                        session.title = [...plotTitles, ...nameList].join(' | ');
                         useFallback = false;
                     }
                 }
@@ -1464,7 +1473,7 @@
 
             if (useFallback) {
                 if (plotTitles.length > 0) {
-                    session.title = plotTitles.join('、');
+                    session.title = plotTitles.join(' | ');
                 } else {
                     const firstUserMsg = session.messages.find(m => m.role === 'user');
                     if (firstUserMsg) {
@@ -1494,7 +1503,7 @@
                     plotTitles = activeSession.activePlots.map(id => state.plotCards.find(x => x.id === id)?.title).filter(Boolean);
                 }
                 if (plotTitles.length > 0) {
-                    activeSession.title = plotTitles.join('、');
+                    activeSession.title = plotTitles.join(' | ');
                 }
                 renderSessions();
             }
