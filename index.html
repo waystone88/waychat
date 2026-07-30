@@ -1366,8 +1366,10 @@
         }
 
         let userScrolledUp = false;
+        let scrollLockUntil = 0;
         
         window.addEventListener('scroll', () => {
+            if (Date.now() < scrollLockUntil) return;
             const isNearBottom = (document.body.scrollHeight - (window.scrollY + window.innerHeight)) <= 150;
             const btn = document.getElementById('scroll-to-bottom-btn');
             
@@ -1511,6 +1513,7 @@
             activeSession.messages.push({ role: 'assistant', content: '', reasoning: '' });
             
             abortController = new AbortController();
+            scrollLockUntil = Date.now() + 300;
             userScrolledUp = true;
             renderChat();
             const chatContainerInit = document.getElementById('chat-container');
