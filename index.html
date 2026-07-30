@@ -1511,9 +1511,16 @@
             activeSession.messages.push({ role: 'assistant', content: '', reasoning: '' });
             
             abortController = new AbortController();
-            userScrolledUp = false; 
+            userScrolledUp = true;
             renderChat();
-            scrollToBottom();
+            const chatContainerInit = document.getElementById('chat-container');
+            if (chatContainerInit && chatContainerInit.children.length >= 2) {
+                const userMsgEl = chatContainerInit.children[chatContainerInit.children.length - 2];
+                if (userMsgEl) {
+                    const rect = userMsgEl.getBoundingClientRect();
+                    window.scrollTo({ top: Math.max(0, window.scrollY + rect.top - 16) });
+                }
+            }
             
             document.getElementById('send-btn').classList.add('hidden');
             document.getElementById('stop-btn').classList.remove('hidden');
@@ -1642,8 +1649,9 @@
                 if(btnSend) btnSend.classList.remove('hidden');
                 if(btnStop) btnStop.classList.add('hidden');
                 saveState();
+                const savedScrollY = window.scrollY;
                 renderChat(); 
-                scrollToBottom();
+                window.scrollTo({ top: savedScrollY });
                 if (needsTitleGeneration && fullContent.trim()) {
                     generateTitleFromResponse(activeSession.id, fullContent);
                 }
