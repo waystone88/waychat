@@ -1521,7 +1521,12 @@
                 const userMsgEl = chatContainerInit.children[chatContainerInit.children.length - 2];
                 if (userMsgEl) {
                     const rect = userMsgEl.getBoundingClientRect();
-                    window.scrollTo({ top: Math.max(0, window.scrollY + rect.top - 16) });
+                    const targetScroll = Math.max(0, window.scrollY + rect.bottom - 16);
+                    const maxScroll = document.body.scrollHeight - window.innerHeight;
+                    if (targetScroll > maxScroll) {
+                        chatContainerInit.style.minHeight = (chatContainerInit.offsetHeight + targetScroll - maxScroll + 100) + 'px';
+                    }
+                    window.scrollTo({ top: targetScroll });
                 }
             }
             
@@ -1653,7 +1658,9 @@
                 if(btnStop) btnStop.classList.add('hidden');
                 saveState();
                 const savedScrollY = window.scrollY;
-                renderChat(); 
+                const chatC = document.getElementById('chat-container');
+                if (chatC) chatC.style.minHeight = '';
+                renderChat();
                 window.scrollTo({ top: savedScrollY });
                 if (needsTitleGeneration && fullContent.trim()) {
                     generateTitleFromResponse(activeSession.id, fullContent);
