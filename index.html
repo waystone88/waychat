@@ -823,6 +823,9 @@
             state.activeSessionId = id;
             if(window.innerWidth < 768 && sidebarOpen) toggleSidebar();
             renderSessions(); renderChat(); saveState();
+            scrollLockUntil = Date.now() + 300;
+            userScrolledUp = false;
+            requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight }));
         }
 
         function exportMarkdown(sessionId, event) {
