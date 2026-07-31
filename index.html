@@ -1520,7 +1520,8 @@
             if (chatContainerInit && chatContainerInit.children.length >= 2) {
                 const userMsgEl = chatContainerInit.children[chatContainerInit.children.length - 2];
                 if (userMsgEl) {
-                    const rect = userMsgEl.getBoundingClientRect();
+                    const msgContent = userMsgEl.querySelector('.message-content');
+                    const rect = (msgContent || userMsgEl).getBoundingClientRect();
                     const targetScroll = Math.max(0, window.scrollY + rect.bottom - 16);
                     const maxScroll = document.body.scrollHeight - window.innerHeight;
                     if (targetScroll > maxScroll) {
