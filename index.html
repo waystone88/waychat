@@ -369,6 +369,7 @@
             state.sessions.forEach(s => {
                 if(!s.activeCharacters) s.activeCharacters = [];
                 if(!s.activePlots) s.activePlots = [];
+                if(!s.updatedAt) s.updatedAt = parseInt(s.id) || Date.now();
             });
 
             const toggleElement = document.getElementById('thinking-mode-toggle');
@@ -811,7 +812,8 @@
                 title: '未命名对话', 
                 messages: [],
                 activeCharacters: [],
-                activePlots: []
+                activePlots: [],
+                updatedAt: Date.now()
             };
             state.sessions.unshift(newSession);
             state.activeSessionId = newSession.id;
@@ -825,6 +827,8 @@
                 state.sessions = state.sessions.filter(s => s.id !== currentSession.id);
             }
             state.activeSessionId = id;
+            const targetSession = state.sessions.find(s => s.id === id);
+            if (targetSession) targetSession.updatedAt = Date.now();
             if(window.innerWidth < 768 && sidebarOpen) toggleSidebar();
             renderSessions(); renderChat(); saveState();
             scrollLockUntil = Date.now() + 300;
@@ -890,7 +894,8 @@
                 messages: forkedMessages,
                 systemPrompt: activeSession.systemPrompt ? JSON.parse(JSON.stringify(activeSession.systemPrompt)) : null,
                 activeCharacters: [...(activeSession.activeCharacters || [])],
-                activePlots: [...(activeSession.activePlots || [])]
+                activePlots: [...(activeSession.activePlots || [])],
+                updatedAt: Date.now()
             };
             state.sessions.unshift(newSession);
             state.activeSessionId = newSession.id;
@@ -1021,7 +1026,8 @@
                 messages: [],
                 systemPrompt: sourceSystemPrompt,
                 activeCharacters: sourceCharacters,
-                activePlots: sourcePlots
+                activePlots: sourcePlots,
+                updatedAt: Date.now()
             };
             
             state.sessions.unshift(newSession);
@@ -1247,9 +1253,12 @@
         function renderSessions() {
             const container = document.getElementById('sessions-list');
             if(!container) return;
-            container.innerHTML = state.sessions.filter(s => s.messages && s.messages.length > 0).map(s => {
+            const sorted = state.sessions.filter(s => s.messages && s.messages.length > 0)
+                .sort((a, b) => (b.updatedAt || parseInt(b.id)) - (a.updatedAt || parseInt(a.id)));
+            container.innerHTML = sorted.map((s, i) => {
                 const hasMatrix = s.systemPrompt || (s.activeCharacters && s.activeCharacters.length > 0) || (s.activePlots && s.activePlots.length > 0);
-                return `
+                const recentLabel = i === 0 ? '<div class="text-xs text-gray-400 dark:text-gray-500 mb-1 px-1 tracking-wider">最近</div>' : '';
+                return recentLabel + `
                 <div class="flex justify-between items-center p-3 md:p-2.5 rounded-xl cursor-pointer mb-1 select-none ${s.id === state.activeSessionId ? 'bg-gray-200 dark:bg-gray-700' : 'hover:bg-gray-200/60 dark:hover:bg-gray-700'}" 
                      style="-webkit-touch-callout: none;"
                      ontouchstart="startSessionPress(event, '${s.id}')"
@@ -1500,6 +1509,7 @@
                 return; 
             }
             const activeSession = state.sessions.find(s => s.id === state.activeSessionId);
+            activeSession.updatedAt = Date.now();
             activeSession.messages.push({ role: 'user', content });
             
             let needsTitleGeneration = false;
