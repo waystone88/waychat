@@ -827,8 +827,6 @@
                 state.sessions = state.sessions.filter(s => s.id !== currentSession.id);
             }
             state.activeSessionId = id;
-            const targetSession = state.sessions.find(s => s.id === id);
-            if (targetSession) targetSession.updatedAt = Date.now();
             if(window.innerWidth < 768 && sidebarOpen) toggleSidebar();
             renderSessions(); renderChat(); saveState();
             scrollLockUntil = Date.now() + 300;
