@@ -82,7 +82,7 @@
             
             <div class="absolute left-1/2 -translate-x-1/2 top-[calc(0.5rem+env(safe-area-inset-top))] pointer-events-auto">
                 <button onclick="toggleModelPopover(event)" id="model-selector-btn" class="h-11 px-3 flex items-center gap-1.5 rounded-full hover:bg-white/80 dark:hover:bg-gray-800/80 transition-colors text-gray-900 dark:text-gray-100">
-                    <span id="model-selector-label" class="text-sm font-medium whitespace-nowrap">deepseek v4 flash</span>
+                    <span id="model-selector-label" class="text-base font-bold whitespace-nowrap">Deepseek v4 flash</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
             </div>
@@ -609,7 +609,8 @@
         }
 
         function formatModelName(model) {
-            return (model || '').replace(/-/g, ' ');
+            const spaced = (model || '').replace(/-/g, ' ');
+            return spaced.charAt(0).toUpperCase() + spaced.slice(1);
         }
 
         function renderModelSelector() {
@@ -837,7 +838,7 @@
             state.config.fontSize = parseInt(document.getElementById('api-font-size').value, 10) || 16;
             state.config.uiFontSize = parseInt(document.getElementById('api-ui-font-size').value, 10) || 16;
             
-            saveState(); closeModal('settings-modal');
+            saveState(); renderModelSelector(); closeModal('settings-modal');
         }
 
         async function fetchModels() {
