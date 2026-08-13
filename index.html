@@ -1474,9 +1474,10 @@
 
                 const data = await response.json();
                 let names = data.choices[0]?.message?.content?.trim() || '';
+                const noNameWords = ['无', '空', '没有', '无女主', '无女性', '未找到', '无名字', 'none', 'null'];
 
-                if (names && names !== '无' && names.length > 0 && names.length < 50) {
-                    const nameList = names.split(/[\s,，、]+/).filter(n => n && n.length <= 10 && n !== '无');
+                if (names && !noNameWords.includes(names.toLowerCase()) && names.length > 0 && names.length < 50) {
+                    const nameList = names.split(/[\s,，、]+/).filter(n => n && n.length <= 10 && !noNameWords.includes(n.toLowerCase()));
                     if (nameList.length > 0) {
                         session.title = [...plotTitles, ...nameList].join(' | ');
                         useFallback = false;
