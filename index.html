@@ -1466,6 +1466,7 @@
                         model: 'deepseek-v4-flash',
                         stream: false,
                         max_tokens: 100,
+                        thinking: { type: "disabled" },
                         messages: [
                             { role: 'user', content: `从以下文字中提取女性主角的名字，只返回名字，多人用空格隔开，无人则返回空。文字：\n${aiResponse.substring(0, 2000)}` }
                         ]
