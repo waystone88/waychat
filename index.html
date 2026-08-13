@@ -1463,7 +1463,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.apiKey}` },
                     body: JSON.stringify({
-                        model: state.config.model || 'deepseek-v4-flash',
+                        model: 'deepseek-v4-flash',
                         stream: false,
                         max_tokens: 100,
                         messages: [
