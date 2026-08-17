@@ -189,9 +189,17 @@
                     </div>
                     <div>
                         <label class="block text-base font-medium mb-1.5">Gemini 模型</label>
-                        <input type="text" id="gemini-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="gemini-3.5-flash" placeholder="gemini-3.5-flash">
+                        <div class="flex gap-2 relative">
+                            <div id="gemini-model-input-container" class="flex-1">
+                                <input type="text" id="gemini-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="gemini-3.5-flash" placeholder="gemini-3.5-flash">
+                            </div>
+                            <button onclick="fetchModels('gemini')" class="bg-indigo-600 text-white px-3.5 rounded-xl hover:bg-indigo-700 transition" title="获取模型列表">
+                                <i class="fa-solid fa-satellite-dish"></i>
+                            </button>
+                        </div>
+                        <div id="gemini-model-fetch-status" class="text-sm mt-1 hidden"></div>
                     </div>
-                    <p class="text-xs text-gray-400">走 OpenAI 兼容端点，模型名如 gemini-3.5-flash、gemini-3.1-pro。</p>
+                    <p class="text-xs text-gray-400">走 OpenAI 兼容端点，点右侧按钮可探测当前可用的模型列表。</p>
                 </div>
 
                 <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 space-y-4">
@@ -686,7 +694,9 @@
             if (!dsModels.includes(dsCurrent)) dsModels = [dsCurrent, ...dsModels];
 
             const gmCurrent = state.config.geminiModel || 'gemini-3.5-flash';
-            let gmModels = ['gemini-3.5-flash', 'gemini-3.1-pro'];
+            let gmModels = (state.config.geminiModels && state.config.geminiModels.length > 0)
+                ? state.config.geminiModels
+                : ['gemini-3.5-flash', 'gemini-3.1-pro'];
             if (!gmModels.includes(gmCurrent)) gmModels = [gmCurrent, ...gmModels];
 
             const renderGroup = (title, models, current, type) => {
@@ -858,7 +868,6 @@
                 document.getElementById('api-url').value = state.config.apiUrl || '';
                 document.getElementById('api-key').value = state.config.apiKey || '';
                 document.getElementById('gemini-key').value = state.config.geminiApiKey || '';
-                document.getElementById('gemini-model').value = state.config.geminiModel || 'gemini-3.5-flash';
                 document.getElementById('api-temperature').value = state.config.temperature ?? 1.0;
                 document.getElementById('temp-display').innerText = parseFloat(state.config.temperature ?? 1.0).toFixed(1);
                 document.getElementById('api-max-tokens').value = state.config.maxTokens ?? 8000;
@@ -883,8 +892,22 @@
                         container.innerHTML = `<input type="text" id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="${currentModel}">`;
                     }
                 }
+                const gmContainer = document.getElementById('gemini-model-input-container');
+                const gmCurrent = state.config.geminiModel || 'gemini-3.5-flash';
+                if (gmContainer) {
+                    const gmModels = state.config.geminiModels;
+                    if (gmModels && gmModels.length > 0) {
+                        const gmList = gmModels.includes(gmCurrent) ? gmModels : [gmCurrent, ...gmModels];
+                        const gmOptions = gmList.map(m => `<option value="${m}" ${m === gmCurrent ? 'selected' : ''}>${m}</option>`).join('');
+                        gmContainer.innerHTML = `<select id="gemini-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base">${gmOptions}</select>`;
+                    } else {
+                        gmContainer.innerHTML = `<input type="text" id="gemini-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base" value="${gmCurrent}" placeholder="gemini-3.5-flash">`;
+                    }
+                }
                 const statusDiv = document.getElementById('model-fetch-status');
                 if(statusDiv) statusDiv.classList.add('hidden');
+                const gmStatusDiv = document.getElementById('gemini-model-fetch-status');
+                if(gmStatusDiv) gmStatusDiv.classList.add('hidden');
             } else if (id === 'world-matrix-modal') {
                 renderWorldMatrix();
             }
@@ -911,11 +934,16 @@
             saveState(); renderModelSelector(); closeModal('settings-modal');
         }
 
-        async function fetchModels() {
-            const baseUrl = document.getElementById('api-url').value.trim().replace(/\/+$/, '');
-            const apiKey = document.getElementById('api-key').value.trim();
-            const statusDiv = document.getElementById('model-fetch-status');
-            const modelContainer = document.getElementById('model-input-container');
+        async function fetchModels(type) {
+            const isGemini = (type === 'gemini');
+            const baseUrl = isGemini
+                ? 'https://generativelanguage.googleapis.com/v1beta/openai'
+                : document.getElementById('api-url').value.trim().replace(/\/+$/, '');
+            const apiKey = isGemini
+                ? document.getElementById('gemini-key').value.trim()
+                : document.getElementById('api-key').value.trim();
+            const statusDiv = document.getElementById(isGemini ? 'gemini-model-fetch-status' : 'model-fetch-status');
+            const modelContainer = document.getElementById(isGemini ? 'gemini-model-input-container' : 'model-input-container');
 
             if (!apiKey) {
                 statusDiv.textContent = '错误：请先填写 API Key';
@@ -929,20 +957,34 @@
             statusDiv.classList.remove('hidden');
 
             try {
-                const res = await fetch(`${baseUrl}/models`, { method: 'GET', headers: { 'Authorization': `Bearer ${apiKey}` } });
+                const res = await fetch(`${baseUrl.replace(/\/+$/, '')}/models`, { method: 'GET', headers: { 'Authorization': `Bearer ${apiKey}` } });
                 if (!res.ok) throw new Error(`请求失败: HTTP ${res.status}`);
                 const data = await res.json();
-                
+
                 if (data && data.data && Array.isArray(data.data)) {
-                    const currentModel = document.getElementById('api-model').value.trim();
-                    let options = data.data.map(m => `<option value="${m.id}" ${m.id === currentModel ? 'selected' : ''}>${m.id}</option>`).join('');
-                    if (currentModel && !data.data.find(m => m.id === currentModel)) {
+                    const currentModel = isGemini
+                        ? (state.config.geminiModel || 'gemini-3.5-flash')
+                        : document.getElementById('api-model').value.trim();
+
+                    let modelList = data.data.map(m => m.id);
+                    if (isGemini) {
+                        modelList = modelList
+                            .map(id => id.replace(/^models\//, ''))
+                            .filter(id => id.startsWith('gemini-') && !/image|embedding|tts|audio|live|veo|robotics|aqa|lyria|nano|research|antigravity|computer-use/.test(id));
+                    }
+
+                    let options = modelList.map(id => `<option value="${id}" ${id === currentModel ? 'selected' : ''}>${id}</option>`).join('');
+                    if (currentModel && !modelList.includes(currentModel)) {
                         options = `<option value="${currentModel}" selected>${currentModel}</option>` + options;
                     }
-                    modelContainer.innerHTML = `<select id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base">${options}</select>`;
-                    state.config.availableModels = data.data.map(m => m.id);
+                    modelContainer.innerHTML = `<select id="${isGemini ? 'gemini-model' : 'api-model'}" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base">${options}</select>`;
+                    if (isGemini) {
+                        state.config.geminiModels = modelList;
+                    } else {
+                        state.config.availableModels = modelList;
+                    }
                     saveState();
-                    statusDiv.textContent = `获取成功：已找到 ${data.data.length} 个模型`;
+                    statusDiv.textContent = `获取成功：已找到 ${modelList.length} 个模型`;
                     statusDiv.className = 'text-sm mt-1 text-green-500';
                 } else {
                     throw new Error('数据格式错误');
