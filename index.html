@@ -148,9 +148,12 @@
         </div>
     </main>
 
-    <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 70;">
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 md:p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] text-base">
-            <h2 class="text-2xl font-bold mb-4 shrink-0 tracking-tight">设置</h2>
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center md:p-4" style="z-index: 70;">
+        <div class="bg-white/95 dark:bg-gray-900/95 border-0 md:border border-gray-200/50 dark:border-gray-800/60 w-full h-full md:h-[85vh] md:max-w-3xl rounded-none md:rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col backdrop-blur-xl pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
+            <div class="flex justify-between items-center mb-4 shrink-0">
+                <h2 class="text-xl md:text-2xl font-bold tracking-tight">设置</h2>
+                <button onclick="closeModal('settings-modal')" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 p-2 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
             <div class="space-y-4 overflow-y-auto pr-2 flex-1 text-base">
                 <div>
                     <label class="block text-base font-medium mb-1.5">API Base URL</label>
@@ -208,7 +211,7 @@
                     </div>
                 </div>
             </div>
-            <div class="mt-6 flex justify-end gap-2 shrink-0">
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2 shrink-0">
                 <button onclick="closeModal('settings-modal')" class="px-5 py-2.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition text-base">取消</button>
                 <button onclick="saveSettings()" class="px-6 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition text-base font-bold">保存</button>
             </div>
