@@ -50,7 +50,7 @@
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-80 bg-gray-100 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
-            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v4.5</span></h1>
+            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v4.2</span></h1>
             <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
                 <svg class="dark:hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 <svg class="hidden dark:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
@@ -68,9 +68,6 @@
             </button>
             <button onclick="openModal('settings-modal'); if(window.innerWidth < 768) toggleSidebar();" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
                 <svg class="mr-2.5 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>设置
-            </button>
-            <button onclick="openTrashModal()" class="w-full text-left p-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition text-lg text-gray-900 dark:text-gray-100 flex items-center">
-                <svg class="mr-2.5 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>回收站
             </button>
         </div>
     </aside>
@@ -264,20 +261,6 @@
         </div>
     </div>
 
-    <div id="trash-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center md:p-4" style="z-index: 70;">
-        <div class="bg-white/95 dark:bg-gray-900/95 border-0 md:border border-gray-200/50 dark:border-gray-800/60 w-full h-full md:h-[85vh] md:max-w-2xl rounded-none md:rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col backdrop-blur-xl pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
-            <div class="flex justify-between items-center mb-3 shrink-0">
-                <h2 class="text-xl md:text-2xl font-bold tracking-tight">回收站</h2>
-                <div class="flex items-center gap-1">
-                    <button onclick="clearTrash()" class="text-sm font-medium text-red-500 hover:text-red-600 px-3 py-1.5 transition-colors">清空</button>
-                    <button onclick="closeModal('trash-modal')" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 p-2 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
-                </div>
-            </div>
-            <div class="text-xs text-gray-400 mb-3 shrink-0">最多保留最近 10 条删除记录，超出自动清除最旧</div>
-            <div id="trash-list" class="flex-1 overflow-y-auto pr-1 no-scrollbar"></div>
-        </div>
-    </div>
-
     <div id="edit-prompt-modal" class="hidden fixed inset-0 bg-white dark:bg-gray-900 z-[80] flex flex-col" style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)">
         <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-800 shrink-0">
             <h2 class="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">修改设定</h2>
@@ -341,8 +324,7 @@
                 { id: Date.now().toString() + 's', title: '默认助手', content: '你是一个乐于助人的智能助手。' }
             ],
             characterCards: [],
-            plotCards: [],
-            trash: []
+            plotCards: []
         };
 
         let abortController = null;
@@ -381,7 +363,6 @@
                     if(parsed.prompts && !parsed.systemCards) state.systemCards = parsed.prompts;
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
-                    if(!state.trash) state.trash = [];
                     if(parsed.draftSystemPrompt !== undefined) draftSystemPrompt = parsed.draftSystemPrompt;
                     if(parsed.draftCharacters) draftCharacters = parsed.draftCharacters;
                     if(parsed.draftPlots) draftPlots = parsed.draftPlots;
@@ -446,8 +427,7 @@
                     plotCards: state.plotCards,
                     draftSystemPrompt: draftSystemPrompt,
                     draftCharacters: draftCharacters,
-                    draftPlots: draftPlots,
-                    trash: state.trash
+                    draftPlots: draftPlots
                 }));
             } catch (e) {
                 console.error('localStorage save failed:', e);
@@ -607,13 +587,7 @@
             closeSessionContextMenu();
             
             setTimeout(() => {
-                if(!confirm('确定要删除此对话吗？将移入回收站，可随时找回。')) return;
-                const target = state.sessions.find(s => s.id === id);
-                if (target) {
-                    if (!state.trash) state.trash = [];
-                    state.trash.push({ session: target, deletedAt: Date.now() });
-                    if (state.trash.length > 10) state.trash = state.trash.slice(-10);
-                }
+                if(!confirm('确定要删除此对话吗？')) return;
                 state.sessions = state.sessions.filter(s => s.id !== id);
                 if (state.activeSessionId === id) state.activeSessionId = state.sessions.length > 0 ? state.sessions[0].id : null;
                 if (state.sessions.length === 0) createNewSession(false);
@@ -621,67 +595,6 @@
                 renderChat(); 
                 saveState();
             }, 200);
-        }
-
-        function openTrashModal() {
-            renderTrashList();
-            openModal('trash-modal');
-            if(window.innerWidth < 768) toggleSidebar();
-        }
-
-        function renderTrashList() {
-            const container = document.getElementById('trash-list');
-            if (!container) return;
-            const list = state.trash || [];
-            if (list.length === 0) {
-                container.innerHTML = '<div class="text-center text-gray-400 py-10 text-base">回收站是空的</div>';
-                return;
-            }
-            container.innerHTML = list.slice().reverse().map(item => {
-                const s = item.session || {};
-                const count = (s.messages || []).length;
-                return `
-                <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800 mb-2">
-                    <div class="flex-1 min-w-0">
-                        <div class="truncate text-base font-medium text-gray-900 dark:text-gray-100">${escapeHTML(s.title || '未命名对话')}</div>
-                        <div class="text-xs text-gray-400 mt-0.5">删除于 ${formatDeletedTime(item.deletedAt)} · ${count} 条消息</div>
-                    </div>
-                    <button onclick="restoreFromTrash('${s.id}')" class="ml-3 shrink-0 px-3.5 py-1.5 rounded-full text-sm font-bold text-blue-600 border border-blue-300/60 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">恢复</button>
-                </div>`;
-            }).join('');
-        }
-
-        function restoreFromTrash(id) {
-            const idx = (state.trash || []).findIndex(t => t.session && t.session.id === id);
-            if (idx === -1) return;
-            const item = state.trash[idx];
-            state.trash.splice(idx, 1);
-            state.sessions.unshift(item.session);
-            state.activeSessionId = item.session.id;
-            closeModal('trash-modal');
-            renderSessions();
-            renderChat();
-            saveState();
-        }
-
-        function clearTrash() {
-            if ((state.trash || []).length === 0) return;
-            if(!confirm('确定清空回收站？此操作不可恢复。')) return;
-            state.trash = [];
-            renderTrashList();
-            saveState();
-        }
-
-        function formatDeletedTime(ts) {
-            if (!ts) return '';
-            const d = new Date(ts);
-            const now = new Date();
-            const diff = now - d;
-            if (diff < 60000) return '刚刚';
-            if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
-            if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前';
-            const pad = n => String(n).padStart(2, '0');
-            return (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
         }
 
         function toggleMatrixPopover(event) {
