@@ -48,9 +48,9 @@
 
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div>
 
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-80 bg-gray-100 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none" style="z-index: 60;">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-80 bg-gray-100 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none pointer-events-none md:pointer-events-auto" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
-            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v4.8</span></h1>
+            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v4.9</span></h1>
             <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
                 <svg class="dark:hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 <svg class="hidden dark:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
@@ -126,7 +126,7 @@
         <div id="bottom-bar" class="fixed bottom-0 left-0 right-0 md:left-80 px-4 pb-6 pt-16 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 z-30 pointer-events-none transition-all duration-300" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
             
             <div class="max-w-4xl mx-auto relative flex justify-end mb-3 px-2">
-                <button id="scroll-to-bottom-btn" onclick="forceScrollToBottom()" class="w-10 h-10 bg-white/95 dark:bg-gray-800/95 rounded-full shadow-md border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all duration-300 pointer-events-auto opacity-0 scale-90 translate-y-2 pointer-events-none z-50 backdrop-blur-md">
+                <button id="scroll-to-bottom-btn" onclick="forceScrollToBottom()" class="w-10 h-10 bg-white/95 dark:bg-gray-800/95 rounded-full shadow-md border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-all duration-300 opacity-0 scale-90 translate-y-2 pointer-events-none z-50 backdrop-blur-md">
                     <i class="fa-solid fa-arrow-down"></i>
                 </button>
             </div>
@@ -449,6 +449,7 @@
                     btn.classList.add('opacity-0', 'scale-90', 'translate-y-2', 'pointer-events-none');
                     btn.classList.remove('opacity-100', 'scale-100', 'translate-y-0', 'pointer-events-auto');
                 }
+                nudgeHitTest();
             }, 50);
         }
 
@@ -849,11 +850,11 @@
             const backdrop = document.getElementById('sidebar-backdrop');
             
             if (sidebarOpen) {
-                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.remove('-translate-x-full', 'pointer-events-none');
                 backdrop.classList.remove('hidden');
                 setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
             } else {
-                sidebar.classList.add('-translate-x-full');
+                sidebar.classList.add('-translate-x-full', 'pointer-events-none');
                 backdrop.classList.add('opacity-0');
                 setTimeout(() => backdrop.classList.add('hidden'), 300);
             }
@@ -1671,6 +1672,14 @@
             }
         }
 
+        function nudgeHitTest() {
+            try {
+                const y = window.scrollY || 0;
+                window.scrollTo(0, y + 1);
+                requestAnimationFrame(() => window.scrollTo(0, y));
+            } catch (e) {}
+        }
+
         function autoResize(textarea) { 
             if(!textarea) return;
             textarea.style.height = 'auto'; 
@@ -2004,6 +2013,12 @@
                 closeSessionContextMenu();
             }
         }, { capture: true, passive: true });
+
+        window.addEventListener('load', () => setTimeout(nudgeHitTest, 80));
+        window.addEventListener('pageshow', (e) => { if (e.persisted) setTimeout(nudgeHitTest, 80); });
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) setTimeout(nudgeHitTest, 80);
+        });
 
         if (window.matchMedia) {
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
