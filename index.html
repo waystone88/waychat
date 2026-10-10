@@ -50,7 +50,7 @@
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-80 bg-gray-100 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none pointer-events-none md:pointer-events-auto" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
-            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v5.0</span></h1>
+            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v5.1</span></h1>
             <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
                 <svg class="dark:hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 <svg class="hidden dark:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
@@ -163,7 +163,7 @@
                     <label class="block text-base font-medium mb-1.5">服务商 (Provider)</label>
                     <div class="flex gap-2">
                         <button type="button" onclick="switchProvider('deepseek')" id="provider-deepseek-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">DeepSeek</button>
-                        <button type="button" onclick="switchProvider('gemini')" id="provider-gemini-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">Gemini</button>
+                        <button type="button" onclick="switchProvider('glm')" id="provider-glm-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">智谱GLM</button>
                     </div>
                 </div>
                 <div>
@@ -338,9 +338,9 @@
                 deepseekApiUrl: 'https://api.deepseek.com/v1',
                 deepseekApiKey: '',
                 deepseekModel: 'deepseek-v4-flash',
-                geminiApiUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
-                geminiApiKey: '',
-                geminiModel: 'gemini-3.8-flash',
+                glmApiUrl: 'https://open.bigmodel.cn/api/paas/v4',
+                glmApiKey: '',
+                glmModel: 'glm-4.7-flash',
                 darkMode: false, 
                 thinkingMode: false,
                 temperature: 1.0,
@@ -391,7 +391,7 @@
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     state = { ...state, ...parsed };
-                    state.config = { ...{provider: 'deepseek', apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', deepseekApiUrl: 'https://api.deepseek.com/v1', deepseekApiKey: '', deepseekModel: 'deepseek-v4-flash', geminiApiUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', geminiApiKey: '', geminiModel: 'gemini-3.8-flash', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 8000, historyTurns: 20, fontSize: 16, uiFontSize: 16}, ...parsed.config };
+                    state.config = { ...{provider: 'deepseek', apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', deepseekApiUrl: 'https://api.deepseek.com/v1', deepseekApiKey: '', deepseekModel: 'deepseek-v4-flash', glmApiUrl: 'https://open.bigmodel.cn/api/paas/v4', glmApiKey: '', glmModel: 'glm-4.7-flash', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 8000, historyTurns: 20, fontSize: 16, uiFontSize: 16}, ...parsed.config };
                     if (!state.config.deepseekApiKey) state.config.deepseekApiKey = state.config.apiKey || '';
                     if (!state.config.deepseekModel) state.config.deepseekModel = state.config.model || 'deepseek-v4-flash';
                     if (!state.config.deepseekApiUrl) state.config.deepseekApiUrl = state.config.apiUrl || 'https://api.deepseek.com/v1';
@@ -946,9 +946,9 @@
             const active = 'bg-indigo-600 text-white border-indigo-600';
             const idle = 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300/60 dark:border-gray-600';
             const dBtn = document.getElementById('provider-deepseek-btn');
-            const gBtn = document.getElementById('provider-gemini-btn');
+            const gBtn = document.getElementById('provider-glm-btn');
             if (dBtn) dBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'deepseek' ? active : idle);
-            if (gBtn) gBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'gemini' ? active : idle);
+            if (gBtn) gBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'glm' ? active : idle);
         }
 
         function switchProvider(p) {
@@ -962,9 +962,9 @@
                 state.config.deepseekApiKey = keyEl.value.trim();
                 state.config.deepseekModel = modelEl ? modelEl.value.trim() : 'deepseek-v4-flash';
             } else {
-                state.config.geminiApiUrl = urlEl.value.trim();
-                state.config.geminiApiKey = keyEl.value.trim();
-                state.config.geminiModel = modelEl ? modelEl.value.trim() : 'gemini-3.8-flash';
+                state.config.glmApiUrl = urlEl.value.trim();
+                state.config.glmApiKey = keyEl.value.trim();
+                state.config.glmModel = modelEl ? modelEl.value.trim() : 'glm-4.7-flash';
             }
             state.config.provider = p;
             const inputClass = 'w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base';
@@ -977,9 +977,9 @@
                 keyEl.value = state.config.apiKey;
                 if (mc) mc.innerHTML = `<input type="text" id="api-model" class="${inputClass}" value="${state.config.model}">`;
             } else {
-                state.config.apiUrl = state.config.geminiApiUrl || 'https://generativelanguage.googleapis.com/v1beta/openai';
-                state.config.apiKey = state.config.geminiApiKey || '';
-                state.config.model = state.config.geminiModel || 'gemini-3.8-flash';
+                state.config.apiUrl = state.config.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
+                state.config.apiKey = state.config.glmApiKey || '';
+                state.config.model = state.config.glmModel || 'glm-4.7-flash';
                 urlEl.value = state.config.apiUrl;
                 keyEl.value = state.config.apiKey;
                 if (mc) mc.innerHTML = `<input type="text" id="api-model" class="${inputClass}" value="${state.config.model}">`;
@@ -1000,9 +1000,9 @@
                 state.config.deepseekApiKey = state.config.apiKey;
                 state.config.deepseekModel = state.config.model;
             } else {
-                state.config.geminiApiUrl = state.config.apiUrl;
-                state.config.geminiApiKey = state.config.apiKey;
-                state.config.geminiModel = state.config.model;
+                state.config.glmApiUrl = state.config.apiUrl;
+                state.config.glmApiKey = state.config.apiKey;
+                state.config.glmModel = state.config.model;
             }
             state.config.temperature = parseFloat(document.getElementById('api-temperature').value);
             state.config.maxTokens = parseInt(document.getElementById('api-max-tokens').value, 10) || 8000;
@@ -1037,15 +1037,7 @@
                 
                 if (data && data.data && Array.isArray(data.data)) {
                     const currentModel = document.getElementById('api-model').value.trim();
-                    const isGemini = baseUrl.includes('generativelanguage');
-                    let ids;
-                    if (isGemini) {
-                        ids = data.data
-                            .map(m => (typeof m.id === 'string' ? m.id.replace(/^models\//, '') : m.id))
-                            .filter(id => /^(gemini|gemma)-/.test(id) && !/image|tts|audio|embedding|veo|robotics|live|transcribe|lyria|aqa|nano|computer-use|antigravity|research|omni/.test(id));
-                    } else {
-                        ids = data.data.map(m => m.id);
-                    }
+                    const ids = data.data.map(m => m.id);
                     let options = ids.map(id => `<option value="${id}" ${id === currentModel ? 'selected' : ''}>${id}</option>`).join('');
                     if (currentModel && !ids.includes(currentModel)) {
                         options = `<option value="${currentModel}" selected>${currentModel}</option>` + options;
@@ -1732,17 +1724,16 @@
             let useFallback = true;
 
             try {
-                const titleIsGemini = (state.config.provider || 'deepseek') === 'gemini';
-                const titleModel = titleIsGemini ? (state.config.geminiModel || 'gemini-3.8-flash') : 'deepseek-v4-flash';
+                const titleModel = state.config.model || 'deepseek-v4-flash';
                 const titleBody = {
                     model: titleModel,
                     stream: false,
                     max_tokens: 100,
+                    thinking: { type: "disabled" },
                     messages: [
                         { role: 'user', content: `从以下文字中提取女性主角的名字，只返回名字，多人用空格隔开，无人则返回空。文字：\n${aiResponse.substring(0, 2000)}` }
                     ]
                 };
-                if (!titleIsGemini) titleBody.thinking = { type: "disabled" };
                 const response = await fetch(`${state.config.apiUrl.replace(/\/+$/, '')}/chat/completions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.apiKey}` },
@@ -1863,17 +1854,14 @@
                 apiMessages.unshift({ role: 'system', content: sysContent.trim() });
             }
 
-            const isGemini = (state.config.provider || 'deepseek') === 'gemini';
             const payload = { 
                 model: targetModel, 
                 messages: apiMessages, 
                 stream: true,
                 temperature: state.config.temperature ?? 1.0,
-                max_tokens: state.config.maxTokens ?? 8000
+                max_tokens: state.config.maxTokens ?? 8000,
+                thinking: { type: state.config.thinkingMode ? "enabled" : "disabled" }
             };
-            if (!isGemini) {
-                payload.thinking = { type: state.config.thinkingMode ? "enabled" : "disabled" };
-            }
             
             let aiMessageIndex = activeSession.messages.length - 1;
             let fullContent = "";
