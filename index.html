@@ -50,7 +50,7 @@
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-80 bg-gray-100 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none pointer-events-none md:pointer-events-auto" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
-            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v5.4</span></h1>
+            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v5.5</span></h1>
             <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
                 <svg class="dark:hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 <svg class="hidden dark:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
@@ -185,6 +185,10 @@
                         </button>
                     </div>
                     <div id="model-fetch-status" class="text-sm mt-1 hidden"></div>
+                    <div id="saved-models-box" class="mt-2 hidden">
+                        <label class="block text-base font-medium mb-1.5">已收藏模型（点 × 删除）</label>
+                        <div id="saved-models-list" class="flex flex-wrap gap-2"></div>
+                    </div>
                 </div>
 
                 <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 space-y-4">
@@ -341,6 +345,8 @@
                 glmApiUrl: 'https://open.bigmodel.cn/api/paas/v4',
                 glmApiKey: '',
                 glmModel: 'glm-4.7-flash',
+                deepseekModels: ['deepseek-v4-flash'],
+                glmModels: ['glm-4.7-flash'],
                 darkMode: false, 
                 thinkingMode: false,
                 temperature: 1.0,
@@ -395,6 +401,10 @@
                     if (!state.config.deepseekApiKey) state.config.deepseekApiKey = state.config.apiKey || '';
                     if (!state.config.deepseekModel) state.config.deepseekModel = state.config.model || 'deepseek-v4-flash';
                     if (!state.config.deepseekApiUrl) state.config.deepseekApiUrl = state.config.apiUrl || 'https://api.deepseek.com/v1';
+                    if (!Array.isArray(state.config.deepseekModels) || state.config.deepseekModels.length === 0) state.config.deepseekModels = [state.config.deepseekModel || 'deepseek-v4-flash'];
+                    if (!Array.isArray(state.config.glmModels) || state.config.glmModels.length === 0) state.config.glmModels = [state.config.glmModel || 'glm-4.7-flash'];
+                    if (state.config.deepseekModel && !state.config.deepseekModels.includes(state.config.deepseekModel)) state.config.deepseekModels.push(state.config.deepseekModel);
+                    if (state.config.glmModel && !state.config.glmModels.includes(state.config.glmModel)) state.config.glmModels.push(state.config.glmModel);
                     if(parsed.prompts && !parsed.systemCards) state.systemCards = parsed.prompts;
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
@@ -745,27 +755,81 @@
             document.getElementById('model-popover')?.classList.add('hidden');
         }
 
+        function getSavedModelItems() {
+            const cfg = state.config;
+            const items = [];
+            (cfg.deepseekModels || []).forEach(m => items.push({ provider: 'deepseek', model: m }));
+            (cfg.glmModels || []).forEach(m => items.push({ provider: 'glm', model: m }));
+            return items;
+        }
+
         function renderModelPopover() {
             const container = document.getElementById('model-popover-content');
             if (!container) return;
-            const current = state.config.model || 'deepseek-v4-flash';
-            let models = (state.config.availableModels && state.config.availableModels.length > 0)
-                ? state.config.availableModels
-                : ['deepseek-v4-flash', 'deepseek-v4-pro'];
-            if (!models.includes(current)) models = [current, ...models];
-            container.innerHTML = models.map(m => `
-                <button data-model="${escapeHTML(m)}" onclick="selectModel(this.dataset.model)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition ${m === current ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-100/60 dark:hover:bg-gray-700/60'}">
-                    <span class="text-base font-medium text-gray-900 dark:text-gray-100">${escapeHTML(formatModelName(m))}</span>
-                    ${m === current ? '<span class="text-blue-600 text-sm font-bold">✓</span>' : ''}
+            const cfg = state.config;
+            const current = cfg.model || 'deepseek-v4-flash';
+            const currentProvider = cfg.provider || 'deepseek';
+            let items = getSavedModelItems();
+            if (items.length === 0) items = [{ provider: currentProvider, model: current }];
+            container.innerHTML = items.map(it => {
+                const active = it.model === current && it.provider === currentProvider;
+                return `
+                <button data-model="${escapeHTML(it.model)}" onclick="selectModel(this.dataset.model)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition ${active ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-100/60 dark:hover:bg-gray-700/60'}">
+                    <span class="flex-1 min-w-0">
+                        <span class="block text-base font-medium text-gray-900 dark:text-gray-100 truncate">${escapeHTML(formatModelName(it.model))}</span>
+                        <span class="block text-xs text-gray-400 dark:text-gray-500">${it.provider === 'deepseek' ? 'DeepSeek' : '智谱 GLM'}</span>
+                    </span>
+                    ${active ? '<span class="text-blue-600 text-sm font-bold">✓</span>' : ''}
+                </button>`;
+            }).join('');
+        }
+
+        function selectModel(model) {
+            const cfg = state.config;
+            if ((cfg.deepseekModels || []).includes(model)) {
+                cfg.provider = 'deepseek';
+                cfg.deepseekModel = model;
+                cfg.apiUrl = cfg.deepseekApiUrl || 'https://api.deepseek.com/v1';
+                cfg.apiKey = cfg.deepseekApiKey || '';
+                cfg.model = model;
+            } else if ((cfg.glmModels || []).includes(model)) {
+                cfg.provider = 'glm';
+                cfg.glmModel = model;
+                cfg.apiUrl = cfg.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
+                cfg.apiKey = cfg.glmApiKey || '';
+                cfg.model = model;
+            } else {
+                cfg.model = model;
+            }
+            saveState();
+            renderModelSelector();
+            updateProviderButtons();
+            closeModelPopover();
+        }
+
+        function renderSavedModels() {
+            const box = document.getElementById('saved-models-box');
+            const list = document.getElementById('saved-models-list');
+            if (!box || !list) return;
+            const items = getSavedModelItems();
+            if (items.length === 0) { box.classList.add('hidden'); return; }
+            box.classList.remove('hidden');
+            list.innerHTML = items.map(it => `
+                <button onclick="removeSavedModelFromChip(this)" data-provider="${it.provider}" data-model="${escapeHTML(it.model)}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 text-sm transition hover:bg-gray-200 dark:hover:bg-gray-600">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">${it.provider === 'deepseek' ? 'DS' : 'GLM'}</span>
+                    <span class="text-gray-900 dark:text-gray-100">${escapeHTML(formatModelName(it.model))}</span>
+                    <span class="text-red-500 font-bold">×</span>
                 </button>
             `).join('');
         }
 
-        function selectModel(model) {
-            state.config.model = model;
+        function removeSavedModelFromChip(el) {
+            const provider = el.dataset.provider;
+            const model = el.dataset.model;
+            const key = provider === 'deepseek' ? 'deepseekModels' : 'glmModels';
+            state.config[key] = (state.config[key] || []).filter(m => m !== model);
             saveState();
-            renderModelSelector();
-            closeModelPopover();
+            renderSavedModels();
         }
 
         document.addEventListener('click', (e) => {
@@ -930,6 +994,7 @@
                 }
                 const statusDiv = document.getElementById('model-fetch-status');
                 if(statusDiv) statusDiv.classList.add('hidden');
+                renderSavedModels();
             } else if (id === 'world-matrix-modal') {
                 renderWorldMatrix();
             }
@@ -999,10 +1064,18 @@
                 state.config.deepseekApiUrl = state.config.apiUrl;
                 state.config.deepseekApiKey = state.config.apiKey;
                 state.config.deepseekModel = state.config.model;
+                const arr = state.config.deepseekModels || [];
+                if (!arr.includes(state.config.model)) arr.push(state.config.model);
+                if (arr.length > 10) arr.splice(0, arr.length - 10);
+                state.config.deepseekModels = arr;
             } else {
                 state.config.glmApiUrl = state.config.apiUrl;
                 state.config.glmApiKey = state.config.apiKey;
                 state.config.glmModel = state.config.model;
+                const arr = state.config.glmModels || [];
+                if (!arr.includes(state.config.model)) arr.push(state.config.model);
+                if (arr.length > 10) arr.splice(0, arr.length - 10);
+                state.config.glmModels = arr;
             }
             state.config.temperature = parseFloat(document.getElementById('api-temperature').value);
             state.config.maxTokens = parseInt(document.getElementById('api-max-tokens').value, 10) || 8000;
