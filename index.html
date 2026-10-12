@@ -50,7 +50,7 @@
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-80 bg-gray-100 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none pointer-events-none md:pointer-events-auto" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
-            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v5.5</span></h1>
+            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v5.6</span></h1>
             <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
                 <svg class="dark:hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 <svg class="hidden dark:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
@@ -405,6 +405,27 @@
                     if (!Array.isArray(state.config.glmModels) || state.config.glmModels.length === 0) state.config.glmModels = [state.config.glmModel || 'glm-4.7-flash'];
                     if (state.config.deepseekModel && !state.config.deepseekModels.includes(state.config.deepseekModel)) state.config.deepseekModels.push(state.config.deepseekModel);
                     if (state.config.glmModel && !state.config.glmModels.includes(state.config.glmModel)) state.config.glmModels.push(state.config.glmModel);
+                    // 清洗：按模型名前缀把放错桶的收藏搬回正确桶
+                    const dsRaw = state.config.deepseekModels || [];
+                    const glRaw = state.config.glmModels || [];
+                    state.config.deepseekModels = [...new Set(dsRaw.filter(m => /^deepseek/i.test(m)))];
+                    state.config.glmModels = [...new Set(glRaw.filter(m => /^glm/i.test(m)))];
+                    dsRaw.forEach(m => { if (/^glm/i.test(m) && !state.config.glmModels.includes(m)) state.config.glmModels.push(m); });
+                    glRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); });
+                    if (state.config.deepseekModels.length === 0) state.config.deepseekModels = ['deepseek-v4-flash'];
+                    if (state.config.glmModels.length === 0) state.config.glmModels = ['glm-4.7-flash'];
+                    if (!/^deepseek/i.test(state.config.deepseekModel || '')) state.config.deepseekModel = state.config.deepseekModels[0];
+                    if (!/^glm/i.test(state.config.glmModel || '')) state.config.glmModel = state.config.glmModels[0];
+                    const provClean = state.config.provider || 'deepseek';
+                    if (provClean === 'glm' && !/^glm/i.test(state.config.model || '')) {
+                        state.config.model = state.config.glmModel;
+                        state.config.apiUrl = state.config.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
+                        state.config.apiKey = state.config.glmApiKey || '';
+                    } else if (provClean === 'deepseek' && !/^deepseek/i.test(state.config.model || '')) {
+                        state.config.model = state.config.deepseekModel;
+                        state.config.apiUrl = state.config.deepseekApiUrl || 'https://api.deepseek.com/v1';
+                        state.config.apiKey = state.config.deepseekApiKey || '';
+                    }
                     if(parsed.prompts && !parsed.systemCards) state.systemCards = parsed.prompts;
                     if(!state.characterCards) state.characterCards = [];
                     if(!state.plotCards) state.plotCards = [];
@@ -786,13 +807,20 @@
 
         function selectModel(model) {
             const cfg = state.config;
-            if ((cfg.deepseekModels || []).includes(model)) {
+            const isDs = /^deepseek/i.test(model);
+            const isGlm = /^glm/i.test(model);
+            const target = (isDs && !isGlm) ? 'deepseek'
+                : (isGlm && !isDs) ? 'glm'
+                : (cfg.deepseekModels || []).includes(model) ? 'deepseek'
+                : (cfg.glmModels || []).includes(model) ? 'glm'
+                : null;
+            if (target === 'deepseek') {
                 cfg.provider = 'deepseek';
                 cfg.deepseekModel = model;
                 cfg.apiUrl = cfg.deepseekApiUrl || 'https://api.deepseek.com/v1';
                 cfg.apiKey = cfg.deepseekApiKey || '';
                 cfg.model = model;
-            } else if ((cfg.glmModels || []).includes(model)) {
+            } else if (target === 'glm') {
                 cfg.provider = 'glm';
                 cfg.glmModel = model;
                 cfg.apiUrl = cfg.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
@@ -983,7 +1011,9 @@
                 const container = document.getElementById('model-input-container');
                 const currentModel = state.config.model || 'deepseek-v4-flash';
                 if (container) {
-                    const models = state.config.availableModels;
+                    const amObj = state.config.availableModels && typeof state.config.availableModels === 'object' && !Array.isArray(state.config.availableModels)
+                        ? state.config.availableModels : null;
+                    const models = amObj ? amObj[(state.config.provider || 'deepseek')] : null;
                     if (models && models.length > 0) {
                         const list = models.includes(currentModel) ? models : [currentModel, ...models];
                         const options = list.map(m => `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`).join('');
@@ -1060,22 +1090,31 @@
             state.config.apiUrl = document.getElementById('api-url').value.trim();
             state.config.apiKey = document.getElementById('api-key').value.trim();
             state.config.model = document.getElementById('api-model').value.trim();
-            if ((state.config.provider || 'deepseek') === 'deepseek') {
+            const prov = state.config.provider || 'deepseek';
+            if (prov === 'deepseek') {
                 state.config.deepseekApiUrl = state.config.apiUrl;
                 state.config.deepseekApiKey = state.config.apiKey;
-                state.config.deepseekModel = state.config.model;
-                const arr = state.config.deepseekModels || [];
-                if (!arr.includes(state.config.model)) arr.push(state.config.model);
-                if (arr.length > 10) arr.splice(0, arr.length - 10);
-                state.config.deepseekModels = arr;
             } else {
                 state.config.glmApiUrl = state.config.apiUrl;
                 state.config.glmApiKey = state.config.apiKey;
-                state.config.glmModel = state.config.model;
-                const arr = state.config.glmModels || [];
-                if (!arr.includes(state.config.model)) arr.push(state.config.model);
+            }
+            const addFav = (key, m) => {
+                const arr = state.config[key] || [];
+                if (!arr.includes(m)) arr.push(m);
                 if (arr.length > 10) arr.splice(0, arr.length - 10);
-                state.config.glmModels = arr;
+                state.config[key] = arr;
+            };
+            const isDs = /^deepseek/i.test(state.config.model);
+            const isGlm = /^glm/i.test(state.config.model);
+            if (isDs && !isGlm) {
+                state.config.deepseekModel = state.config.model;
+                addFav('deepseekModels', state.config.model);
+            } else if (isGlm && !isDs) {
+                state.config.glmModel = state.config.model;
+                addFav('glmModels', state.config.model);
+            } else {
+                if (prov === 'deepseek') { state.config.deepseekModel = state.config.model; addFav('deepseekModels', state.config.model); }
+                else { state.config.glmModel = state.config.model; addFav('glmModels', state.config.model); }
             }
             state.config.temperature = parseFloat(document.getElementById('api-temperature').value);
             state.config.maxTokens = parseInt(document.getElementById('api-max-tokens').value, 10) || 8000;
@@ -1116,7 +1155,11 @@
                         options = `<option value="${currentModel}" selected>${currentModel}</option>` + options;
                     }
                     modelContainer.innerHTML = `<select id="api-model" class="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base">${options}</select>`;
-                    state.config.availableModels = ids;
+                    const provAm = state.config.provider || 'deepseek';
+                    const amObj = state.config.availableModels && typeof state.config.availableModels === 'object' && !Array.isArray(state.config.availableModels)
+                        ? state.config.availableModels : {};
+                    amObj[provAm] = ids;
+                    state.config.availableModels = amObj;
                     saveState();
                     statusDiv.textContent = `获取成功：已找到 ${ids.length} 个模型`;
                     statusDiv.className = 'text-sm mt-1 text-green-500';
