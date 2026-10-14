@@ -164,7 +164,7 @@
                     <div class="flex gap-2">
                         <button type="button" onclick="switchProvider('deepseek')" id="provider-deepseek-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">DeepSeek</button>
                         <button type="button" onclick="switchProvider('glm')" id="provider-glm-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">智谱GLM</button>
-                        <button type="button" onclick="switchProvider('qwen')" id="provider-qwen-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">通义千问</button>
+                        <button type="button" onclick="switchProvider('kimi')" id="provider-kimi-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">Kimi</button>
                     </div>
                 </div>
                 <div>
@@ -346,12 +346,12 @@
                 glmApiUrl: 'https://open.bigmodel.cn/api/paas/v4',
                 glmApiKey: '',
                 glmModel: 'glm-4.7-flash',
-                qwenApiUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-                qwenApiKey: '',
-                qwenModel: 'qwen-max',
+                kimiApiUrl: 'https://api.moonshot.cn/v1',
+                kimiApiKey: '',
+                kimiModel: 'kimi-k2.6',
                 deepseekModels: ['deepseek-v4-flash'],
                 glmModels: ['glm-4.7-flash'],
-                qwenModels: ['qwen-max'],
+                kimiModels: ['kimi-k2.6'],
                 darkMode: false, 
                 thinkingMode: false,
                 temperature: 1.0,
@@ -402,41 +402,41 @@
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     state = { ...state, ...parsed };
-                    state.config = { ...{provider: 'deepseek', apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', deepseekApiUrl: 'https://api.deepseek.com/v1', deepseekApiKey: '', deepseekModel: 'deepseek-v4-flash', glmApiUrl: 'https://open.bigmodel.cn/api/paas/v4', glmApiKey: '', glmModel: 'glm-4.7-flash', qwenApiUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', qwenApiKey: '', qwenModel: 'qwen-max', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 8000, historyTurns: 20, fontSize: 16, uiFontSize: 16}, ...parsed.config };
+                    state.config = { ...{provider: 'deepseek', apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', deepseekApiUrl: 'https://api.deepseek.com/v1', deepseekApiKey: '', deepseekModel: 'deepseek-v4-flash', glmApiUrl: 'https://open.bigmodel.cn/api/paas/v4', glmApiKey: '', glmModel: 'glm-4.7-flash', kimiApiUrl: 'https://api.moonshot.cn/v1', kimiApiKey: '', kimiModel: 'kimi-k2.6', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 8000, historyTurns: 20, fontSize: 16, uiFontSize: 16}, ...parsed.config };
                     if (!state.config.deepseekApiKey) state.config.deepseekApiKey = state.config.apiKey || '';
                     if (!state.config.deepseekModel) state.config.deepseekModel = state.config.model || 'deepseek-v4-flash';
                     if (!state.config.deepseekApiUrl) state.config.deepseekApiUrl = state.config.apiUrl || 'https://api.deepseek.com/v1';
                     if (!Array.isArray(state.config.deepseekModels) || state.config.deepseekModels.length === 0) state.config.deepseekModels = [state.config.deepseekModel || 'deepseek-v4-flash'];
                     if (!Array.isArray(state.config.glmModels) || state.config.glmModels.length === 0) state.config.glmModels = [state.config.glmModel || 'glm-4.7-flash'];
-                    if (!Array.isArray(state.config.qwenModels) || state.config.qwenModels.length === 0) state.config.qwenModels = [state.config.qwenModel || 'qwen-max'];
+                    if (!Array.isArray(state.config.kimiModels) || state.config.kimiModels.length === 0) state.config.kimiModels = [state.config.kimiModel || 'kimi-k2.6'];
                     if (state.config.deepseekModel && !state.config.deepseekModels.includes(state.config.deepseekModel)) state.config.deepseekModels.push(state.config.deepseekModel);
                     if (state.config.glmModel && !state.config.glmModels.includes(state.config.glmModel)) state.config.glmModels.push(state.config.glmModel);
-                    if (state.config.qwenModel && !state.config.qwenModels.includes(state.config.qwenModel)) state.config.qwenModels.push(state.config.qwenModel);
+                    if (state.config.kimiModel && !state.config.kimiModels.includes(state.config.kimiModel)) state.config.kimiModels.push(state.config.kimiModel);
                     // 清洗：按模型名前缀把放错桶的收藏搬回正确桶
                     const dsRaw = state.config.deepseekModels || [];
                     const glRaw = state.config.glmModels || [];
-                    const qwRaw = state.config.qwenModels || [];
+                    const kiRaw = state.config.kimiModels || [];
                     state.config.deepseekModels = [...new Set(dsRaw.filter(m => /^deepseek/i.test(m)))];
                     state.config.glmModels = [...new Set(glRaw.filter(m => /^glm/i.test(m)))];
-                    state.config.qwenModels = [...new Set(qwRaw.filter(m => /^qwen/i.test(m)))];
-                    dsRaw.forEach(m => { if (/^glm/i.test(m) && !state.config.glmModels.includes(m)) state.config.glmModels.push(m); if (/^qwen/i.test(m) && !state.config.qwenModels.includes(m)) state.config.qwenModels.push(m); });
-                    glRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); if (/^qwen/i.test(m) && !state.config.qwenModels.includes(m)) state.config.qwenModels.push(m); });
-                    qwRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); if (/^glm/i.test(m) && !state.config.glmModels.includes(m)) state.config.glmModels.push(m); });
+                    state.config.kimiModels = [...new Set(kiRaw.filter(m => /^(kimi|moonshot)/i.test(m)))];
+                    dsRaw.forEach(m => { if (/^glm/i.test(m) && !state.config.glmModels.includes(m)) state.config.glmModels.push(m); if (/^(kimi|moonshot)/i.test(m) && !state.config.kimiModels.includes(m)) state.config.kimiModels.push(m); });
+                    glRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); if (/^(kimi|moonshot)/i.test(m) && !state.config.kimiModels.includes(m)) state.config.kimiModels.push(m); });
+                    kiRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); if (/^glm/i.test(m) && !state.config.glmModels.includes(m)) state.config.glmModels.push(m); });
                     if (state.config.deepseekModels.length === 0) state.config.deepseekModels = ['deepseek-v4-flash'];
                     if (state.config.glmModels.length === 0) state.config.glmModels = ['glm-4.7-flash'];
-                    if (state.config.qwenModels.length === 0) state.config.qwenModels = ['qwen-max'];
+                    if (state.config.kimiModels.length === 0) state.config.kimiModels = ['kimi-k2.6'];
                     if (!/^deepseek/i.test(state.config.deepseekModel || '')) state.config.deepseekModel = state.config.deepseekModels[0];
                     if (!/^glm/i.test(state.config.glmModel || '')) state.config.glmModel = state.config.glmModels[0];
-                    if (!/^qwen/i.test(state.config.qwenModel || '')) state.config.qwenModel = state.config.qwenModels[0];
+                    if (!/^(kimi|moonshot)/i.test(state.config.kimiModel || '')) state.config.kimiModel = state.config.kimiModels[0];
                     const provClean = state.config.provider || 'deepseek';
                     if (provClean === 'glm' && !/^glm/i.test(state.config.model || '')) {
                         state.config.model = state.config.glmModel;
                         state.config.apiUrl = state.config.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
                         state.config.apiKey = state.config.glmApiKey || '';
-                    } else if (provClean === 'qwen' && !/^qwen/i.test(state.config.model || '')) {
-                        state.config.model = state.config.qwenModel;
-                        state.config.apiUrl = state.config.qwenApiUrl || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
-                        state.config.apiKey = state.config.qwenApiKey || '';
+                    } else if (provClean === 'kimi' && !/^(kimi|moonshot)/i.test(state.config.model || '')) {
+                        state.config.model = state.config.kimiModel;
+                        state.config.apiUrl = state.config.kimiApiUrl || 'https://api.moonshot.cn/v1';
+                        state.config.apiKey = state.config.kimiApiKey || '';
                     } else if (provClean === 'deepseek' && !/^deepseek/i.test(state.config.model || '')) {
                         state.config.model = state.config.deepseekModel;
                         state.config.apiUrl = state.config.deepseekApiUrl || 'https://api.deepseek.com/v1';
@@ -797,7 +797,7 @@
             const items = [];
             (cfg.deepseekModels || []).forEach(m => items.push({ provider: 'deepseek', model: m }));
             (cfg.glmModels || []).forEach(m => items.push({ provider: 'glm', model: m }));
-            (cfg.qwenModels || []).forEach(m => items.push({ provider: 'qwen', model: m }));
+            (cfg.kimiModels || []).forEach(m => items.push({ provider: 'kimi', model: m }));
             return items;
         }
 
@@ -815,7 +815,7 @@
                 <button data-model="${escapeHTML(it.model)}" onclick="selectModel(this.dataset.model)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition ${active ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-100/60 dark:hover:bg-gray-700/60'}">
                     <span class="flex-1 min-w-0">
                         <span class="block text-base font-medium text-gray-900 dark:text-gray-100 truncate">${escapeHTML(formatModelName(it.model))}</span>
-                        <span class="block text-xs text-gray-400 dark:text-gray-500">${it.provider === 'deepseek' ? 'DeepSeek' : it.provider === 'glm' ? '智谱 GLM' : '通义千问'}</span>
+                        <span class="block text-xs text-gray-400 dark:text-gray-500">${it.provider === 'deepseek' ? 'DeepSeek' : it.provider === 'glm' ? '智谱 GLM' : 'Kimi'}</span>
                     </span>
                     ${active ? '<span class="text-blue-600 text-sm font-bold">✓</span>' : ''}
                 </button>`;
@@ -826,13 +826,13 @@
             const cfg = state.config;
             const isDs = /^deepseek/i.test(model);
             const isGlm = /^glm/i.test(model);
-            const isQwen = /^qwen/i.test(model);
-            const target = (isDs && !isGlm && !isQwen) ? 'deepseek'
-                : (isGlm && !isDs && !isQwen) ? 'glm'
-                : (isQwen && !isDs && !isGlm) ? 'qwen'
+            const isKimi = /^(kimi|moonshot)/i.test(model);
+            const target = (isDs && !isGlm && !isKimi) ? 'deepseek'
+                : (isGlm && !isDs && !isKimi) ? 'glm'
+                : (isKimi && !isDs && !isGlm) ? 'kimi'
                 : (cfg.deepseekModels || []).includes(model) ? 'deepseek'
                 : (cfg.glmModels || []).includes(model) ? 'glm'
-                : (cfg.qwenModels || []).includes(model) ? 'qwen'
+                : (cfg.kimiModels || []).includes(model) ? 'kimi'
                 : null;
             if (target === 'deepseek') {
                 cfg.provider = 'deepseek';
@@ -846,11 +846,11 @@
                 cfg.apiUrl = cfg.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
                 cfg.apiKey = cfg.glmApiKey || '';
                 cfg.model = model;
-            } else if (target === 'qwen') {
-                cfg.provider = 'qwen';
-                cfg.qwenModel = model;
-                cfg.apiUrl = cfg.qwenApiUrl || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
-                cfg.apiKey = cfg.qwenApiKey || '';
+            } else if (target === 'kimi') {
+                cfg.provider = 'kimi';
+                cfg.kimiModel = model;
+                cfg.apiUrl = cfg.kimiApiUrl || 'https://api.moonshot.cn/v1';
+                cfg.apiKey = cfg.kimiApiKey || '';
                 cfg.model = model;
             } else {
                 cfg.model = model;
@@ -870,7 +870,7 @@
             box.classList.remove('hidden');
             list.innerHTML = items.map(it => `
                 <button onclick="removeSavedModelFromChip(this)" data-provider="${it.provider}" data-model="${escapeHTML(it.model)}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 text-sm transition hover:bg-gray-200 dark:hover:bg-gray-600">
-                    <span class="text-xs text-gray-500 dark:text-gray-400">${it.provider === 'deepseek' ? 'DS' : it.provider === 'glm' ? 'GLM' : 'QW'}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">${it.provider === 'deepseek' ? 'DS' : it.provider === 'glm' ? 'GLM' : 'KI'}</span>
                     <span class="text-gray-900 dark:text-gray-100">${escapeHTML(formatModelName(it.model))}</span>
                     <span class="text-red-500 font-bold">×</span>
                 </button>
@@ -880,7 +880,7 @@
         function removeSavedModelFromChip(el) {
             const provider = el.dataset.provider;
             const model = el.dataset.model;
-            const key = provider === 'deepseek' ? 'deepseekModels' : provider === 'glm' ? 'glmModels' : 'qwenModels';
+            const key = provider === 'deepseek' ? 'deepseekModels' : provider === 'glm' ? 'glmModels' : 'kimiModels';
             state.config[key] = (state.config[key] || []).filter(m => m !== model);
             saveState();
             renderSavedModels();
@@ -1068,10 +1068,10 @@
             const idle = 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300/60 dark:border-gray-600';
             const dBtn = document.getElementById('provider-deepseek-btn');
             const gBtn = document.getElementById('provider-glm-btn');
-            const qBtn = document.getElementById('provider-qwen-btn');
+            const kBtn = document.getElementById('provider-kimi-btn');
             if (dBtn) dBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'deepseek' ? active : idle);
             if (gBtn) gBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'glm' ? active : idle);
-            if (qBtn) qBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'qwen' ? active : idle);
+            if (kBtn) kBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'kimi' ? active : idle);
         }
 
         function switchProvider(p) {
@@ -1089,9 +1089,9 @@
                 state.config.glmApiKey = keyEl.value.trim();
                 state.config.glmModel = modelEl ? modelEl.value.trim() : 'glm-4.7-flash';
             } else {
-                state.config.qwenApiUrl = urlEl.value.trim();
-                state.config.qwenApiKey = keyEl.value.trim();
-                state.config.qwenModel = modelEl ? modelEl.value.trim() : 'qwen-max';
+                state.config.kimiApiUrl = urlEl.value.trim();
+                state.config.kimiApiKey = keyEl.value.trim();
+                state.config.kimiModel = modelEl ? modelEl.value.trim() : 'kimi-k2.6';
             }
             state.config.provider = p;
             const inputClass = 'w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 focus:outline-none text-base';
@@ -1111,9 +1111,9 @@
                 keyEl.value = state.config.apiKey;
                 if (mc) mc.innerHTML = `<input type="text" id="api-model" class="${inputClass}" value="${state.config.model}">`;
             } else {
-                state.config.apiUrl = state.config.qwenApiUrl || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
-                state.config.apiKey = state.config.qwenApiKey || '';
-                state.config.model = state.config.qwenModel || 'qwen-max';
+                state.config.apiUrl = state.config.kimiApiUrl || 'https://api.moonshot.cn/v1';
+                state.config.apiKey = state.config.kimiApiKey || '';
+                state.config.model = state.config.kimiModel || 'kimi-k2.6';
                 urlEl.value = state.config.apiUrl;
                 keyEl.value = state.config.apiKey;
                 if (mc) mc.innerHTML = `<input type="text" id="api-model" class="${inputClass}" value="${state.config.model}">`;
@@ -1137,8 +1137,8 @@
                 state.config.glmApiUrl = state.config.apiUrl;
                 state.config.glmApiKey = state.config.apiKey;
             } else {
-                state.config.qwenApiUrl = state.config.apiUrl;
-                state.config.qwenApiKey = state.config.apiKey;
+                state.config.kimiApiUrl = state.config.apiUrl;
+                state.config.kimiApiKey = state.config.apiKey;
             }
             const addFav = (key, m) => {
                 const arr = state.config[key] || [];
@@ -1148,20 +1148,20 @@
             };
             const isDs = /^deepseek/i.test(state.config.model);
             const isGlm = /^glm/i.test(state.config.model);
-            const isQwen = /^qwen/i.test(state.config.model);
-            if (isDs && !isGlm && !isQwen) {
+            const isKimi = /^(kimi|moonshot)/i.test(state.config.model);
+            if (isDs && !isGlm && !isKimi) {
                 state.config.deepseekModel = state.config.model;
                 addFav('deepseekModels', state.config.model);
-            } else if (isGlm && !isDs && !isQwen) {
+            } else if (isGlm && !isDs && !isKimi) {
                 state.config.glmModel = state.config.model;
                 addFav('glmModels', state.config.model);
-            } else if (isQwen && !isDs && !isGlm) {
-                state.config.qwenModel = state.config.model;
-                addFav('qwenModels', state.config.model);
+            } else if (isKimi && !isDs && !isGlm) {
+                state.config.kimiModel = state.config.model;
+                addFav('kimiModels', state.config.model);
             } else {
                 if (prov === 'deepseek') { state.config.deepseekModel = state.config.model; addFav('deepseekModels', state.config.model); }
                 else if (prov === 'glm') { state.config.glmModel = state.config.model; addFav('glmModels', state.config.model); }
-                else { state.config.qwenModel = state.config.model; addFav('qwenModels', state.config.model); }
+                else { state.config.kimiModel = state.config.model; addFav('kimiModels', state.config.model); }
             }
             state.config.temperature = parseFloat(document.getElementById('api-temperature').value);
             state.config.maxTokens = parseInt(document.getElementById('api-max-tokens').value, 10) || 8000;
@@ -2028,10 +2028,10 @@
             };
             if (provider === 'glm') {
                 payload.thinking.clear_thinking = true;
-            } else if (provider === 'qwen') {
-                delete payload.thinking;
-                if (/^qwen3/i.test(targetModel)) {
-                    payload.enable_thinking = state.config.thinkingMode ? true : false;
+            } else if (provider === 'kimi') {
+                delete payload.temperature;
+                if (/^kimi-k3|^kimi-k2\.7/i.test(targetModel)) {
+                    delete payload.thinking;
                 }
             }
             
