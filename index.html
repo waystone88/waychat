@@ -50,7 +50,7 @@
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-80 bg-gray-100 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none pointer-events-none md:pointer-events-auto" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
-            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v5.7</span></h1>
+            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v5.8</span></h1>
             <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
                 <svg class="dark:hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 <svg class="hidden dark:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
@@ -163,7 +163,7 @@
                     <label class="block text-base font-medium mb-1.5">服务商 (Provider)</label>
                     <div class="flex gap-2">
                         <button type="button" onclick="switchProvider('deepseek')" id="provider-deepseek-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">DeepSeek</button>
-                        <button type="button" onclick="switchProvider('glm')" id="provider-glm-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">智谱GLM</button>
+                        <button type="button" onclick="switchProvider('stepfun')" id="provider-stepfun-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">阶跃 StepFun</button>
                         <button type="button" onclick="switchProvider('kimi')" id="provider-kimi-btn" class="flex-1 p-2.5 rounded-xl border font-medium transition">Kimi</button>
                     </div>
                 </div>
@@ -343,14 +343,14 @@
                 deepseekApiUrl: 'https://api.deepseek.com/v1',
                 deepseekApiKey: '',
                 deepseekModel: 'deepseek-v4-flash',
-                glmApiUrl: 'https://open.bigmodel.cn/api/paas/v4',
-                glmApiKey: '',
-                glmModel: 'glm-4.7-flash',
+                stepfunApiUrl: 'https://api.stepfun.com/v1',
+                stepfunApiKey: '',
+                stepfunModel: 'step-5-preview',
                 kimiApiUrl: 'https://api.moonshot.cn/v1',
                 kimiApiKey: '',
                 kimiModel: 'kimi-k2.6',
                 deepseekModels: ['deepseek-v4-flash'],
-                glmModels: ['glm-4.7-flash'],
+                stepfunModels: ['step-5-preview'],
                 kimiModels: ['kimi-k2.6'],
                 darkMode: false, 
                 thinkingMode: false,
@@ -402,37 +402,42 @@
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     state = { ...state, ...parsed };
-                    state.config = { ...{provider: 'deepseek', apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', deepseekApiUrl: 'https://api.deepseek.com/v1', deepseekApiKey: '', deepseekModel: 'deepseek-v4-flash', glmApiUrl: 'https://open.bigmodel.cn/api/paas/v4', glmApiKey: '', glmModel: 'glm-4.7-flash', kimiApiUrl: 'https://api.moonshot.cn/v1', kimiApiKey: '', kimiModel: 'kimi-k2.6', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 8000, historyTurns: 20, fontSize: 16, uiFontSize: 16}, ...parsed.config };
+                    state.config = { ...{provider: 'deepseek', apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', deepseekApiUrl: 'https://api.deepseek.com/v1', deepseekApiKey: '', deepseekModel: 'deepseek-v4-flash', stepfunApiUrl: 'https://api.stepfun.com/v1', stepfunApiKey: '', stepfunModel: 'step-5-preview', kimiApiUrl: 'https://api.moonshot.cn/v1', kimiApiKey: '', kimiModel: 'kimi-k2.6', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 8000, historyTurns: 20, fontSize: 16, uiFontSize: 16}, ...parsed.config };
                     if (!state.config.deepseekApiKey) state.config.deepseekApiKey = state.config.apiKey || '';
                     if (!state.config.deepseekModel) state.config.deepseekModel = state.config.model || 'deepseek-v4-flash';
                     if (!state.config.deepseekApiUrl) state.config.deepseekApiUrl = state.config.apiUrl || 'https://api.deepseek.com/v1';
                     if (!Array.isArray(state.config.deepseekModels) || state.config.deepseekModels.length === 0) state.config.deepseekModels = [state.config.deepseekModel || 'deepseek-v4-flash'];
-                    if (!Array.isArray(state.config.glmModels) || state.config.glmModels.length === 0) state.config.glmModels = [state.config.glmModel || 'glm-4.7-flash'];
+                    if (!Array.isArray(state.config.stepfunModels) || state.config.stepfunModels.length === 0) state.config.stepfunModels = [state.config.stepfunModel || 'step-5-preview'];
                     if (!Array.isArray(state.config.kimiModels) || state.config.kimiModels.length === 0) state.config.kimiModels = [state.config.kimiModel || 'kimi-k2.6'];
                     if (state.config.deepseekModel && !state.config.deepseekModels.includes(state.config.deepseekModel)) state.config.deepseekModels.push(state.config.deepseekModel);
-                    if (state.config.glmModel && !state.config.glmModels.includes(state.config.glmModel)) state.config.glmModels.push(state.config.glmModel);
+                    if (state.config.stepfunModel && !state.config.stepfunModels.includes(state.config.stepfunModel)) state.config.stepfunModels.push(state.config.stepfunModel);
                     if (state.config.kimiModel && !state.config.kimiModels.includes(state.config.kimiModel)) state.config.kimiModels.push(state.config.kimiModel);
                     // 清洗：按模型名前缀把放错桶的收藏搬回正确桶
                     const dsRaw = state.config.deepseekModels || [];
-                    const glRaw = state.config.glmModels || [];
+                    const sfRaw = state.config.stepfunModels || [];
                     const kiRaw = state.config.kimiModels || [];
                     state.config.deepseekModels = [...new Set(dsRaw.filter(m => /^deepseek/i.test(m)))];
-                    state.config.glmModels = [...new Set(glRaw.filter(m => /^glm/i.test(m)))];
+                    state.config.stepfunModels = [...new Set(sfRaw.filter(m => /^step/i.test(m)))];
                     state.config.kimiModels = [...new Set(kiRaw.filter(m => /^(kimi|moonshot)/i.test(m)))];
-                    dsRaw.forEach(m => { if (/^glm/i.test(m) && !state.config.glmModels.includes(m)) state.config.glmModels.push(m); if (/^(kimi|moonshot)/i.test(m) && !state.config.kimiModels.includes(m)) state.config.kimiModels.push(m); });
-                    glRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); if (/^(kimi|moonshot)/i.test(m) && !state.config.kimiModels.includes(m)) state.config.kimiModels.push(m); });
-                    kiRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); if (/^glm/i.test(m) && !state.config.glmModels.includes(m)) state.config.glmModels.push(m); });
+                    dsRaw.forEach(m => { if (/^step/i.test(m) && !state.config.stepfunModels.includes(m)) state.config.stepfunModels.push(m); if (/^(kimi|moonshot)/i.test(m) && !state.config.kimiModels.includes(m)) state.config.kimiModels.push(m); });
+                    sfRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); if (/^(kimi|moonshot)/i.test(m) && !state.config.kimiModels.includes(m)) state.config.kimiModels.push(m); });
+                    kiRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); if (/^step/i.test(m) && !state.config.stepfunModels.includes(m)) state.config.stepfunModels.push(m); });
                     if (state.config.deepseekModels.length === 0) state.config.deepseekModels = ['deepseek-v4-flash'];
-                    if (state.config.glmModels.length === 0) state.config.glmModels = ['glm-4.7-flash'];
+                    if (state.config.stepfunModels.length === 0) state.config.stepfunModels = ['step-5-preview'];
                     if (state.config.kimiModels.length === 0) state.config.kimiModels = ['kimi-k2.6'];
                     if (!/^deepseek/i.test(state.config.deepseekModel || '')) state.config.deepseekModel = state.config.deepseekModels[0];
-                    if (!/^glm/i.test(state.config.glmModel || '')) state.config.glmModel = state.config.glmModels[0];
+                    if (!/^step/i.test(state.config.stepfunModel || '')) state.config.stepfunModel = state.config.stepfunModels[0];
                     if (!/^(kimi|moonshot)/i.test(state.config.kimiModel || '')) state.config.kimiModel = state.config.kimiModels[0];
                     const provClean = state.config.provider || 'deepseek';
-                    if (provClean === 'glm' && !/^glm/i.test(state.config.model || '')) {
-                        state.config.model = state.config.glmModel;
-                        state.config.apiUrl = state.config.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
-                        state.config.apiKey = state.config.glmApiKey || '';
+                    if (provClean !== 'deepseek' && provClean !== 'stepfun' && provClean !== 'kimi') {
+                        state.config.provider = 'deepseek';
+                        state.config.model = state.config.deepseekModel || 'deepseek-v4-flash';
+                        state.config.apiUrl = state.config.deepseekApiUrl || 'https://api.deepseek.com/v1';
+                        state.config.apiKey = state.config.deepseekApiKey || '';
+                    } else if (provClean === 'stepfun' && !/^step/i.test(state.config.model || '')) {
+                        state.config.model = state.config.stepfunModel;
+                        state.config.apiUrl = state.config.stepfunApiUrl || 'https://api.stepfun.com/v1';
+                        state.config.apiKey = state.config.stepfunApiKey || '';
                     } else if (provClean === 'kimi' && !/^(kimi|moonshot)/i.test(state.config.model || '')) {
                         state.config.model = state.config.kimiModel;
                         state.config.apiUrl = state.config.kimiApiUrl || 'https://api.moonshot.cn/v1';
@@ -796,7 +801,7 @@
             const cfg = state.config;
             const items = [];
             (cfg.deepseekModels || []).forEach(m => items.push({ provider: 'deepseek', model: m }));
-            (cfg.glmModels || []).forEach(m => items.push({ provider: 'glm', model: m }));
+            (cfg.stepfunModels || []).forEach(m => items.push({ provider: 'stepfun', model: m }));
             (cfg.kimiModels || []).forEach(m => items.push({ provider: 'kimi', model: m }));
             return items;
         }
@@ -815,7 +820,7 @@
                 <button data-model="${escapeHTML(it.model)}" onclick="selectModel(this.dataset.model)" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition ${active ? 'bg-gray-100 dark:bg-gray-700' : 'hover:bg-gray-100/60 dark:hover:bg-gray-700/60'}">
                     <span class="flex-1 min-w-0">
                         <span class="block text-base font-medium text-gray-900 dark:text-gray-100 truncate">${escapeHTML(formatModelName(it.model))}</span>
-                        <span class="block text-xs text-gray-400 dark:text-gray-500">${it.provider === 'deepseek' ? 'DeepSeek' : it.provider === 'glm' ? '智谱 GLM' : 'Kimi'}</span>
+                        <span class="block text-xs text-gray-400 dark:text-gray-500">${it.provider === 'deepseek' ? 'DeepSeek' : it.provider === 'stepfun' ? 'StepFun' : 'Kimi'}</span>
                     </span>
                     ${active ? '<span class="text-blue-600 text-sm font-bold">✓</span>' : ''}
                 </button>`;
@@ -825,13 +830,13 @@
         function selectModel(model) {
             const cfg = state.config;
             const isDs = /^deepseek/i.test(model);
-            const isGlm = /^glm/i.test(model);
+            const isStep = /^step/i.test(model);
             const isKimi = /^(kimi|moonshot)/i.test(model);
-            const target = (isDs && !isGlm && !isKimi) ? 'deepseek'
-                : (isGlm && !isDs && !isKimi) ? 'glm'
-                : (isKimi && !isDs && !isGlm) ? 'kimi'
+            const target = (isDs && !isStep && !isKimi) ? 'deepseek'
+                : (isStep && !isDs && !isKimi) ? 'stepfun'
+                : (isKimi && !isDs && !isStep) ? 'kimi'
                 : (cfg.deepseekModels || []).includes(model) ? 'deepseek'
-                : (cfg.glmModels || []).includes(model) ? 'glm'
+                : (cfg.stepfunModels || []).includes(model) ? 'stepfun'
                 : (cfg.kimiModels || []).includes(model) ? 'kimi'
                 : null;
             if (target === 'deepseek') {
@@ -840,11 +845,11 @@
                 cfg.apiUrl = cfg.deepseekApiUrl || 'https://api.deepseek.com/v1';
                 cfg.apiKey = cfg.deepseekApiKey || '';
                 cfg.model = model;
-            } else if (target === 'glm') {
-                cfg.provider = 'glm';
-                cfg.glmModel = model;
-                cfg.apiUrl = cfg.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
-                cfg.apiKey = cfg.glmApiKey || '';
+            } else if (target === 'stepfun') {
+                cfg.provider = 'stepfun';
+                cfg.stepfunModel = model;
+                cfg.apiUrl = cfg.stepfunApiUrl || 'https://api.stepfun.com/v1';
+                cfg.apiKey = cfg.stepfunApiKey || '';
                 cfg.model = model;
             } else if (target === 'kimi') {
                 cfg.provider = 'kimi';
@@ -870,7 +875,7 @@
             box.classList.remove('hidden');
             list.innerHTML = items.map(it => `
                 <button onclick="removeSavedModelFromChip(this)" data-provider="${it.provider}" data-model="${escapeHTML(it.model)}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-700 border border-gray-300/60 dark:border-gray-600 text-sm transition hover:bg-gray-200 dark:hover:bg-gray-600">
-                    <span class="text-xs text-gray-500 dark:text-gray-400">${it.provider === 'deepseek' ? 'DS' : it.provider === 'glm' ? 'GLM' : 'KI'}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">${it.provider === 'deepseek' ? 'DS' : it.provider === 'stepfun' ? 'SF' : 'KI'}</span>
                     <span class="text-gray-900 dark:text-gray-100">${escapeHTML(formatModelName(it.model))}</span>
                     <span class="text-red-500 font-bold">×</span>
                 </button>
@@ -880,7 +885,7 @@
         function removeSavedModelFromChip(el) {
             const provider = el.dataset.provider;
             const model = el.dataset.model;
-            const key = provider === 'deepseek' ? 'deepseekModels' : provider === 'glm' ? 'glmModels' : 'kimiModels';
+            const key = provider === 'deepseek' ? 'deepseekModels' : provider === 'stepfun' ? 'stepfunModels' : 'kimiModels';
             state.config[key] = (state.config[key] || []).filter(m => m !== model);
             saveState();
             renderSavedModels();
@@ -1067,10 +1072,10 @@
             const active = 'bg-indigo-600 text-white border-indigo-600';
             const idle = 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300/60 dark:border-gray-600';
             const dBtn = document.getElementById('provider-deepseek-btn');
-            const gBtn = document.getElementById('provider-glm-btn');
+            const gBtn = document.getElementById('provider-stepfun-btn');
             const kBtn = document.getElementById('provider-kimi-btn');
             if (dBtn) dBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'deepseek' ? active : idle);
-            if (gBtn) gBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'glm' ? active : idle);
+            if (gBtn) gBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'stepfun' ? active : idle);
             if (kBtn) kBtn.className = 'flex-1 p-2.5 rounded-xl border font-medium transition ' + (p === 'kimi' ? active : idle);
         }
 
@@ -1084,10 +1089,10 @@
                 state.config.deepseekApiUrl = urlEl.value.trim();
                 state.config.deepseekApiKey = keyEl.value.trim();
                 state.config.deepseekModel = modelEl ? modelEl.value.trim() : 'deepseek-v4-flash';
-            } else if (cur === 'glm') {
-                state.config.glmApiUrl = urlEl.value.trim();
-                state.config.glmApiKey = keyEl.value.trim();
-                state.config.glmModel = modelEl ? modelEl.value.trim() : 'glm-4.7-flash';
+            } else if (cur === 'stepfun') {
+                state.config.stepfunApiUrl = urlEl.value.trim();
+                state.config.stepfunApiKey = keyEl.value.trim();
+                state.config.stepfunModel = modelEl ? modelEl.value.trim() : 'step-5-preview';
             } else {
                 state.config.kimiApiUrl = urlEl.value.trim();
                 state.config.kimiApiKey = keyEl.value.trim();
@@ -1103,10 +1108,10 @@
                 urlEl.value = state.config.apiUrl;
                 keyEl.value = state.config.apiKey;
                 if (mc) mc.innerHTML = `<input type="text" id="api-model" class="${inputClass}" value="${state.config.model}">`;
-            } else if (p === 'glm') {
-                state.config.apiUrl = state.config.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
-                state.config.apiKey = state.config.glmApiKey || '';
-                state.config.model = state.config.glmModel || 'glm-4.7-flash';
+            } else if (p === 'stepfun') {
+                state.config.apiUrl = state.config.stepfunApiUrl || 'https://api.stepfun.com/v1';
+                state.config.apiKey = state.config.stepfunApiKey || '';
+                state.config.model = state.config.stepfunModel || 'step-5-preview';
                 urlEl.value = state.config.apiUrl;
                 keyEl.value = state.config.apiKey;
                 if (mc) mc.innerHTML = `<input type="text" id="api-model" class="${inputClass}" value="${state.config.model}">`;
@@ -1133,9 +1138,9 @@
             if (prov === 'deepseek') {
                 state.config.deepseekApiUrl = state.config.apiUrl;
                 state.config.deepseekApiKey = state.config.apiKey;
-            } else if (prov === 'glm') {
-                state.config.glmApiUrl = state.config.apiUrl;
-                state.config.glmApiKey = state.config.apiKey;
+            } else if (prov === 'stepfun') {
+                state.config.stepfunApiUrl = state.config.apiUrl;
+                state.config.stepfunApiKey = state.config.apiKey;
             } else {
                 state.config.kimiApiUrl = state.config.apiUrl;
                 state.config.kimiApiKey = state.config.apiKey;
@@ -1147,20 +1152,20 @@
                 state.config[key] = arr;
             };
             const isDs = /^deepseek/i.test(state.config.model);
-            const isGlm = /^glm/i.test(state.config.model);
+            const isStep = /^step/i.test(state.config.model);
             const isKimi = /^(kimi|moonshot)/i.test(state.config.model);
-            if (isDs && !isGlm && !isKimi) {
+            if (isDs && !isStep && !isKimi) {
                 state.config.deepseekModel = state.config.model;
                 addFav('deepseekModels', state.config.model);
-            } else if (isGlm && !isDs && !isKimi) {
-                state.config.glmModel = state.config.model;
-                addFav('glmModels', state.config.model);
-            } else if (isKimi && !isDs && !isGlm) {
+            } else if (isStep && !isDs && !isKimi) {
+                state.config.stepfunModel = state.config.model;
+                addFav('stepfunModels', state.config.model);
+            } else if (isKimi && !isDs && !isStep) {
                 state.config.kimiModel = state.config.model;
                 addFav('kimiModels', state.config.model);
             } else {
                 if (prov === 'deepseek') { state.config.deepseekModel = state.config.model; addFav('deepseekModels', state.config.model); }
-                else if (prov === 'glm') { state.config.glmModel = state.config.model; addFav('glmModels', state.config.model); }
+                else if (prov === 'stepfun') { state.config.stepfunModel = state.config.model; addFav('stepfunModels', state.config.model); }
                 else { state.config.kimiModel = state.config.model; addFav('kimiModels', state.config.model); }
             }
             state.config.temperature = parseFloat(document.getElementById('api-temperature').value);
@@ -2026,8 +2031,9 @@
                 max_tokens: state.config.maxTokens ?? 8000,
                 thinking: { type: state.config.thinkingMode ? "enabled" : "disabled" }
             };
-            if (provider === 'glm') {
-                payload.thinking.clear_thinking = true;
+            if (provider === 'stepfun') {
+                delete payload.thinking;
+                payload.reasoning_effort = state.config.thinkingMode ? "high" : "medium";
             } else if (provider === 'kimi') {
                 delete payload.temperature;
                 if (/^kimi-k3|^kimi-k2\.7/i.test(targetModel)) {
@@ -2080,6 +2086,7 @@
                                 if (data.choices[0]?.finish_reason) finishReason = data.choices[0].finish_reason;
                                 
                                 if (delta.reasoning_content) reasoningContent += delta.reasoning_content;
+                                if (delta.reasoning && !delta.reasoning_content) reasoningContent += delta.reasoning;
                                 if (delta.content) fullContent += delta.content;
                                 
                                 hasUpdate = true;
@@ -2100,7 +2107,7 @@
                 if (finishReason && finishReason !== 'stop' && finishReason !== 'tool_calls') {
                     const truncNote = {
                         length: '\n\n⚠️ 输出已达最大长度被截断（可在设置里调大「最大输出长度」）',
-                        sensitive: '\n\n⚠️ 输出被智谱安全审核终止',
+                        sensitive: '\n\n⚠️ 输出被安全审核终止',
                         model_context_window_exceeded: '\n\n⚠️ 超出模型上下文窗口，输出不完整',
                         network_error: '\n\n⚠️ 网络错误，输出不完整'
                     }[finishReason] || `\n\n⚠️ 输出不完整（${finishReason}）`;
