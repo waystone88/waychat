@@ -50,7 +50,7 @@
 
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-80 bg-gray-100 dark:bg-gray-800 flex flex-col border-r border-gray-300 dark:border-gray-700 h-full shrink-0 transform -translate-x-full transition-transform duration-300 md:translate-x-0 shadow-2xl md:shadow-none pointer-events-none md:pointer-events-auto" style="z-index: 60;">
         <div class="p-4 flex justify-between items-center border-b border-gray-300 dark:border-gray-700 pt-[calc(1rem+env(safe-area-inset-top))]">
-            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v6.0</span></h1>
+            <h1 class="text-2xl font-bold tracking-tight flex items-baseline gap-1.5">WayChat<span class="text-xs font-normal text-gray-400 dark:text-gray-500">v6.1</span></h1>
             <button onclick="toggleDarkMode()" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-700 dark:text-gray-300">
                 <svg class="dark:hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 <svg class="hidden dark:inline" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
@@ -343,14 +343,14 @@
                 deepseekApiUrl: 'https://api.deepseek.com/v1',
                 deepseekApiKey: '',
                 deepseekModel: 'deepseek-v4-flash',
-                glmApiUrl: 'https://open.bigmodel.cn/api/paas/v4',
+                glmApiUrl: 'https://api.z.ai/api/paas/v4',
                 glmApiKey: '',
-                glmModel: 'glm-4.7-flash',
+                glmModel: 'glm-5.3-flash',
                 kimiApiUrl: 'https://api.moonshot.cn/v1',
                 kimiApiKey: '',
                 kimiModel: 'kimi-k2.6',
                 deepseekModels: ['deepseek-v4-flash'],
-                glmModels: ['glm-4.7-flash'],
+                glmModels: ['glm-5.3-flash'],
                 kimiModels: ['kimi-k2.6'],
                 darkMode: false, 
                 thinkingMode: false,
@@ -402,12 +402,12 @@
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     state = { ...state, ...parsed };
-                    state.config = { ...{provider: 'deepseek', apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', deepseekApiUrl: 'https://api.deepseek.com/v1', deepseekApiKey: '', deepseekModel: 'deepseek-v4-flash', glmApiUrl: 'https://open.bigmodel.cn/api/paas/v4', glmApiKey: '', glmModel: 'glm-4.7-flash', kimiApiUrl: 'https://api.moonshot.cn/v1', kimiApiKey: '', kimiModel: 'kimi-k2.6', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 8000, historyTurns: 20, fontSize: 16, uiFontSize: 16}, ...parsed.config };
+                    state.config = { ...{provider: 'deepseek', apiUrl: 'https://api.deepseek.com/v1', apiKey: '', model: 'deepseek-v4-flash', deepseekApiUrl: 'https://api.deepseek.com/v1', deepseekApiKey: '', deepseekModel: 'deepseek-v4-flash', glmApiUrl: 'https://api.z.ai/api/paas/v4', glmApiKey: '', glmModel: 'glm-5.3-flash', kimiApiUrl: 'https://api.moonshot.cn/v1', kimiApiKey: '', kimiModel: 'kimi-k2.6', darkMode: false, thinkingMode: false, temperature: 1.0, maxTokens: 8000, historyTurns: 20, fontSize: 16, uiFontSize: 16}, ...parsed.config };
                     if (!state.config.deepseekApiKey) state.config.deepseekApiKey = state.config.apiKey || '';
                     if (!state.config.deepseekModel) state.config.deepseekModel = state.config.model || 'deepseek-v4-flash';
                     if (!state.config.deepseekApiUrl) state.config.deepseekApiUrl = state.config.apiUrl || 'https://api.deepseek.com/v1';
                     if (!Array.isArray(state.config.deepseekModels) || state.config.deepseekModels.length === 0) state.config.deepseekModels = [state.config.deepseekModel || 'deepseek-v4-flash'];
-                    if (!Array.isArray(state.config.glmModels) || state.config.glmModels.length === 0) state.config.glmModels = [state.config.glmModel || 'glm-4.7-flash'];
+                    if (!Array.isArray(state.config.glmModels) || state.config.glmModels.length === 0) state.config.glmModels = [state.config.glmModel || 'glm-5.3-flash'];
                     if (!Array.isArray(state.config.kimiModels) || state.config.kimiModels.length === 0) state.config.kimiModels = [state.config.kimiModel || 'kimi-k2.6'];
                     if (state.config.deepseekModel && !state.config.deepseekModels.includes(state.config.deepseekModel)) state.config.deepseekModels.push(state.config.deepseekModel);
                     if (state.config.glmModel && !state.config.glmModels.includes(state.config.glmModel)) state.config.glmModels.push(state.config.glmModel);
@@ -423,11 +423,16 @@
                     glRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); if (/^(kimi|moonshot)/i.test(m) && !state.config.kimiModels.includes(m)) state.config.kimiModels.push(m); });
                     kiRaw.forEach(m => { if (/^deepseek/i.test(m) && !state.config.deepseekModels.includes(m)) state.config.deepseekModels.push(m); if (/^glm/i.test(m) && !state.config.glmModels.includes(m)) state.config.glmModels.push(m); });
                     if (state.config.deepseekModels.length === 0) state.config.deepseekModels = ['deepseek-v4-flash'];
-                    if (state.config.glmModels.length === 0) state.config.glmModels = ['glm-4.7-flash'];
+                    if (state.config.glmModels.length === 0) state.config.glmModels = ['glm-5.3-flash'];
                     if (state.config.kimiModels.length === 0) state.config.kimiModels = ['kimi-k2.6'];
                     if (!/^deepseek/i.test(state.config.deepseekModel || '')) state.config.deepseekModel = state.config.deepseekModels[0];
                     if (!/^glm/i.test(state.config.glmModel || '')) state.config.glmModel = state.config.glmModels[0];
                     if (!/^(kimi|moonshot)/i.test(state.config.kimiModel || '')) state.config.kimiModel = state.config.kimiModels[0];
+                    // 迁移(2026-10-30)：GLM 切国际版 api.z.ai；glm-4.7-flash 已下架，收藏桶与默认值统一迁到 glm-5.3-flash
+                    if (/open\.bigmodel\.cn/i.test(state.config.glmApiUrl || '')) state.config.glmApiUrl = 'https://api.z.ai/api/paas/v4';
+                    state.config.glmModels = (state.config.glmModels || []).filter(m => !/^glm-4\.7-flash$/i.test(m));
+                    if (state.config.glmModels.length === 0) state.config.glmModels = ['glm-5.3-flash'];
+                    if (/^glm-4\.7-flash$/i.test(state.config.glmModel || '')) state.config.glmModel = 'glm-5.3-flash';
                     const provClean = state.config.provider || 'deepseek';
                     if (provClean !== 'deepseek' && provClean !== 'glm' && provClean !== 'kimi') {
                         state.config.provider = 'deepseek';
@@ -436,7 +441,7 @@
                         state.config.apiKey = state.config.deepseekApiKey || '';
                     } else if (provClean === 'glm' && !/^glm/i.test(state.config.model || '')) {
                         state.config.model = state.config.glmModel;
-                        state.config.apiUrl = state.config.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
+                        state.config.apiUrl = state.config.glmApiUrl || 'https://api.z.ai/api/paas/v4';
                         state.config.apiKey = state.config.glmApiKey || '';
                     } else if (provClean === 'kimi' && !/^(kimi|moonshot)/i.test(state.config.model || '')) {
                         state.config.model = state.config.kimiModel;
@@ -848,7 +853,7 @@
             } else if (target === 'glm') {
                 cfg.provider = 'glm';
                 cfg.glmModel = model;
-                cfg.apiUrl = cfg.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
+                cfg.apiUrl = cfg.glmApiUrl || 'https://api.z.ai/api/paas/v4';
                 cfg.apiKey = cfg.glmApiKey || '';
                 cfg.model = model;
             } else if (target === 'kimi') {
@@ -1092,7 +1097,7 @@
             } else if (cur === 'glm') {
                 state.config.glmApiUrl = urlEl.value.trim();
                 state.config.glmApiKey = keyEl.value.trim();
-                state.config.glmModel = modelEl ? modelEl.value.trim() : 'glm-4.7-flash';
+                state.config.glmModel = modelEl ? modelEl.value.trim() : 'glm-5.3-flash';
             } else {
                 state.config.kimiApiUrl = urlEl.value.trim();
                 state.config.kimiApiKey = keyEl.value.trim();
@@ -1109,9 +1114,9 @@
                 keyEl.value = state.config.apiKey;
                 if (mc) mc.innerHTML = `<input type="text" id="api-model" class="${inputClass}" value="${state.config.model}">`;
             } else if (p === 'glm') {
-                state.config.apiUrl = state.config.glmApiUrl || 'https://open.bigmodel.cn/api/paas/v4';
+                state.config.apiUrl = state.config.glmApiUrl || 'https://api.z.ai/api/paas/v4';
                 state.config.apiKey = state.config.glmApiKey || '';
-                state.config.model = state.config.glmModel || 'glm-4.7-flash';
+                state.config.model = state.config.glmModel || 'glm-5.3-flash';
                 urlEl.value = state.config.apiUrl;
                 keyEl.value = state.config.apiKey;
                 if (mc) mc.innerHTML = `<input type="text" id="api-model" class="${inputClass}" value="${state.config.model}">`;
