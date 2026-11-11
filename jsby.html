@@ -1,0 +1,1426 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>角色扮演网页版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;900&display=swap" rel="stylesheet" />
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f4efe6;
+  --surface: #fbf8f1;
+  --surface-alt: #ece4d3;
+  --text: #241c14;
+  --dim: #7a6c58;
+  --border: #ddd2bd;
+  --accent: #a86f1d;
+  --accent-soft: #f0dfba;
+  --user: #9c4a38;
+  --user-soft: #f3ddd4;
+  --you: #2e6b4f;
+  --you-soft: #dcebe0;
+  --ok: #2e7d46;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161210;
+    --surface: #201a16;
+    --surface-alt: #2a221c;
+    --text: #ece4d8;
+    --dim: #a2937f;
+    --border: #3a2f26;
+    --accent: #dfa458;
+    --accent-soft: #3d2f1c;
+    --user: #cf7a63;
+    --user-soft: #3a2620;
+    --you: #7fc79b;
+    --you-soft: #22352a;
+    --ok: #6fbf8a;
+  }
+}
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+button, [role="button"], select, summary { min-height: 2.25rem; }
+input:not([type="checkbox"], [type="radio"]), textarea { min-height: 2.25rem; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea {
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+.font-stage { font-family: "Noto Serif SC", "Songti SC", "SimSun", serif; }
+
+/* ---------- home layout (原版：单页滚动) ---------- */
+.wrap { max-width: 672px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 24px) 16px 48px; }
+.hero h1 { font-family: "Noto Serif SC", serif; font-size: 30px; font-weight: 900; line-height: 1.35; margin: 0; }
+.hero p { margin: 8px 0 0; font-size: 14px; color: var(--dim); line-height: 1.6; }
+.sec { margin-top: 32px; }
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.sec-title { font-family: "Noto Serif SC", serif; font-size: 18px; font-weight: 600; margin: 0; }
+.sec-note { font-size: 14px; color: var(--dim); margin: 0 0 12px; line-height: 1.6; }
+.link-btn { border: none; background: none; color: var(--accent); font-size: 14px; padding: 4px 2px; min-height: 36px; }
+.link-btn.dim { color: var(--dim); }
+.link-btn.user { color: var(--user); }
+.link-btn.underline { text-decoration: underline; }
+
+.panel {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.panel h2 { font-family: "Noto Serif SC", serif; font-size: 18px; font-weight: 600; margin: 0 0 16px; }
+
+.btn-big {
+  margin-top: 16px; width: 100%;
+  border: none; border-radius: var(--radius);
+  background: var(--accent); color: var(--bg);
+  font-family: "Noto Serif SC", serif; font-size: 18px; font-weight: 600;
+  padding: 12px 16px; min-height: 52px;
+}
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--surface); color: var(--text);
+  font-size: 15px; padding: 8px 16px; min-height: 40px;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 500; }
+.btn:disabled { opacity: .4; }
+.btn.block { width: 100%; }
+.btn.danger-outline { color: var(--user); border-color: color-mix(in srgb, var(--user) 45%, transparent); background: transparent; }
+.form-actions { display: flex; gap: 8px; }
+.form-actions .btn.primary, .form-actions .grow { flex: 1; }
+
+/* ---------- seal avatar (原版：描边圆印) ---------- */
+.seal {
+  display: inline-flex; flex: 0 0 auto;
+  align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--accent); color: var(--accent);
+  font-family: "Noto Serif SC", serif; font-size: 20px; font-weight: 600;
+  background: transparent;
+}
+.seal.lg { width: 64px; height: 64px; font-size: 30px; }
+
+/* ---------- cards / rows (原版) ---------- */
+.rows { display: flex; flex-direction: column; gap: 8px; }
+.row-card {
+  border: 1px solid var(--border); background: var(--surface);
+  border-radius: var(--radius); padding: 12px;
+}
+.row-card.fav { border-color: var(--accent); }
+.row-card.mine { border-color: var(--you); background: var(--you-soft); }
+.row-card.theirs { border-color: var(--accent); background: var(--accent-soft); }
+.row-card.dashed { border-style: dashed; }
+.row-main { display: flex; align-items: center; gap: 12px; }
+.row-text { flex: 1; min-width: 0; }
+.row-name { font-family: "Noto Serif SC", serif; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-sub { font-size: 14px; color: var(--dim); line-height: 1.45; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-sub.wrap { white-space: normal; }
+.row-actions { display: flex; align-items: center; gap: 16px; padding-left: 56px; margin-top: 8px; font-size: 14px; flex-wrap: wrap; }
+.row-actions button { border: none; background: none; padding: 4px 0; min-height: 32px; font-size: 14px; }
+.continue-btn {
+  flex: 0 0 auto; border: none; border-radius: var(--radius);
+  background: var(--accent); color: var(--bg);
+  font-size: 14px; font-weight: 500; padding: 6px 14px; min-height: 38px;
+}
+.use-btn {
+  flex: 0 0 auto; border: 1px solid var(--accent); background: transparent; color: var(--accent);
+  border-radius: var(--radius); font-size: 14px; padding: 6px 12px; min-height: 38px;
+}
+.pill {
+  border-radius: 999px; padding: 4px 14px; font-size: 14px; font-weight: 500; min-height: 36px;
+  background: transparent;
+}
+.pill.you { border: 1px solid var(--you); color: var(--you); }
+.pill.you.on { background: var(--you); color: var(--bg); }
+.pill.ai { border: 1px solid var(--accent); color: var(--accent); }
+.pill.ai.on { background: var(--accent); color: var(--bg); }
+.err-text { font-size: 14px; color: var(--user); margin: 8px 0 0; }
+.dim-text { font-size: 14px; color: var(--dim); }
+
+/* ---------- forms (原版) ---------- */
+.field { margin-bottom: 16px; }
+.field label, .field .flabel { display: block; font-size: 14px; color: var(--dim); margin-bottom: 6px; }
+.field input[type="text"], .field input[type="password"], .field select, .field textarea {
+  width: 100%; box-sizing: border-box;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: var(--radius); padding: 8px 12px; font-size: 16px; font-family: inherit; line-height: 1.5;
+}
+.field textarea { resize: vertical; }
+.field .hint { font-size: 12.5px; color: var(--dim); margin-top: 5px; line-height: 1.5; }
+.field input:focus, .field textarea:focus, .field select:focus { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); border-color: var(--accent); }
+.idea-box {
+  border: 1px dashed var(--accent); background: var(--accent-soft);
+  border-radius: var(--radius); padding: 12px; margin-bottom: 16px;
+}
+.idea-box label { color: var(--text); }
+.idea-row { display: flex; gap: 8px; }
+.idea-row input {
+  flex: 1; min-width: 0; box-sizing: border-box;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: var(--radius); padding: 8px 12px; font-size: 16px;
+}
+.idea-row button {
+  flex: 0 0 auto; border: none; border-radius: var(--radius);
+  background: var(--accent); color: var(--bg); font-size: 14px; font-weight: 500; padding: 8px 16px;
+}
+.idea-row button:disabled { opacity: .4; }
+.seg { display: flex; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); }
+.seg button {
+  flex: 1; border: none; background: var(--surface); color: var(--text);
+  font-size: 14px; padding: 8px 4px; min-height: 40px; font-family: inherit;
+}
+.seg button.on { background: var(--accent); color: var(--bg); font-weight: 500; }
+.side-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.side-badge {
+  margin-top: 2px; display: inline-flex; height: 24px; align-items: center;
+  border-radius: 999px; padding: 0 10px; font-size: 12px; font-weight: 600; color: var(--bg); flex: 0 0 auto;
+}
+.side-badge.you { background: var(--you); }
+.side-badge.ai { background: var(--accent); }
+.side-head h3 { font-family: "Noto Serif SC", serif; font-size: 16px; font-weight: 600; margin: 0; line-height: 24px; }
+.side-head p { margin: 0; font-size: 14px; color: var(--dim); }
+.cast-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cast-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 999px; border: 1px solid var(--border);
+  padding: 4px 12px; font-size: 14px; line-height: 20px;
+}
+.cast-chip-you { border-color: var(--you); color: var(--you); background: var(--you-soft); }
+.cast-chip-ai { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 36px; }
+
+/* ---------- key notice / api section ---------- */
+.key-notice {
+  margin-top: 16px; padding: 12px 14px; font-size: 14px; line-height: 1.6;
+  border: 1px solid var(--accent); background: var(--accent-soft); border-radius: var(--radius);
+}
+.key-notice button { border: none; background: none; color: var(--accent); font-weight: 600; font-size: 14px; padding: 0; min-height: 0; text-decoration: underline; }
+.probe-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.probe-status { font-size: 13.5px; line-height: 1.55; color: var(--dim); flex: 1; min-width: 180px; }
+.probe-status.ok { color: var(--ok); font-weight: 700; }
+.probe-status.err { color: var(--user); font-weight: 700; }
+.kv { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.kv:last-child { border-bottom: none; }
+.kv span:first-child { color: var(--dim); }
+.kv b { text-align: right; word-break: break-all; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* ---------- stage (原版) ---------- */
+#stage-view { display: none; flex-direction: column; background: var(--bg); height: 100dvh; }
+#stage-view.active { display: flex; }
+.stage-head { border-bottom: 1px solid var(--border); padding: calc(env(safe-area-inset-top) + 8px) 16px 12px; }
+.stage-head-row { display: flex; align-items: center; gap: 8px; }
+.back-arrow { border: none; background: none; color: var(--accent); font-size: 28px; line-height: 1; padding: 0 4px; min-height: 40px; min-width: 32px; }
+.stage-title { font-family: "Noto Serif SC", serif; font-size: 18px; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stage-sub { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+.stage-settings-btn {
+  flex: 0 0 auto; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: var(--radius); font-size: 14px; padding: 6px 12px; min-height: 38px;
+}
+.stage-panel { margin-top: 12px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 4px; }
+.chat-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 16px; }
+.chat-inner { max-width: 672px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+.stage-prose { font-family: "Noto Serif SC", serif; font-size: 17px; line-height: 1.9; }
+.stage-prose p { margin: 0; }
+.stage-prose p + p { margin-top: .9em; }
+.speaker { font-family: "Noto Serif SC", serif; font-size: 14px; font-weight: 600; color: var(--accent); margin: 0 0 4px; }
+.msg-user { padding-left: 32px; }
+.msg-user .speaker { color: var(--you); text-align: right; }
+.msg-user .bubble { background: var(--you-soft); border-radius: var(--radius); padding: 12px 16px; }
+.writing-note { font-family: "Noto Serif SC", serif; font-size: 14px; font-style: italic; color: var(--dim); margin: 0; }
+.regen-btn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--dim);
+  border-radius: var(--radius); font-size: 14px; padding: 6px 12px; min-height: 38px;
+}
+.composer { border-top: 1px solid var(--border); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--bg); }
+.composer-inner { max-width: 672px; margin: 0 auto; display: flex; align-items: flex-end; gap: 8px; }
+.composer textarea {
+  flex: 1; min-width: 0; box-sizing: border-box; resize: none; max-height: 128px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: var(--radius); padding: 8px 12px; font-size: 16px; font-family: inherit; line-height: 1.5;
+}
+.composer textarea:focus { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); border-color: var(--accent); }
+.send-stage {
+  flex: 0 0 auto; border: none; border-radius: var(--radius);
+  background: var(--accent); color: var(--bg); font-size: 15px; font-weight: 500; padding: 8px 20px; min-height: 42px;
+}
+.send-stage:disabled { opacity: .4; }
+.avail-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.avail-chips button {
+  border: 1px solid var(--accent); background: transparent; color: var(--accent);
+  border-radius: 999px; font-size: 14px; padding: 4px 12px; min-height: 36px;
+}
+.avail-chips button:disabled { opacity: .4; }
+
+/* ---------- toast ---------- */
+#toast {
+  position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(16px);
+  background: var(--text); color: var(--bg); font-size: 14px; padding: 10px 18px; border-radius: 999px;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 80; max-width: calc(100% - 40px); text-align: center;
+}
+#toast.show { opacity: 1; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+
+<!-- ============ 首页（原版版式：单页滚动，无底部导航） ============ -->
+<div id="home-view">
+  <main class="wrap">
+    <div class="hero">
+      <h1 class="font-stage">今晚，<br />想和谁对一场戏？</h1>
+      <p>先定你演谁、AI 演谁——AI 可以一个人分饰好几个角色。幕布拉开就是正文，没有总结，只有现场。</p>
+    </div>
+
+    <div class="key-notice" id="key-notice" hidden>
+      还没填 DeepSeek API Key，戏开不了场。去本页最下面的 <button type="button" id="key-notice-go">API 设置</button> 里填好再回来。
+    </div>
+
+    <!-- 表单区：开新戏 / 角色卡编辑在此内嵌展开（原版行为） -->
+    <div id="sheet"></div>
+
+    <section class="sec" id="fav-sec" hidden>
+      <h2 class="sec-title font-stage">收藏的剧目</h2>
+      <div class="rows" id="fav-list" style="margin-top:12px;"></div>
+    </section>
+
+    <section class="sec" id="sessions-sec" hidden>
+      <h2 class="sec-title font-stage">台上正演着</h2>
+      <div class="rows" id="session-list" style="margin-top:12px;"></div>
+    </section>
+
+    <section class="sec" aria-label="角色卡">
+      <div class="sec-head">
+        <h2 class="sec-title font-stage">角色卡</h2>
+        <button type="button" class="link-btn" id="btn-new-card-top">＋ 写角色卡</button>
+      </div>
+      <p class="sec-note">角色卡在这里改、这里删。开新戏时在表单里点「我演」「AI 演」分配角色，那边只管选角，不管删卡。</p>
+      <div class="rows" id="card-list"></div>
+      <div id="cards-empty" hidden></div>
+    </section>
+
+    <!-- ============ 新增功能区：API 设置（原版没有，网页版独有） ============ -->
+    <section class="sec" id="api-settings" aria-label="API 设置">
+      <h2 class="sec-title font-stage">API 设置</h2>
+      <p class="sec-note" style="margin-top:8px;">网页版没有服务器，对话由 DeepSeek API 生成，页面直接调用 api.deepseek.com。Key 只存在这台设备的浏览器里，不写进页面代码。</p>
+      <div class="panel" style="margin-top:0;">
+        <div class="field">
+          <label for="s-apikey">DeepSeek API Key</label>
+          <input type="password" id="s-apikey" placeholder="sk-…" autocomplete="off" autocapitalize="off" spellcheck="false" />
+          <div class="probe-row">
+            <button class="btn" id="btn-probe" type="button">探测连接</button>
+            <span class="probe-status" id="probe-status" role="status">填好 Key 后点「探测连接」，验证 Key 和网络是否连通，并拉取可用模型。</span>
+          </div>
+          <div class="hint">探测请求的是模型列表接口，只验证连通性，不发对话、不产生对话费用。没有 Key 去 platform.deepseek.com 申请。</div>
+        </div>
+        <div class="field">
+          <label for="s-model">模型（从列表选）</label>
+          <select id="s-model">
+            <option value="deepseek-chat">deepseek-chat（V3，快，日常演戏用它）</option>
+            <option value="deepseek-reasoner">deepseek-reasoner（R1，慢，胜在细腻）</option>
+          </select>
+          <div class="hint" id="model-hint">探测成功后，这里会换成接口实际返回的可用模型列表，再由你自己选。</div>
+        </div>
+        <div class="field">
+          <label for="s-model-custom">或手动输入模型名</label>
+          <input type="text" id="s-model-custom" placeholder="如 deepseek-chat（填了以手动输入为准）" autocomplete="off" autocapitalize="off" spellcheck="false" />
+          <div class="hint">列表里没有想要的模型时，在这里直接填模型 ID；留空则用上面的选择。</div>
+        </div>
+        <div class="field">
+          <label for="s-temp">随机度（Temperature）：<span id="temp-val">1.0</span></label>
+          <input type="range" id="s-temp" min="0" max="2" step="0.1" value="1" />
+          <div class="hint">越高越放飞，越低越稳。演戏一般 0.9–1.3。（R1 模型会忽略这个值。）</div>
+        </div>
+        <button class="btn primary block" id="btn-save-settings" type="button">保存设置</button>
+        <div style="margin-top:12px;">
+          <div class="kv"><span>API Key</span><b id="kv-key">未填写</b></div>
+          <div class="kv"><span>当前模型</span><b id="kv-model">deepseek-chat</b></div>
+          <div class="kv"><span>接口地址</span><b>api.deepseek.com</b></div>
+        </div>
+
+        <hr class="divider" />
+        <div class="field" style="margin-bottom:8px;">
+          <span class="flabel">数据备份</span>
+          <p class="dim-text" style="margin:0 0 10px;">角色卡和戏只存在这个浏览器里：换浏览器、清缓存就没了。导出一份 JSON 存好，换设备时再导入。<b>导出文件不含 API Key。</b></p>
+          <div class="form-actions">
+            <button class="btn grow" id="btn-export" type="button">导出数据</button>
+            <button class="btn grow" id="btn-import" type="button">导入数据</button>
+          </div>
+          <input type="file" id="file-import" accept="application/json,.json" hidden />
+        </div>
+
+        <hr class="divider" />
+        <div id="wipe-zone">
+          <button class="btn danger-outline block" id="btn-wipe" type="button">清空全部数据（角色卡＋全部戏＋设置）</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ 舞台（原版版式） ============ -->
+<div id="stage-view">
+  <header class="stage-head">
+    <div class="stage-head-row">
+      <button type="button" class="back-arrow" id="btn-stage-back" aria-label="回到首页">‹</button>
+      <div style="flex:1;min-width:0;">
+        <h2 class="stage-title" id="stage-title">…</h2>
+        <p class="stage-sub" id="stage-sub"></p>
+      </div>
+      <button type="button" class="stage-settings-btn" id="btn-stage-settings" aria-expanded="false">演法与演员</button>
+    </div>
+    <div class="stage-panel" id="stage-panel" hidden></div>
+  </header>
+  <div class="chat-scroll" id="chat-scroll">
+    <div class="chat-inner" id="chat-inner"></div>
+  </div>
+  <form class="composer" id="composer">
+    <div class="composer-inner">
+      <textarea id="chat-input" rows="2" aria-label="你的台词或行动"></textarea>
+      <button type="submit" class="send-stage" id="btn-send-stage">接戏</button>
+    </div>
+  </form>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ================= 存储（沿用上一版的 key，老数据自动迁移到原版结构） ================= */
+var LS_KEY = "rp_web_v1";
+var store = { cards: [], sessions: [], settings: { apiKey: "", model: "deepseek-chat", temperature: 1.0, globalExtra: "", modelList: [] } };
+var memFallback = null;
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+function mapOldCard(c) {
+  if (!c) return null;
+  if (typeof c.speechStyle === "string" || typeof c.openingLine === "string") {
+    return { id: c.id || uid(), name: c.name || "", persona: c.persona || "", background: c.background || "", speechStyle: c.speechStyle || "", openingLine: c.openingLine || "" };
+  }
+  var persona = c.persona || "";
+  if (c.desc) persona = persona ? c.desc + "\n" + persona : c.desc;
+  var background = c.background || "";
+  if (c.world) background = background ? background + "\n场景/世界：" + c.world : "场景/世界：" + c.world;
+  return { id: c.id || uid(), name: c.name || "", persona: persona, background: background, speechStyle: c.speech || "", openingLine: c.opening || "" };
+}
+function mapOldPlay(p) {
+  var card = mapOldCard(p.card || {});
+  var cast = card && card.name ? [{ name: card.name, persona: card.persona, background: card.background, speechStyle: card.speechStyle, openingLine: card.openingLine }] : [];
+  var msgs = (p.messages || []).map(function (m) {
+    if (m.role === "user") return { id: uid(), role: "user", speaker: "", content: m.content || "", beat: "" };
+    return { id: uid(), role: "character", speaker: m.speaker || (cast[0] ? cast[0].name : "角色"), content: m.content || "", beat: uid() };
+  });
+  return {
+    id: p.id || uid(), title: p.title || (cast[0] ? cast[0].name : "一场戏"),
+    cast: cast, scene: (p.card && p.card.world) || "",
+    userName: p.me && p.me.name && p.me.name !== "我" ? p.me.name : "",
+    userRole: (p.me && p.me.desc) || "",
+    styleMode: p.style === "dialogue" ? "dialogue" : "novel",
+    replyLength: ["short", "medium", "long"].indexOf(p.length) >= 0 ? p.length : "medium",
+    favorite: !!p.favorite, messages: msgs,
+    createdAt: p.createdAt || Date.now(), updatedAt: p.updatedAt || Date.now()
+  };
+}
+function loadStore() {
+  var raw = null;
+  try { raw = localStorage.getItem(LS_KEY); } catch (e) { }
+  if (!raw && memFallback) raw = memFallback;
+  if (!raw) return;
+  try {
+    var d = JSON.parse(raw);
+    if (!d || typeof d !== "object") return;
+    if (d.settings) store.settings = Object.assign(store.settings, d.settings);
+    if (Array.isArray(d.sessions) && (d.version === 2 || !Array.isArray(d.plays))) {
+      store.cards = (d.cards || []).map(mapOldCard).filter(Boolean);
+      store.sessions = d.sessions || [];
+    } else if (Array.isArray(d.plays) || Array.isArray(d.cards)) {
+      /* 上一版网页版结构 → 原版结构迁移 */
+      store.cards = (d.cards || []).map(mapOldCard).filter(Boolean);
+      store.sessions = (d.plays || []).map(mapOldPlay);
+      saveStore();
+    }
+  } catch (e) { }
+}
+function saveStore() {
+  var snapshot = JSON.stringify({ version: 2, cards: store.cards, sessions: store.sessions, settings: store.settings });
+  memFallback = snapshot;
+  try { localStorage.setItem(LS_KEY, snapshot); } catch (e) { }
+}
+
+var toastTimer = null;
+function toast(msg) {
+  var t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2400);
+}
+function sealHtml(name, lg) {
+  var n = String(name || "角").trim();
+  return '<span class="seal' + (lg ? " lg" : "") + '" aria-hidden="true">' + esc(n.charAt(0) || "角") + "</span>";
+}
+function parasHtml(content) {
+  return String(content || "").split(/\n{2,}/).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
+}
+
+/* ---------- 预设模板（原版三张） ---------- */
+var PRESETS = [
+  { name: "沈聿白", persona: "38岁，旧书店老板。话不多，观察力极强，毒舌但从不伤人要害。对熟客记得住每个人的阅读习惯，自己的事一句不提。", background: "书店开在老城巷子深处，楼上住人，楼下卖书。十年前从出版社辞职，原因没人知道。店里有一只叫\"标点\"的猫。", speechStyle: "慢，句子短，爱用书里的句子回话。笑的时候先低头，再抬眼。", openingLine: "" },
+  { name: "顾晚棠", persona: "29岁，急诊科医生。做事利落，情绪稳定得近乎冷淡，但对小病人会蹲下来平视说话。刚结束一段五年的关系，谁问都说\"挺好的\"。", background: "连续值了三个夜班，今晚难得准时下班。医院对面的小面馆是她唯一放松的地方，老板认识她，不用点单。", speechStyle: "语速快，用词准，不耐烦废话。但累极了的时候，话会突然变多。", openingLine: "" },
+  { name: "陆则明", persona: "45岁，退休刑警，如今在中学门口开修车铺。手上全是茧，眼睛却像还在办案。爱管闲事，管完又装作没管过。", background: "二十年刑警生涯，三年前因伤退下。修车铺是幌子也是日子，街坊丢猫找狗都来找他，比找派出所还快。", speechStyle: "北方口音，爱反问，\"你猜怎么着\"是口头禅。说正事时突然就不贫了。", openingLine: "" }
+];
+function presetsHtml() {
+  return '<div class="rows">' + PRESETS.map(function (p, i) {
+    return '<div class="row-card dashed"><div class="row-main">' + sealHtml(p.name) +
+      '<span class="row-text"><span class="row-name" style="display:block;">' + esc(p.name) + '</span>' +
+      '<span class="row-sub" style="display:block;">' + esc(p.persona) + '</span></span>' +
+      '<button type="button" class="use-btn" data-preset="' + i + '">用这张</button></div></div>';
+  }).join("") + "</div>";
+}
+function wirePresets(root, onPick) {
+  root.querySelectorAll("[data-preset]").forEach(function (b) {
+    b.onclick = function () { onPick(PRESETS[parseInt(b.getAttribute("data-preset"), 10)]); };
+  });
+}
+
+/* ================= 首页渲染（原版三段：收藏 / 台上正演着 / 角色卡） ================= */
+var sheet = { kind: "none" };
+var confirmDelSessionId = null;
+var confirmDelCharId = null;
+
+function sortedSessions() {
+  return store.sessions.slice().sort(function (a, b) {
+    if (!!a.favorite !== !!b.favorite) return a.favorite ? -1 : 1;
+    return (b.updatedAt || 0) - (a.updatedAt || 0);
+  });
+}
+function sessionCardHtml(s) {
+  var first = s.cast && s.cast[0] ? s.cast[0].name : "?";
+  var castNames = (s.cast || []).map(function (c) { return c.name; }).join("、");
+  var sub = "你演 " + (s.userName || "你自己") + " · AI 演 " + castNames + (s.scene ? " · " + s.scene : "");
+  var html = '<div class="row-card' + (s.favorite ? " fav" : "") + '"><div class="row-main">' + sealHtml(first) +
+    '<span class="row-text"><span class="row-name" style="display:block;">' + esc(s.title) + '</span>' +
+    '<span class="row-sub" style="display:block;">' + esc(sub) + '</span></span>' +
+    '<button type="button" class="continue-btn" data-continue="' + s.id + '">继续 ›</button></div>' +
+    '<div class="row-actions">' +
+    '<button type="button" data-fav="' + s.id + '" style="color:' + (s.favorite ? "var(--accent)" : "var(--dim)") + (s.favorite ? ";font-weight:500" : "") + '">' + (s.favorite ? "★ 已收藏" : "☆ 收藏") + "</button>";
+  if (confirmDelSessionId === s.id) {
+    html += '<span style="color:var(--user);">整场戏连同记录都会删掉。</span>' +
+      '<button type="button" data-del-sess-ok="' + s.id + '" style="color:var(--user);font-weight:500;">确认删除</button>' +
+      '<button type="button" data-cancel style="color:var(--dim);">算了</button>';
+  } else {
+    html += '<button type="button" data-del-sess="' + s.id + '" style="color:var(--dim);">删除</button>';
+  }
+  return html + "</div></div>";
+}
+function renderHomeLists() {
+  var all = sortedSessions();
+  var favs = all.filter(function (s) { return s.favorite; });
+  var others = all.filter(function (s) { return !s.favorite; });
+  $("fav-sec").hidden = favs.length === 0;
+  $("fav-list").innerHTML = favs.map(sessionCardHtml).join("");
+  $("sessions-sec").hidden = others.length === 0;
+  $("session-list").innerHTML = others.map(sessionCardHtml).join("");
+  [$("fav-list"), $("session-list")].forEach(function (root) {
+    root.querySelectorAll("[data-continue]").forEach(function (b) { b.onclick = function () { openStage(b.getAttribute("data-continue")); }; });
+    root.querySelectorAll("[data-fav]").forEach(function (b) {
+      b.onclick = function () {
+        var s = store.sessions.find(function (x) { return x.id === b.getAttribute("data-fav"); });
+        if (s) { s.favorite = !s.favorite; saveStore(); renderHomeLists(); }
+      };
+    });
+    root.querySelectorAll("[data-del-sess]").forEach(function (b) { b.onclick = function () { confirmDelSessionId = b.getAttribute("data-del-sess"); renderHomeLists(); }; });
+    root.querySelectorAll("[data-del-sess-ok]").forEach(function (b) {
+      b.onclick = function () {
+        store.sessions = store.sessions.filter(function (x) { return x.id !== b.getAttribute("data-del-sess-ok"); });
+        confirmDelSessionId = null; saveStore(); renderHomeLists(); toast("已删除");
+      };
+    });
+    root.querySelectorAll("[data-cancel]").forEach(function (b) { b.onclick = function () { confirmDelSessionId = null; renderHomeLists(); }; });
+  });
+  /* 角色卡段（原版：卡面直接改/删） */
+  var list = $("card-list");
+  if (store.cards.length > 0) {
+    $("cards-empty").hidden = true;
+    list.innerHTML = store.cards.map(function (c) {
+      var html = '<div class="row-card"><div class="row-main" style="align-items:flex-start;">' + sealHtml(c.name) +
+        '<span class="row-text"><span class="row-name" style="display:block;">' + esc(c.name) + '</span>' +
+        '<span class="row-sub wrap" style="display:block;">' + esc(c.persona || "（没有写性格）") + '</span>' +
+        (c.background ? '<span class="row-sub" style="display:block;margin-top:2px;">' + esc(c.background) + "</span>" : "") +
+        '</span></div><div class="row-actions">' +
+        '<button type="button" data-edit-card="' + c.id + '" style="color:var(--accent);">改卡</button>';
+      if (confirmDelCharId === c.id) {
+        html += '<span style="color:var(--user);">删掉这张卡？已经开演的戏不受影响。</span>' +
+          '<button type="button" data-del-card-ok="' + c.id + '" style="color:var(--user);font-weight:500;">确认删除</button>' +
+          '<button type="button" data-cancel-card style="color:var(--dim);">算了</button>';
+      } else {
+        html += '<button type="button" data-del-card="' + c.id + '" style="color:var(--dim);">删除</button>';
+      }
+      return html + "</div></div>";
+    }).join("");
+    list.querySelectorAll("[data-edit-card]").forEach(function (b) {
+      b.onclick = function () {
+        var c = store.cards.find(function (x) { return x.id === b.getAttribute("data-edit-card"); });
+        if (c) { openCharForm(c); window.scrollTo({ top: 0 }); }
+      };
+    });
+    list.querySelectorAll("[data-del-card]").forEach(function (b) { b.onclick = function () { confirmDelCharId = b.getAttribute("data-del-card"); renderHomeLists(); }; });
+    list.querySelectorAll("[data-del-card-ok]").forEach(function (b) {
+      b.onclick = function () {
+        store.cards = store.cards.filter(function (x) { return x.id !== b.getAttribute("data-del-card-ok"); });
+        confirmDelCharId = null; saveStore(); renderHomeLists(); toast("角色卡已删除");
+      };
+    });
+    list.querySelectorAll("[data-cancel-card]").forEach(function (b) { b.onclick = function () { confirmDelCharId = null; renderHomeLists(); }; });
+  } else {
+    list.innerHTML = "";
+    var ce = $("cards-empty");
+    ce.hidden = false;
+    ce.innerHTML = '<p class="sec-note">还没有角色卡。下面三张是现成的模板，挑一张改两笔就能用；也可以从零写你自己的。</p>' + presetsHtml() +
+      '<button type="button" class="link-btn underline" id="btn-from-scratch" style="margin-top:8px;">从零写一张角色卡 →</button>';
+    wirePresets(ce, function (p) { openCharForm(Object.assign({}, p)); window.scrollTo({ top: 0 }); });
+    $("btn-from-scratch").onclick = function () { openCharForm(null); window.scrollTo({ top: 0 }); };
+  }
+  $("key-notice").hidden = !!store.settings.apiKey;
+}
+$("btn-new-card-top").onclick = function () { openCharForm(null); window.scrollTo({ top: 0 }); };
+$("key-notice-go").onclick = function () { $("api-settings").scrollIntoView({ behavior: "smooth" }); };
+
+/* ================= 表单区（原版：内嵌展开，二选一） ================= */
+function renderSheet() {
+  var root = $("sheet");
+  if (sheet.kind === "none") {
+    root.innerHTML = '<button type="button" class="btn-big font-stage" id="btn-open-session">＋ 开一场新戏</button>';
+    $("btn-open-session").onclick = function () { sheet = { kind: "session" }; renderSheet(); };
+    return;
+  }
+  if (sheet.kind === "character") { renderCharForm(root); return; }
+  if (sheet.kind === "session") { renderSessionForm(root); return; }
+}
+function closeSheet() { sheet = { kind: "none" }; renderSheet(); }
+
+/* ---------- 角色卡表单（原版，含一句话生成） ---------- */
+var charFormState = null;
+function openCharForm(initial) {
+  charFormState = {
+    id: initial && initial.id ? initial.id : null,
+    name: initial ? initial.name || "" : "",
+    persona: initial ? initial.persona || "" : "",
+    background: initial ? initial.background || "" : "",
+    speechStyle: initial ? initial.speechStyle || "" : "",
+    openingLine: initial ? initial.openingLine || "" : "",
+    confirmDelete: false, genError: ""
+  };
+  sheet = { kind: "character" };
+  renderSheet();
+}
+function renderCharForm(root) {
+  var f = charFormState;
+  var editing = !!f.id;
+  root.innerHTML =
+    '<section class="panel" aria-label="角色卡编辑"><h2 class="font-stage">' + (editing ? "修改「" + esc(f.name) + "」" : "写一张角色卡") + "</h2>" +
+    '<div class="idea-box"><div class="field" style="margin:0;"><label for="cf-idea">一句话，让 AI 帮你把角色写出来</label>' +
+    '<div class="idea-row"><input type="text" id="cf-idea" placeholder="例：一个嘴硬心软的深夜食堂老板娘" />' +
+    '<button type="button" id="cf-generate">生成</button></div>' +
+    (f.genError ? '<p class="err-text">' + esc(f.genError) + "</p>" : "") + "</div></div>" +
+    '<div class="field"><label for="cf-name">名字 *</label><input type="text" id="cf-name" value="' + esc(f.name) + '" /></div>' +
+    '<div class="field"><label for="cf-persona">身份与性格</label><textarea id="cf-persona" rows="3" placeholder="年龄、职业、性格核心、藏在心里的那一面">' + esc(f.persona) + "</textarea></div>" +
+    '<div class="field"><label for="cf-bg">背景设定</label><textarea id="cf-bg" rows="3" placeholder="来历、生活环境、和别人的关系">' + esc(f.background) + "</textarea></div>" +
+    '<div class="field"><label for="cf-speech">说话方式</label><textarea id="cf-speech" rows="2" placeholder="语气、口头禅、用词习惯">' + esc(f.speechStyle) + "</textarea></div>" +
+    '<div class="field"><label for="cf-open">固定开场（可空；只在一对一时用，空则每次开场由 AI 现写）</label><textarea id="cf-open" rows="2">' + esc(f.openingLine) + "</textarea></div>" +
+    '<div class="form-actions"><button type="button" class="btn primary grow" id="cf-save">' + (editing ? "保存修改" : "存入角色卡") + '</button>' +
+    '<button type="button" class="btn" id="cf-cancel">取消</button></div>' +
+    (editing ?
+      '<div style="margin-top:14px;font-size:14px;">' + (f.confirmDelete ?
+        '<span style="color:var(--user);">删掉这张卡？已经开演的戏不受影响。</span> ' +
+        '<button type="button" class="link-btn user" id="cf-del-ok" style="font-weight:500;">确认删除</button> ' +
+        '<button type="button" class="link-btn dim" id="cf-del-no">算了</button>' :
+        '<button type="button" class="link-btn user" id="cf-del">删除这张卡</button>') + "</div>" : "") +
+    "</section>";
+  function sync() {
+    f.name = $("cf-name").value; f.persona = $("cf-persona").value; f.background = $("cf-bg").value;
+    f.speechStyle = $("cf-speech").value; f.openingLine = $("cf-open").value;
+  }
+  ["cf-name", "cf-persona", "cf-bg", "cf-speech", "cf-open"].forEach(function (id) { $(id).addEventListener("input", sync); });
+  $("cf-cancel").onclick = function () { closeSheet(); };
+  $("cf-save").onclick = function () {
+    sync();
+    if (!f.name.trim()) { toast("先给角色起个名字"); $("cf-name").focus(); return; }
+    var data = { name: f.name.trim(), persona: f.persona, background: f.background, speechStyle: f.speechStyle, openingLine: f.openingLine };
+    if (f.id) {
+      var c = store.cards.find(function (x) { return x.id === f.id; });
+      if (c) Object.assign(c, data);
+      toast("已保存修改");
+    } else {
+      store.cards.unshift(Object.assign({ id: uid() }, data));
+      toast("已存入角色卡");
+    }
+    saveStore(); closeSheet(); renderHomeLists();
+  };
+  var genBtn = $("cf-generate");
+  genBtn.onclick = function () { generateCharacterDraft($("cf-idea").value.trim(), genBtn); };
+  if (editing) {
+    var delBtn = $("cf-del"), okBtn = $("cf-del-ok"), noBtn = $("cf-del-no");
+    if (delBtn) delBtn.onclick = function () { sync(); f.confirmDelete = true; renderCharForm(root); };
+    if (okBtn) okBtn.onclick = function () {
+      store.cards = store.cards.filter(function (x) { return x.id !== f.id; });
+      saveStore(); closeSheet(); renderHomeLists(); toast("角色卡已删除");
+    };
+    if (noBtn) noBtn.onclick = function () { sync(); f.confirmDelete = false; renderCharForm(root); };
+  }
+}
+async function generateCharacterDraft(idea, btn) {
+  if (!idea) { toast("先写一句话构想"); return; }
+  var key = store.settings.apiKey;
+  if (!key) { charFormState.genError = "还没填 DeepSeek API Key，先去本页最下面的「API 设置」里填好。"; renderCharForm($("sheet")); return; }
+  btn.disabled = true; btn.textContent = "写着…";
+  try {
+    var resp = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+      body: JSON.stringify({
+        model: store.settings.model || "deepseek-chat",
+        messages: [
+          { role: "system", content: "你在协助创作虚构角色。用简体中文。细节要具体、有质感，避免空泛的形容词堆砌和套路化人设。只输出一个 JSON 对象，不要加任何说明或代码块标记，字段为：name（角色名，简洁有辨识度）、persona（身份与性格：年龄、职业、性格核心、矛盾点，两三句）、background（背景设定：来历、与对方可能的关系、故事钩子，三四句）、speechStyle（说话方式：语气、用词习惯、标志性表达，一两句）、openingLine（这个角色在一场戏开场时说的第一句话或第一个动作描写，要具体、有画面，不要总结）。" },
+          { role: "user", content: "角色构想：" + idea + "\n\n把这个构想展开成一张完整的角色卡。开场白要像小说正文的第一拍，直接把人拉进场景。" }
+        ],
+        stream: false
+      })
+    });
+    if (!resp.ok) throw new Error("http " + resp.status);
+    var j = await resp.json();
+    var text = j.choices && j.choices[0] && j.choices[0].message ? j.choices[0].message.content || "" : "";
+    text = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    var s = text.indexOf("{"), e2 = text.lastIndexOf("}");
+    var draft = JSON.parse(text.slice(s, e2 + 1));
+    charFormState.name = draft.name || charFormState.name;
+    charFormState.persona = draft.persona || "";
+    charFormState.background = draft.background || "";
+    charFormState.speechStyle = draft.speechStyle || "";
+    charFormState.openingLine = draft.openingLine || "";
+    charFormState.genError = "";
+    renderCharForm($("sheet"));
+    toast("草稿写好了，改一改再存");
+  } catch (err) {
+    charFormState.genError = "生成失败，再试一次。（检查 API Key 和网络）";
+    renderCharForm($("sheet"));
+  }
+}
+
+/* ---------- 开场表单（原版：选角 我演/AI演 多选 + 你扮演谁 + 场景与演法） ---------- */
+var sessForm = null;
+function composeUserRole(c) {
+  return [c.persona, c.background ? "背景：" + c.background : "", c.speechStyle ? "说话方式：" + c.speechStyle : ""].filter(Boolean).join("\n").slice(0, 1000);
+}
+function segHtml(id, label, value, options) {
+  return '<div class="field" style="margin-bottom:0;"><span class="flabel">' + esc(label) + '</span><div class="seg" id="' + id + '">' +
+    options.map(function (o) { return '<button type="button" data-v="' + o.value + '" class="' + (value === o.value ? "on" : "") + '">' + esc(o.label) + "</button>"; }).join("") + "</div></div>";
+}
+function wireSeg(id, cb) {
+  var seg = $(id); if (!seg) return;
+  seg.querySelectorAll("button").forEach(function (b) {
+    b.onclick = function () {
+      seg.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
+      b.classList.add("on"); cb(b.getAttribute("data-v"));
+    };
+  });
+}
+function renderSessionForm(root) {
+  sessForm = { userCardId: null, userName: "", userRole: "", castIds: [], scene: "", title: "", styleMode: "novel", replyLength: "medium", createError: false };
+  root.innerHTML =
+    '<section class="panel" aria-label="开一场新戏"><h2 class="font-stage">开一场新戏 · 先分角色</h2>' +
+    '<section aria-label="选角"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">' +
+    '<div><h3 class="font-stage" style="font-size:16px;font-weight:600;margin:0;line-height:24px;">先选角 · 在每张卡上分配</h3>' +
+    '<p class="dim-text" style="margin:0;">「我演」归你，只能选一个，点下就把卡里的设定带进下面你的角色信息；「AI 演」归 AI，可以选好几个。同一张卡只能在一边。卡不对就点「改卡」，删卡也在改卡里。</p></div>' +
+    '<button type="button" class="link-btn" id="sf-new-card" style="flex:0 0 auto;">＋ 写角色卡</button></div>' +
+    '<div id="sf-cast"></div></section>' +
+    '<section aria-label="你扮演谁" style="margin-top:24px;"><div class="side-head"><span class="side-badge you">你</span><div><h3>你扮演谁</h3><p>这一场里你就是这个人，台词都由你说。从上面的卡点「我演」会自动带入，也可以直接手填。</p></div></div>' +
+    '<div class="field"><label for="sf-uname">你的角色名（可空，空着就是你本人出演）</label><input type="text" id="sf-uname" placeholder="例：林晚 / 男主的名字" /></div>' +
+    '<div class="field"><label for="sf-urole">身份与处境（可空）</label><textarea id="sf-urole" rows="3" placeholder="例：第一次推门进店的陌生客人 / 他失联多年的老同学"></textarea></div>' +
+    '<p class="dim-text" id="sf-from-card" hidden>已从角色卡带入，可以直接改——改动只影响这一场，不动原卡。再点一次那张卡上的「我演」可以取消选择。</p></section>' +
+    '<section aria-label="场景与演法" style="margin-top:24px;display:flex;flex-direction:column;gap:16px;">' +
+    '<div class="field" style="margin:0;"><label for="sf-scene">场景（剧情从这里开始）</label><textarea id="sf-scene" rows="2" placeholder="时间、地点、正在发生什么。例：雨夜，末班车站，你第三次在这里遇见他"></textarea></div>' +
+    '<div class="field" style="margin:0;"><label for="sf-title">这一场的名字（可空）</label><input type="text" id="sf-title" placeholder="例：雨夜书店" /></div>' +
+    segHtml("sf-style", "文体", "novel", [{ value: "novel", label: "小说体" }, { value: "dialogue", label: "对话体" }]) +
+    segHtml("sf-length", "对方每轮篇幅", "medium", [{ value: "short", label: "简短" }, { value: "medium", label: "适中" }, { value: "long", label: "充分展开" }]) +
+    "</section>" +
+    '<div class="cast-chips" id="sf-chips" style="margin-top:20px;"></div>' +
+    '<p class="err-text" id="sf-error" hidden>开场失败，再试一次。</p>' +
+    '<div class="form-actions" style="margin-top:16px;"><button type="button" class="btn primary grow" id="sf-start">先给 AI 选至少一个角色</button>' +
+    '<button type="button" class="btn" id="sf-cancel">取消</button></div></section>';
+  $("sf-new-card").onclick = function () { openCharForm(null); };
+  $("sf-uname").addEventListener("input", function () { sessForm.userName = this.value; renderSessChips(); });
+  $("sf-urole").addEventListener("input", function () { sessForm.userRole = this.value; });
+  $("sf-scene").addEventListener("input", function () { sessForm.scene = this.value; });
+  $("sf-title").addEventListener("input", function () { sessForm.title = this.value; });
+  wireSeg("sf-style", function (v) { sessForm.styleMode = v; });
+  wireSeg("sf-length", function (v) { sessForm.replyLength = v; });
+  $("sf-cancel").onclick = function () { closeSheet(); };
+  $("sf-start").onclick = function () { createSessionFromForm(); };
+  renderCastList();
+  renderSessChips();
+}
+function renderCastList() {
+  var root = $("sf-cast"); if (!root || !sessForm) return;
+  if (store.cards.length === 0) {
+    root.innerHTML = '<p class="sec-note">名册里还没有角色卡。下面三张是现成的模板，挑一张改两笔就能用；也可以从零写你自己的——写好回来点「AI 演」或「我演」就能开场。</p>' + presetsHtml() +
+      '<button type="button" class="link-btn underline" id="sf-from-scratch" style="margin-top:8px;">从零写一张角色卡 →</button>';
+    wirePresets(root, function (p) { openCharForm(Object.assign({}, p)); });
+    $("sf-from-scratch").onclick = function () { openCharForm(null); };
+    return;
+  }
+  root.innerHTML = '<div class="rows">' + store.cards.map(function (c) {
+    var mine = sessForm.userCardId === c.id;
+    var theirs = sessForm.castIds.indexOf(c.id) >= 0;
+    return '<div class="row-card' + (mine ? " mine" : theirs ? " theirs" : "") + '"><div class="row-main">' + sealHtml(c.name) +
+      '<span class="row-text"><span class="row-name" style="display:block;">' + esc(c.name) + '</span>' +
+      '<span class="row-sub" style="display:block;">' + esc(c.persona || "（没有写性格）") + '</span></span></div>' +
+      '<div class="row-actions" style="gap:8px;">' +
+      '<button type="button" class="pill you' + (mine ? " on" : "") + '" data-pick-user="' + c.id + '">我演</button>' +
+      '<button type="button" class="pill ai' + (theirs ? " on" : "") + '" data-pick-ai="' + c.id + '">AI 演</button>' +
+      '<button type="button" data-edit-card="' + c.id + '" style="color:var(--dim);">改卡</button></div></div>';
+  }).join("") + "</div>";
+  root.querySelectorAll("[data-pick-user]").forEach(function (b) {
+    b.onclick = function () {
+      var c = store.cards.find(function (x) { return x.id === b.getAttribute("data-pick-user"); });
+      if (!c || !sessForm) return;
+      if (sessForm.userCardId === c.id) {
+        sessForm.userCardId = null; sessForm.userName = ""; sessForm.userRole = "";
+        $("sf-uname").value = ""; $("sf-urole").value = "";
+      } else {
+        sessForm.userCardId = c.id; sessForm.userName = c.name; sessForm.userRole = composeUserRole(c);
+        $("sf-uname").value = c.name; $("sf-urole").value = sessForm.userRole;
+        sessForm.castIds = sessForm.castIds.filter(function (x) { return x !== c.id; });
+      }
+      $("sf-from-card").hidden = sessForm.userCardId === null;
+      renderCastList(); renderSessChips();
+    };
+  });
+  root.querySelectorAll("[data-pick-ai]").forEach(function (b) {
+    b.onclick = function () {
+      var c = store.cards.find(function (x) { return x.id === b.getAttribute("data-pick-ai"); });
+      if (!c || !sessForm) return;
+      if (sessForm.castIds.indexOf(c.id) >= 0) {
+        sessForm.castIds = sessForm.castIds.filter(function (x) { return x !== c.id; });
+      } else {
+        if (sessForm.userCardId === c.id) {
+          sessForm.userCardId = null; sessForm.userName = ""; sessForm.userRole = "";
+          $("sf-uname").value = ""; $("sf-urole").value = ""; $("sf-from-card").hidden = true;
+        }
+        sessForm.castIds.push(c.id);
+      }
+      renderCastList(); renderSessChips();
+    };
+  });
+  root.querySelectorAll("[data-edit-card]").forEach(function (b) {
+    b.onclick = function () {
+      var c = store.cards.find(function (x) { return x.id === b.getAttribute("data-edit-card"); });
+      if (c) openCharForm(c);
+    };
+  });
+}
+function renderSessChips() {
+  var root = $("sf-chips"); if (!root || !sessForm) return;
+  var castNames = store.cards.filter(function (c) { return sessForm.castIds.indexOf(c.id) >= 0; }).map(function (c) { return c.name; });
+  var html = '<span class="cast-chip cast-chip-you">你演：' + esc(sessForm.userName.trim() || "你自己") + '</span><span style="color:var(--dim);">×</span>';
+  if (castNames.length) html += castNames.map(function (n) { return '<span class="cast-chip cast-chip-ai">AI 演：' + esc(n) + "</span>"; }).join("");
+  else html += '<span class="cast-chip">AI 演：还没选</span>';
+  root.innerHTML = html;
+  var btn = $("sf-start");
+  var can = castNames.length >= 1;
+  btn.disabled = !can;
+  btn.textContent = can ? "开演" : "先给 AI 选至少一个角色";
+}
+function createSessionFromForm() {
+  if (!sessForm) return;
+  var cast = store.cards.filter(function (c) { return sessForm.castIds.indexOf(c.id) >= 0; })
+    .map(function (c) { return { name: c.name, persona: c.persona, background: c.background, speechStyle: c.speechStyle, openingLine: c.openingLine }; });
+  if (!cast.length) return;
+  var s = {
+    id: uid(),
+    title: sessForm.title.trim() || cast.map(function (c) { return c.name; }).join("、") + " · 新的一场",
+    cast: cast, scene: sessForm.scene, userName: sessForm.userName.trim(), userRole: sessForm.userRole.trim(),
+    styleMode: sessForm.styleMode, replyLength: sessForm.replyLength, favorite: false,
+    messages: [], createdAt: Date.now(), updatedAt: Date.now()
+  };
+  var fixed = cast.length === 1 ? (cast[0].openingLine || "").trim() : "";
+  var needGen = true;
+  if (fixed) {
+    s.messages.push({ id: uid(), role: "character", speaker: cast[0].name, content: fixed, beat: uid() });
+    needGen = false;
+  }
+  store.sessions.push(s);
+  saveStore();
+  closeSheet(); renderHomeLists();
+  openStage(s.id);
+  if (needGen) requestReply(s, null);
+}
+
+/* ================= 提示词拼装（原版服务端逻辑原样移植） ================= */
+function userLabel(s) { return s.userName.trim() || "对方"; }
+function buildWritingRules(s, castSize) {
+  var lengthRule = s.replyLength === "short" ? "篇幅：简短，这一拍整体一到三段，留白比填满重要。"
+    : s.replyLength === "long" ? "篇幅：充分展开，这一拍整体五到八段，把场景写透再停。"
+    : "篇幅：适中，这一拍整体三到五段。";
+  var styleRule = s.styleMode === "novel"
+    ? "文体：小说体。叙事、动作、环境与对白交织，用具体的身体反应、物件、声音、气味呈现人物的状态，不要直接给情绪贴标签。动作与神态描写可以用括号或融入叙事。"
+    : "文体：对话体。以对白为主推进剧情，动作和神态用简短的括号描写点缀，叙事段落只在场景转换时出现。";
+  var castRules = castSize > 1 ? [
+    "多角色格式（输出设置）：",
+    "- 你同时扮演演员表里的全部角色，他们是不同的人，性格、立场、说话方式各自独立，不要混同。",
+    "- 每个角色的段落以「【角色名】」这样的标记开头（把角色名写进标记里），单独成段；同一角色连续说话只标一次。纯粹的环境或场景叙事段落也归到当时视角所在的角色名下，不要出现没有归属的段落。",
+    "- 这一拍里让谁说话、谁沉默，由剧情决定，不必每个角色都开口；角色之间可以互相接话、打断、起冲突，不必都冲着对方说话。",
+    "- 对方（用户扮演的角色）点名跟谁说话时，优先由那个角色回应。"
+  ] : ["格式（输出设置）：直接写正文，不要加角色名前缀，不要加任何说明。"];
+  var lines = [
+    "写作约束（输出设置，非角色设定）：",
+    "- 全程停留在场景与角色之内，不跳出，不解释，不做总结，不复述剧情要点。",
+    "- 禁止总结式叙述：不要把场景压缩成结论句（如\"他很难过\"\"气氛很尴尬\"），要让场景实时展开，读者在场。",
+    "- 用行为、身体和细节呈现状态，不给感受命名。",
+    "- 不替对方（用户扮演的角色）说话、行动或做决定；对方的部分留空等对方接。",
+    "- 保持每个角色的性格、关系和说话方式前后一致；记住已经发生的事；角色之间已经建立的关系和称呼不要重置。"
+  ].concat(castRules).concat(["- " + styleRule, "- " + lengthRule, "- 用简体中文回复。"]);
+  if (store.settings.globalExtra) lines.push(store.settings.globalExtra);
+  return lines.join("\n");
+}
+function buildSystem(s) {
+  var label = userLabel(s);
+  var castBlocks = s.cast.map(function (c, i) {
+    var lines = ["演员 " + (i + 1) + "：" + c.name + "（由你扮演）"];
+    if (c.persona) lines.push("身份与性格：" + c.persona);
+    if (c.background) lines.push("背景设定：" + c.background);
+    if (c.speechStyle) lines.push("说话方式：" + c.speechStyle);
+    return lines.join("\n");
+  });
+  var parts = [
+    s.cast.length > 1 ? "这一场戏里，你一人分饰以下全部角色：\n\n" + castBlocks.join("\n\n") : "你正在扮演的角色：\n\n" + castBlocks.join("\n\n"),
+    s.scene ? "场景：" + s.scene : "",
+    (s.userName || s.userRole)
+      ? "与你对戏的是用户扮演的角色：" + (s.userName ? "名字是「" + s.userName + "」" : "（没有名字）") + (s.userRole ? "，" + s.userRole : "") + "。记录里他的台词标为「" + label + "」。"
+      : "与你对戏的是用户本人（未设定扮演的角色），记录里他的台词标为「对方」。",
+    "",
+    buildWritingRules(s, s.cast.length)
+  ];
+  return parts.filter(function (p) { return p !== ""; }).join("\n");
+}
+function buildTranscript(s, instruction) {
+  var label = userLabel(s);
+  var lines = s.messages.map(function (m) {
+    return (m.role === "user" ? label : m.speaker || (s.cast[0] ? s.cast[0].name : "角色")) + "：" + m.content;
+  });
+  var tail = instruction || (s.messages.length === 0
+    ? "现在开场。直接写这场戏的第一拍：让" + (s.cast.length > 1 ? "该出场的角色" : s.cast[0] ? s.cast[0].name : "角色") + "登场，不要重复设定内容，不要加任何前缀说明。"
+    : "现在轮到你扮演的角色回应。直接续写，不要重复已有内容，不要加任何前缀说明。");
+  return ["以下是这场戏到目前为止的全部内容：", ""].concat(lines.length ? lines : ["（还没有任何台词）"]).concat(["", tail]).join("\n");
+}
+function splitBeat(text, cast) {
+  var t = String(text || "").trim();
+  var fallback = cast.length ? cast[0].name : "";
+  if (!t) return [];
+  if (cast.length <= 1) return [{ speaker: fallback, content: t }];
+  var marker = /【([^】]{1,40})】/g;
+  var matches = [], m;
+  while ((m = marker.exec(t)) !== null) {
+    if (cast.some(function (c) { return c.name === m[1]; })) matches.push({ name: m[1], index: m.index, len: m[0].length });
+  }
+  if (!matches.length) return [{ speaker: fallback, content: t }];
+  var segs = [];
+  for (var i = 0; i < matches.length; i++) {
+    var start = matches[i].index + matches[i].len;
+    var end = i + 1 < matches.length ? matches[i + 1].index : t.length;
+    var content = t.slice(start, end).trim();
+    if (i === 0) { var lead = t.slice(0, matches[i].index).trim(); if (lead) segs.push({ speaker: matches[i].name, content: lead }); }
+    if (content) segs.push({ speaker: matches[i].name, content: content });
+  }
+  return segs.length ? segs : [{ speaker: fallback, content: t }];
+}
+
+/* ================= 向 DeepSeek 请求一拍 ================= */
+var generating = false;
+var stageError = "";
+async function requestReply(s, instruction) {
+  if (generating || !s) return;
+  stageError = "";
+  var key = store.settings.apiKey;
+  if (!key) {
+    stageError = "还没填 DeepSeek API Key。回首页最下面的「API 设置」里填好，再回来点重试。";
+    if (activeSessionId === s.id) renderStage();
+    return;
+  }
+  generating = true;
+  if (activeSessionId === s.id) renderStage();
+  var full = "";
+  var liveSegs = [];
+  var rafPending = false;
+  function paintLive() {
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(function () {
+      rafPending = false;
+      var live = $("chat-live");
+      if (!live || activeSessionId !== s.id) return;
+      live.innerHTML = liveSegs.map(function (seg) {
+        return '<div><p class="speaker">' + esc(seg.speaker) + '</p><div class="stage-prose">' + parasHtml(seg.content) + "</div></div>";
+      }).join("");
+      var sc = $("chat-scroll");
+      if (sc.scrollHeight - sc.scrollTop - sc.clientHeight < 260) sc.scrollTop = sc.scrollHeight;
+    });
+  }
+  try {
+    var body = {
+      model: store.settings.model || "deepseek-chat",
+      messages: [
+        { role: "system", content: buildSystem(s) },
+        { role: "user", content: buildTranscript(s, instruction) }
+      ],
+      stream: true
+    };
+    if (body.model !== "deepseek-reasoner") body.temperature = Number(store.settings.temperature) || 1.0;
+    var resp = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+      body: JSON.stringify(body)
+    });
+    if (!resp.ok) {
+      var errTxt = "";
+      try { var ej = await resp.json(); errTxt = (ej.error && ej.error.message) || ""; } catch (e) { }
+      if (resp.status === 401) throw new Error("API Key 不对或已失效（401）。回首页检查「API 设置」。");
+      if (resp.status === 402) throw new Error("DeepSeek 账户余额不足（402），充值后再试。");
+      if (resp.status === 429) throw new Error("请求太频繁（429），稍等一下再试。");
+      throw new Error("DeepSeek 接口报错 " + resp.status + (errTxt ? "：" + errTxt : ""));
+    }
+    var reader = resp.body.getReader();
+    var decoder = new TextDecoder("utf-8");
+    var buf = "";
+    while (true) {
+      var chunk = await reader.read();
+      if (chunk.done) break;
+      buf += decoder.decode(chunk.value, { stream: true });
+      var lines = buf.split("\n");
+      buf = lines.pop();
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line.indexOf("data:") !== 0) continue;
+        var data = line.slice(5).trim();
+        if (data === "[DONE]") continue;
+        try {
+          var j = JSON.parse(data);
+          var delta = j.choices && j.choices[0] && j.choices[0].delta;
+          if (delta && delta.content) { full += delta.content; liveSegs = splitBeat(full, s.cast); paintLive(); }
+        } catch (e) { }
+      }
+    }
+  } catch (err) {
+    generating = false;
+    stageError = "这一拍没接上：" + (err && err.message ? err.message : "网络异常");
+    if (activeSessionId === s.id) renderStage();
+    return;
+  }
+  generating = false;
+  var segs = splitBeat(full, s.cast);
+  if (!segs.length) {
+    stageError = "DeepSeek 这次没吐出内容，重试一下。";
+    if (activeSessionId === s.id) renderStage();
+    return;
+  }
+  var beat = uid();
+  segs.forEach(function (seg) { s.messages.push({ id: uid(), role: "character", speaker: seg.speaker, content: seg.content, beat: beat }); });
+  s.updatedAt = Date.now();
+  saveStore();
+  if (activeSessionId === s.id) renderStage();
+  renderHomeLists();
+}
+
+/* ================= 舞台（原版版式） ================= */
+var activeSessionId = null;
+var stageSettingsOpen = false;
+var confirmStageDelete = false;
+var confirmRemoveCastId = null;
+var tempCastName = "", tempCastPersona = "", castPanelError = "";
+
+function activeSession() { return store.sessions.find(function (x) { return x.id === activeSessionId; }) || null; }
+function openStage(id) {
+  activeSessionId = id;
+  stageSettingsOpen = false; confirmStageDelete = false; confirmRemoveCastId = null; stageError = "";
+  $("home-view").style.display = "none";
+  $("stage-view").classList.add("active");
+  var inp = $("chat-input");
+  inp.value = "";
+  renderStage();
+}
+function closeStage() {
+  activeSessionId = null;
+  $("stage-view").classList.remove("active");
+  $("stage-view").style.height = "";
+  $("home-view").style.display = "";
+  renderHomeLists();
+}
+$("btn-stage-back").onclick = closeStage;
+$("btn-stage-settings").onclick = function () {
+  stageSettingsOpen = !stageSettingsOpen;
+  renderStagePanel();
+};
+function renderStage() {
+  var s = activeSession(); if (!s) return;
+  $("stage-title").textContent = s.title;
+  $("stage-sub").textContent = "你演 " + (s.userName || "你自己") + " · AI 演 " + s.cast.map(function (c) { return c.name; }).join("、");
+  $("chat-input").placeholder = "以「" + (s.userName || "你") + "」的身份说话或行动，点名某人就直接喊他的名字…";
+  renderStagePanel();
+  renderChat();
+}
+function renderStagePanel() {
+  var panel = $("stage-panel");
+  $("btn-stage-settings").setAttribute("aria-expanded", stageSettingsOpen ? "true" : "false");
+  var s = activeSession();
+  if (!stageSettingsOpen || !s) { panel.hidden = true; panel.innerHTML = ""; return; }
+  panel.hidden = false;
+  var available = store.cards.filter(function (c) { return !s.cast.some(function (m) { return m.name === c.name; }); });
+  var html = '<div><span class="flabel" style="display:block;font-size:14px;color:var(--dim);margin-bottom:6px;">演员表 · 你演「' + esc(s.userName || "你自己") + "」，下面这些由 AI 演</span>" +
+    '<div class="rows">' + s.cast.map(function (m, idx) {
+      var row = '<div style="display:flex;align-items:center;gap:8px;">' + sealHtml(m.name) +
+        '<span class="font-stage" style="flex:1;min-width:0;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(m.name) + "</span>";
+      if (s.cast.length > 1) {
+        if (confirmRemoveCastId === idx) {
+          row += '<span style="font-size:14px;color:var(--user);flex:0 0 auto;">让他退场？</span>' +
+            '<button type="button" data-cast-remove-ok="' + idx + '" style="border:none;background:none;color:var(--user);font-weight:500;font-size:14px;flex:0 0 auto;">确认</button>' +
+            '<button type="button" data-cast-remove-no style="border:none;background:none;color:var(--dim);font-size:14px;flex:0 0 auto;">算了</button>';
+        } else {
+          row += '<button type="button" data-cast-remove="' + idx + '" style="border:none;background:none;color:var(--dim);font-size:14px;flex:0 0 auto;">退场</button>';
+        }
+      }
+      return row + "</div>";
+    }).join("") + "</div>";
+  if (available.length) {
+    html += '<div class="avail-chips">' + available.map(function (c) {
+      return '<button type="button" data-cast-add="' + esc(c.id) + '">＋ 请 ' + esc(c.name) + " 入场</button>";
+    }).join("") + "</div>";
+  }
+  html += '<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">' +
+    '<div style="display:flex;gap:8px;"><input type="text" id="temp-cast-name" aria-label="新入场角色的名字" placeholder="临时请一个人入场：名字" value="' + esc(tempCastName) + '" style="flex:1;min-width:0;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:var(--radius);padding:8px 12px;font-size:16px;" />' +
+    '<button type="button" class="btn primary" id="temp-cast-add" style="flex:0 0 auto;">入场</button></div>' +
+    '<input type="text" id="temp-cast-persona" aria-label="新入场角色是个什么样的人" placeholder="他/她是个什么样的人（可空）" value="' + esc(tempCastPersona) + '" style="box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:var(--radius);padding:8px 12px;font-size:16px;width:100%;" /></div>';
+  if (castPanelError) html += '<p class="err-text">' + esc(castPanelError) + "</p>";
+  html += "</div>";
+  html += segHtml("st-style", "文体", s.styleMode, [{ value: "novel", label: "小说体" }, { value: "dialogue", label: "对话体" }]);
+  html += segHtml("st-length", "对方每轮篇幅", s.replyLength, [{ value: "short", label: "简短" }, { value: "medium", label: "适中" }, { value: "long", label: "充分展开" }]);
+  if (confirmStageDelete) {
+    html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:14px;color:var(--user);">整场戏连同记录都会删掉。</span>' +
+      '<button type="button" id="st-del-ok" style="border:none;border-radius:var(--radius);background:var(--user);color:#fff;font-size:14px;font-weight:500;padding:6px 12px;">确认删除</button>' +
+      '<button type="button" id="st-del-no" style="border:none;background:none;color:var(--dim);font-size:14px;">算了</button></div>';
+  } else {
+    html += '<div><button type="button" id="st-del" style="border:none;background:none;color:var(--user);font-size:14px;padding:4px 0;">删除这一场</button></div>';
+  }
+  panel.innerHTML = html;
+  panel.querySelectorAll("[data-cast-remove]").forEach(function (b) { b.onclick = function () { confirmRemoveCastId = parseInt(b.getAttribute("data-cast-remove"), 10); renderStagePanel(); }; });
+  panel.querySelectorAll("[data-cast-remove-no]").forEach(function (b) { b.onclick = function () { confirmRemoveCastId = null; renderStagePanel(); }; });
+  panel.querySelectorAll("[data-cast-remove-ok]").forEach(function (b) {
+    b.onclick = function () {
+      var idx = parseInt(b.getAttribute("data-cast-remove-ok"), 10);
+      s.cast.splice(idx, 1); confirmRemoveCastId = null; s.updatedAt = Date.now(); saveStore(); renderStage();
+    };
+  });
+  panel.querySelectorAll("[data-cast-add]").forEach(function (b) {
+    b.onclick = function () {
+      var c = store.cards.find(function (x) { return x.id === b.getAttribute("data-cast-add"); });
+      if (!c) return;
+      s.cast.push({ name: c.name, persona: c.persona, background: c.background, speechStyle: c.speechStyle, openingLine: c.openingLine });
+      castPanelError = ""; s.updatedAt = Date.now(); saveStore(); renderStage(); toast(c.name + " 入场了");
+    };
+  });
+  $("temp-cast-name").addEventListener("input", function () { tempCastName = this.value; });
+  $("temp-cast-persona").addEventListener("input", function () { tempCastPersona = this.value; });
+  $("temp-cast-add").onclick = function () {
+    var name = tempCastName.trim();
+    if (!name) { castPanelError = "先写个名字。"; renderStagePanel(); return; }
+    s.cast.push({ name: name, persona: tempCastPersona.trim(), background: "", speechStyle: "", openingLine: "" });
+    tempCastName = ""; tempCastPersona = ""; castPanelError = ""; s.updatedAt = Date.now(); saveStore(); renderStage(); toast(name + " 入场了");
+  };
+  wireSeg("st-style", function (v) { s.styleMode = v; s.updatedAt = Date.now(); saveStore(); });
+  wireSeg("st-length", function (v) { s.replyLength = v; s.updatedAt = Date.now(); saveStore(); });
+  var delBtn = $("st-del"), delOk = $("st-del-ok"), delNo = $("st-del-no");
+  if (delBtn) delBtn.onclick = function () { confirmStageDelete = true; renderStagePanel(); };
+  if (delNo) delNo.onclick = function () { confirmStageDelete = false; renderStagePanel(); };
+  if (delOk) delOk.onclick = function () {
+    store.sessions = store.sessions.filter(function (x) { return x.id !== s.id; });
+    saveStore(); closeStage(); toast("已删除");
+  };
+}
+function renderChat() {
+  var s = activeSession(); if (!s) return;
+  var myName = s.userName || "你";
+  var html = s.messages.map(function (m) {
+    if (m.role === "user") {
+      return '<div class="msg-user"><p class="speaker">' + esc(myName) + '（你）</p><div class="bubble"><div class="stage-prose">' + parasHtml(m.content) + "</div></div></div>";
+    }
+    return '<div><p class="speaker">' + esc(m.speaker || "角色") + '</p><div class="stage-prose">' + parasHtml(m.content) + "</div></div>";
+  }).join("");
+  html += '<div id="chat-live"></div>';
+  if (generating) html += '<p class="writing-note">对方正在写…</p>';
+  if (stageError) {
+    html += '<div><p class="err-text" style="margin:0 0 8px;">' + esc(stageError) + '</p><button type="button" class="regen-btn" id="btn-stage-retry">重试</button></div>';
+  }
+  var last = s.messages[s.messages.length - 1];
+  if (!generating && !stageError && last && last.role === "character") {
+    html += '<div><button type="button" class="regen-btn" id="btn-regen">这一拍不满意，让他们重演</button></div>';
+  }
+  $("chat-inner").innerHTML = html;
+  var btn = $("btn-send-stage");
+  btn.disabled = generating || !$("chat-input").value.trim();
+  btn.textContent = generating ? "…" : "接戏";
+  var retry = $("btn-stage-retry");
+  if (retry) retry.onclick = function () { requestReply(s, null); };
+  var regen = $("btn-regen");
+  if (regen) regen.onclick = function () { regenerateBeat(s); };
+  var sc = $("chat-scroll");
+  requestAnimationFrame(function () { sc.scrollTop = sc.scrollHeight; });
+}
+function regenerateBeat(s) {
+  if (generating || !s.messages.length) return;
+  var last = s.messages[s.messages.length - 1];
+  if (!last || last.role !== "character") return;
+  var beat = last.beat;
+  if (beat) {
+    while (s.messages.length && s.messages[s.messages.length - 1].role === "character" && s.messages[s.messages.length - 1].beat === beat) s.messages.pop();
+  } else {
+    s.messages.pop();
+  }
+  saveStore();
+  renderChat();
+  requestReply(s, null);
+}
+$("chat-input").addEventListener("input", function () {
+  var s = activeSession();
+  $("btn-send-stage").disabled = generating || !this.value.trim() || !s;
+});
+$("chat-input").addEventListener("focus", function () {
+  window.setTimeout(function () {
+    var sc = $("chat-scroll");
+    if (sc) sc.scrollTop = sc.scrollHeight;
+    var inp = $("chat-input");
+    if (inp && inp.scrollIntoView) inp.scrollIntoView({ block: "nearest" });
+  }, 400);
+});
+$("composer").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var s = activeSession(); if (!s || generating) return;
+  var text = $("chat-input").value.trim();
+  if (!text) return;
+  s.messages.push({ id: uid(), role: "user", speaker: "", content: text, beat: "" });
+  s.updatedAt = Date.now();
+  saveStore();
+  $("chat-input").value = "";
+  renderChat();
+  requestReply(s, null);
+});
+/* iOS 键盘：按可视高度收缩舞台（原版处理） */
+(function () {
+  var vv = window.visualViewport;
+  if (!vv) return;
+  var raf = 0;
+  function update() {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function () {
+      var st = $("stage-view");
+      if (st.classList.contains("active")) st.style.height = Math.round(vv.height) + "px";
+    });
+  }
+  vv.addEventListener("resize", update);
+  vv.addEventListener("scroll", update);
+})();
+
+/* ================= API 设置区 ================= */
+var DEFAULT_MODELS = ["deepseek-chat", "deepseek-reasoner"];
+function ensureModelOptions(list, selected) {
+  var sel = $("s-model");
+  var ids = [];
+  (list || []).forEach(function (id) { if (id && ids.indexOf(id) < 0) ids.push(id); });
+  if (!ids.length) ids = DEFAULT_MODELS.slice();
+  var notes = { "deepseek-chat": "deepseek-chat（V3，快，日常演戏用它）", "deepseek-reasoner": "deepseek-reasoner（R1，慢，胜在细腻）" };
+  sel.innerHTML = ids.map(function (id) { return '<option value="' + esc(id) + '">' + esc(notes[id] || id) + "</option>"; }).join("");
+  if (selected) {
+    if (ids.indexOf(selected) < 0) {
+      var o = document.createElement("option"); o.value = selected; o.textContent = selected; sel.appendChild(o);
+    }
+    sel.value = selected;
+  }
+}
+function currentFormModel() {
+  var custom = $("s-model-custom").value.trim();
+  return custom || $("s-model").value || "deepseek-chat";
+}
+function renderSettings() {
+  $("s-apikey").value = store.settings.apiKey || "";
+  var savedModel = store.settings.model || "deepseek-chat";
+  var list = (Array.isArray(store.settings.modelList) && store.settings.modelList.length) ? store.settings.modelList : DEFAULT_MODELS;
+  var isKnown = list.indexOf(savedModel) >= 0 || DEFAULT_MODELS.indexOf(savedModel) >= 0;
+  ensureModelOptions(list, isKnown ? savedModel : list[0]);
+  $("s-model-custom").value = isKnown ? "" : savedModel;
+  if (!isKnown) ensureModelOptions(list.concat([savedModel]), savedModel);
+  $("s-temp").value = store.settings.temperature == null ? 1 : store.settings.temperature;
+  $("temp-val").textContent = Number($("s-temp").value).toFixed(1);
+  $("kv-key").textContent = store.settings.apiKey ? "已填写（" + store.settings.apiKey.slice(0, 3) + "•••" + store.settings.apiKey.slice(-4) + "）" : "未填写";
+  $("kv-key").style.color = store.settings.apiKey ? "var(--ok)" : "var(--user)";
+  $("kv-model").textContent = savedModel;
+}
+$("s-temp").addEventListener("input", function () { $("temp-val").textContent = Number(this.value).toFixed(1); });
+function saveSettingsFromForm() {
+  store.settings.apiKey = $("s-apikey").value.trim();
+  store.settings.model = currentFormModel();
+  store.settings.temperature = Number($("s-temp").value);
+  saveStore(); renderSettings(); renderHomeLists();
+}
+$("btn-save-settings").onclick = function () {
+  saveSettingsFromForm();
+  toast(store.settings.apiKey ? "设置已保存" : "已保存（还没填 API Key）");
+};
+/* ---------- 探测连接：拉模型列表 ---------- */
+$("btn-probe").onclick = async function () {
+  var btn = $("btn-probe");
+  var status = $("probe-status");
+  var key = $("s-apikey").value.trim();
+  function setStatus(text, cls) { status.textContent = text; status.className = "probe-status" + (cls ? " " + cls : ""); }
+  if (!key) { setStatus("还没填 API Key，先把 Key 粘进来再探测。", "err"); $("s-apikey").focus(); return; }
+  btn.disabled = true; btn.textContent = "探测中…";
+  setStatus("正在连接 api.deepseek.com …", "");
+  var started = Date.now();
+  var ctl = new AbortController();
+  var timer = setTimeout(function () { ctl.abort(); }, 15000);
+  try {
+    var resp = await fetch("https://api.deepseek.com/models", {
+      method: "GET",
+      headers: { "Authorization": "Bearer " + key, "Accept": "application/json" },
+      signal: ctl.signal
+    });
+    clearTimeout(timer);
+    var ms = Date.now() - started;
+    if (!resp.ok) {
+      var errTxt = "";
+      try { var ej = await resp.json(); errTxt = (ej.error && ej.error.message) || ""; } catch (e) { }
+      if (resp.status === 401) throw new Error("Key 不对或已失效（401）" + (errTxt ? "：" + errTxt : ""));
+      if (resp.status === 402) throw new Error("账户余额不足（402）" + (errTxt ? "：" + errTxt : ""));
+      if (resp.status === 429) throw new Error("请求太频繁（429），稍等再试");
+      throw new Error("接口返回 " + resp.status + (errTxt ? "：" + errTxt : ""));
+    }
+    var data = await resp.json();
+    var ids = [];
+    ((data && data.data) || []).forEach(function (mm) { var id = mm && (mm.id || mm.name); if (id && ids.indexOf(id) < 0) ids.push(id); });
+    if (!ids.length) throw new Error("接口连通了，但没返回任何模型");
+    var keepCustom = $("s-model-custom").value.trim();
+    var keep = keepCustom || $("s-model").value || store.settings.model || ids[0];
+    store.settings.modelList = ids;
+    store.settings.apiKey = key;
+    saveStore();
+    ensureModelOptions(ids, ids.indexOf(keep) >= 0 ? keep : ids[0]);
+    if (!keepCustom && ids.indexOf(keep) < 0) $("s-model").value = ids[0];
+    $("model-hint").textContent = "探测成功：接口返回 " + ids.length + " 个可用模型，点下拉框自己选。当前：" + $("s-model").value;
+    setStatus("✓ 已连通 · 返回 " + ids.length + " 个模型 · 耗时 " + ms + " ms。已刷新上面的模型列表，选好后记得保存。", "ok");
+    $("kv-key").textContent = "已填写（" + key.slice(0, 3) + "•••" + key.slice(-4) + "）";
+    $("kv-key").style.color = "var(--ok)";
+    $("key-notice").hidden = true;
+    toast("探测成功，可用模型已刷新");
+  } catch (err) {
+    clearTimeout(timer);
+    var msg = (err && err.name === "AbortError") ? "探测超时（15 秒没响应），检查网络后重试。" : ((err && err.message) ? err.message : "网络异常，连接不上 api.deepseek.com");
+    setStatus("✕ 探测失败：" + msg, "err");
+  }
+  btn.disabled = false; btn.textContent = "探测连接";
+};
+/* ---------- 导出 / 导入 ---------- */
+function upsertById(arr, item) {
+  if (!item || !item.id) return;
+  var i = arr.findIndex(function (x) { return x.id === item.id; });
+  if (i >= 0) arr[i] = item; else arr.push(item);
+}
+$("btn-export").onclick = function () {
+  var data = {
+    app: "roleplay-web", version: 2, exportedAt: new Date().toISOString(),
+    cards: store.cards, sessions: store.sessions,
+    settings: { model: store.settings.model, temperature: store.settings.temperature, globalExtra: store.settings.globalExtra, modelList: store.settings.modelList || [] }
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "roleplay-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+  document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+  toast("已导出（不含 API Key）");
+};
+$("btn-import").onclick = function () { $("file-import").click(); };
+$("file-import").addEventListener("change", function () {
+  var f = this.files && this.files[0];
+  this.value = "";
+  if (!f) return;
+  var reader = new FileReader();
+  reader.onload = function () {
+    try {
+      var d = JSON.parse(String(reader.result));
+      if (!d || typeof d !== "object") throw new Error("bad");
+      var inCards = [], inSessions = [];
+      if (Array.isArray(d.sessions)) { inCards = (d.cards || []).map(mapOldCard).filter(Boolean); inSessions = d.sessions; }
+      else if (Array.isArray(d.plays) || Array.isArray(d.cards)) { inCards = (d.cards || []).map(mapOldCard).filter(Boolean); inSessions = (d.plays || []).map(mapOldPlay); }
+      else throw new Error("bad");
+      var zone = $("wipe-zone");
+      zone.innerHTML = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:14px;">将导入 ' + inCards.length + " 张角色卡、" + inSessions.length + " 场戏，与现有数据合并（同 ID 覆盖）。API Key 不受影响。</span>" +
+        '<button type="button" class="btn primary" id="btn-import-ok">导入</button><button type="button" class="btn" id="btn-import-no">算了</button></div>';
+      $("btn-import-no").onclick = function () { renderWipeZone(); };
+      $("btn-import-ok").onclick = function () {
+        inCards.forEach(function (c) { upsertById(store.cards, c); });
+        inSessions.forEach(function (p) { upsertById(store.sessions, p); });
+        if (d.settings) {
+          if (d.settings.model) store.settings.model = d.settings.model;
+          if (Array.isArray(d.settings.modelList)) store.settings.modelList = d.settings.modelList;
+          if (d.settings.temperature != null) store.settings.temperature = d.settings.temperature;
+          if (d.settings.globalExtra != null) store.settings.globalExtra = d.settings.globalExtra;
+        }
+        saveStore(); renderWipeZone(); renderSettings(); renderHomeLists(); toast("导入完成");
+      };
+    } catch (e) { toast("这个文件不是有效的备份"); }
+  };
+  reader.readAsText(f);
+});
+/* ---------- 清空（行内确认，原版风格） ---------- */
+function renderWipeZone() {
+  var zone = $("wipe-zone");
+  zone.innerHTML = '<button class="btn danger-outline block" id="btn-wipe" type="button">清空全部数据（角色卡＋全部戏＋设置）</button>';
+  $("btn-wipe").onclick = function () {
+    zone.innerHTML = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:14px;color:var(--user);">这台浏览器里的角色卡、全部戏和设置（含 API Key）都会删光。建议先导出备份。</span>' +
+      '<button type="button" class="btn" id="btn-wipe-ok" style="background:var(--user);border-color:var(--user);color:#fff;font-weight:500;">全部清空</button>' +
+      '<button type="button" class="btn" id="btn-wipe-no">算了</button></div>';
+    $("btn-wipe-no").onclick = renderWipeZone;
+    $("btn-wipe-ok").onclick = function () {
+      store = { cards: [], sessions: [], settings: { apiKey: "", model: "deepseek-chat", temperature: 1.0, globalExtra: "", modelList: [] } };
+      saveStore();
+      try { localStorage.removeItem(LS_KEY); } catch (e) { }
+      renderWipeZone(); renderSettings(); renderHomeLists(); toast("已清空");
+    };
+  };
+}
+
+/* ================= 初始化 ================= */
+loadStore();
+renderSheet();
+renderHomeLists();
+renderSettings();
+renderWipeZone();
+</script>
+</body>
+</html>
