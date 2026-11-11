@@ -335,8 +335,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 36px
         <div class="field">
           <label for="s-model">模型（从列表选）</label>
           <select id="s-model">
-            <option value="deepseek-chat">deepseek-chat（V3，快，日常演戏用它）</option>
-            <option value="deepseek-reasoner">deepseek-reasoner（R1，慢，胜在细腻）</option>
+            <option value="deepseek-chat">deepseek-chat（思考模式已默认开启）</option>
+            <option value="deepseek-reasoner">deepseek-reasoner（R1，深度思考）</option>
           </select>
           <div class="hint" id="model-hint">探测成功后，这里会换成接口实际返回的可用模型列表，再由你自己选。</div>
         </div>
@@ -348,12 +348,13 @@ input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 36px
         <div class="field">
           <label for="s-temp">随机度（Temperature）：<span id="temp-val">1.0</span></label>
           <input type="range" id="s-temp" min="0" max="2" step="0.1" value="1" />
-          <div class="hint">越高越放飞，越低越稳。演戏一般 0.9–1.3。（R1 模型会忽略这个值。）</div>
+          <div class="hint">越高越放飞，越低越稳。演戏一般 0.9–1.3。注意：思考模式默认开启，该模式下接口会忽略随机度，这个值暂不起作用。</div>
         </div>
         <button class="btn primary block" id="btn-save-settings" type="button">保存设置</button>
         <div style="margin-top:12px;">
           <div class="kv"><span>API Key</span><b id="kv-key">未填写</b></div>
           <div class="kv"><span>当前模型</span><b id="kv-model">deepseek-chat</b></div>
+          <div class="kv"><span>思考模式</span><b>已开启（默认）· 强度 high</b></div>
           <div class="kv"><span>接口地址</span><b>api.deepseek.com</b></div>
         </div>
 
@@ -734,7 +735,9 @@ async function generateCharacterDraft(idea, btn) {
           { role: "system", content: "你在协助创作虚构角色。用简体中文。细节要具体、有质感，避免空泛的形容词堆砌和套路化人设。只输出一个 JSON 对象，不要加任何说明或代码块标记，字段为：name（角色名，简洁有辨识度）、persona（身份与性格：年龄、职业、性格核心、矛盾点，两三句）、background（背景设定：来历、与对方可能的关系、故事钩子，三四句）、speechStyle（说话方式：语气、用词习惯、标志性表达，一两句）、openingLine（这个角色在一场戏开场时说的第一句话或第一个动作描写，要具体、有画面，不要总结）。" },
           { role: "user", content: "角色构想：" + idea + "\n\n把这个构想展开成一张完整的角色卡。开场白要像小说正文的第一拍，直接把人拉进场景。" }
         ],
-        stream: false
+        stream: false,
+        thinking: { type: "enabled" },
+        reasoning_effort: "high"
       })
     });
     if (!resp.ok) throw new Error("http " + resp.status);
@@ -999,6 +1002,7 @@ async function requestReply(s, instruction) {
   generating = true;
   if (activeSessionId === s.id) renderStage();
   var full = "";
+  var thinkingShown = false;
   var liveSegs = [];
   var rafPending = false;
   function paintLive() {
@@ -1011,6 +1015,7 @@ async function requestReply(s, instruction) {
       live.innerHTML = liveSegs.map(function (seg) {
         return '<div><p class="speaker">' + esc(seg.speaker) + '</p><div class="stage-prose">' + parasHtml(seg.content) + "</div></div>";
       }).join("");
+      if (thinkingShown) { var wn2 = $("writing-note"); if (wn2) wn2.textContent = "对方正在写…"; }
       var sc = $("chat-scroll");
       if (sc.scrollHeight - sc.scrollTop - sc.clientHeight < 260) sc.scrollTop = sc.scrollHeight;
     });
@@ -1022,9 +1027,12 @@ async function requestReply(s, instruction) {
         { role: "system", content: buildSystem(s) },
         { role: "user", content: buildTranscript(s, instruction) }
       ],
-      stream: true
+      stream: true,
+      /* 思考模式默认开启：显式传 thinking=enabled + reasoning_effort=high，不依赖模型别名的默认行为（deepseek-chat 别名默认走非思考模式，不传参思考就是关的） */
+      thinking: { type: "enabled" },
+      reasoning_effort: "high"
     };
-    if (body.model !== "deepseek-reasoner") body.temperature = Number(store.settings.temperature) || 1.0;
+    /* 思考模式下接口会忽略 temperature 等采样参数（官方文档），故不再发送 */
     var resp = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
@@ -1055,6 +1063,12 @@ async function requestReply(s, instruction) {
         try {
           var j = JSON.parse(data);
           var delta = j.choices && j.choices[0] && j.choices[0].delta;
+          /* 思考阶段：只收 reasoning_content，不进正文、不保存，仅切换状态提示 */
+          if (delta && delta.reasoning_content && !full && !thinkingShown) {
+            thinkingShown = true;
+            var wn = $("writing-note");
+            if (wn) wn.textContent = "对方正在思考…";
+          }
           if (delta && delta.content) { full += delta.content; liveSegs = splitBeat(full, s.cast); paintLive(); }
         } catch (e) { }
       }
@@ -1206,7 +1220,7 @@ function renderChat() {
     return '<div><p class="speaker">' + esc(m.speaker || "角色") + '</p><div class="stage-prose">' + parasHtml(m.content) + "</div></div>";
   }).join("");
   html += '<div id="chat-live"></div>';
-  if (generating) html += '<p class="writing-note">对方正在写…</p>';
+  if (generating) html += '<p class="writing-note" id="writing-note">对方正在写…</p>';
   if (stageError) {
     html += '<div><p class="err-text" style="margin:0 0 8px;">' + esc(stageError) + '</p><button type="button" class="regen-btn" id="btn-stage-retry">重试</button></div>';
   }
@@ -1286,7 +1300,7 @@ function ensureModelOptions(list, selected) {
   var ids = [];
   (list || []).forEach(function (id) { if (id && ids.indexOf(id) < 0) ids.push(id); });
   if (!ids.length) ids = DEFAULT_MODELS.slice();
-  var notes = { "deepseek-chat": "deepseek-chat（V3，快，日常演戏用它）", "deepseek-reasoner": "deepseek-reasoner（R1，慢，胜在细腻）" };
+  var notes = { "deepseek-chat": "deepseek-chat（思考模式已默认开启）", "deepseek-reasoner": "deepseek-reasoner（R1，深度思考）" };
   sel.innerHTML = ids.map(function (id) { return '<option value="' + esc(id) + '">' + esc(notes[id] || id) + "</option>"; }).join("");
   if (selected) {
     if (ids.indexOf(selected) < 0) {
