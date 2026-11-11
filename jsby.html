@@ -288,7 +288,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 36px
   <main class="wrap">
     <div class="hero">
       <h1 class="font-stage">今晚，<br />想和谁对一场戏？</h1>
-      <p>先定你演谁、AI 演谁——AI 可以一个人分饰好几个角色。幕布拉开就是正文，没有总结，只有现场。</p>
+      <p>先定你演谁、Muse 演谁——Muse 可以一个人分饰好几个角色。幕布拉开就是正文，没有总结，只有现场。</p>
     </div>
 
     <div class="key-notice" id="key-notice" hidden>
@@ -313,7 +313,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 36px
         <h2 class="sec-title font-stage">角色卡</h2>
         <button type="button" class="link-btn" id="btn-new-card-top">＋ 写角色卡</button>
       </div>
-      <p class="sec-note">角色卡在这里改、这里删。开新戏时在表单里点「我演」「AI 演」分配角色，那边只管选角，不管删卡。</p>
+      <p class="sec-note">角色卡在这里改、这里删。开新戏时在表单里点「我演」「Muse 演」分配角色，那边只管选角，不管删卡。</p>
       <div class="rows" id="card-list"></div>
       <div id="cards-empty" hidden></div>
     </section>
@@ -447,24 +447,36 @@ function loadStore() {
   var raw = null;
   try { raw = localStorage.getItem(LS_KEY); } catch (e) { }
   if (!raw && memFallback) raw = memFallback;
-  if (!raw) return;
-  try {
-    var d = JSON.parse(raw);
-    if (!d || typeof d !== "object") return;
-    if (d.settings) store.settings = Object.assign(store.settings, d.settings);
-    if (Array.isArray(d.sessions) && (d.version === 2 || !Array.isArray(d.plays))) {
-      store.cards = (d.cards || []).map(mapOldCard).filter(Boolean);
-      store.sessions = d.sessions || [];
-    } else if (Array.isArray(d.plays) || Array.isArray(d.cards)) {
-      /* 上一版网页版结构 → 原版结构迁移 */
-      store.cards = (d.cards || []).map(mapOldCard).filter(Boolean);
-      store.sessions = (d.plays || []).map(mapOldPlay);
-      saveStore();
-    }
-  } catch (e) { }
+  var parsed = false;
+  if (raw) {
+    try {
+      var d = JSON.parse(raw);
+      if (d && typeof d === "object") {
+        parsed = true;
+        seededOnce = !!d.seeded;
+        if (d.settings) store.settings = Object.assign(store.settings, d.settings);
+        if (Array.isArray(d.sessions) && (d.version === 2 || !Array.isArray(d.plays))) {
+          store.cards = (d.cards || []).map(mapOldCard).filter(Boolean);
+          store.sessions = d.sessions || [];
+        } else if (Array.isArray(d.plays) || Array.isArray(d.cards)) {
+          /* 上一版网页版结构 → 原版结构迁移 */
+          store.cards = (d.cards || []).map(mapOldCard).filter(Boolean);
+          store.sessions = (d.plays || []).map(mapOldPlay);
+        }
+      }
+    } catch (e) { }
+  }
+  /* 原版数据搬入：没搬过、且本机还没有这些卡和戏时才放，放过就不再重复放 */
+  if (!seededOnce) {
+    var hadReal = SEED_CARDS.some(function (c) { return store.cards.some(function (x) { return x.name === c.name; }); })
+      || store.sessions.some(function (x) { return x.title === SEED_SESSION.title; });
+    if (!parsed || !hadReal) applySeed();
+    seededOnce = true;
+    saveStore();
+  }
 }
 function saveStore() {
-  var snapshot = JSON.stringify({ version: 2, cards: store.cards, sessions: store.sessions, settings: store.settings });
+  var snapshot = JSON.stringify({ version: 2, seeded: seededOnce, cards: store.cards, sessions: store.sessions, settings: store.settings });
   memFallback = snapshot;
   try { localStorage.setItem(LS_KEY, snapshot); } catch (e) { }
 }
@@ -482,25 +494,43 @@ function parasHtml(content) {
   return String(content || "").split(/\n{2,}/).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
 }
 
-/* ---------- 预设模板（原版三张） ---------- */
-var PRESETS = [
-  { name: "沈聿白", persona: "38岁，旧书店老板。话不多，观察力极强，毒舌但从不伤人要害。对熟客记得住每个人的阅读习惯，自己的事一句不提。", background: "书店开在老城巷子深处，楼上住人，楼下卖书。十年前从出版社辞职，原因没人知道。店里有一只叫\"标点\"的猫。", speechStyle: "慢，句子短，爱用书里的句子回话。笑的时候先低头，再抬眼。", openingLine: "" },
-  { name: "顾晚棠", persona: "29岁，急诊科医生。做事利落，情绪稳定得近乎冷淡，但对小病人会蹲下来平视说话。刚结束一段五年的关系，谁问都说\"挺好的\"。", background: "连续值了三个夜班，今晚难得准时下班。医院对面的小面馆是她唯一放松的地方，老板认识她，不用点单。", speechStyle: "语速快，用词准，不耐烦废话。但累极了的时候，话会突然变多。", openingLine: "" },
-  { name: "陆则明", persona: "45岁，退休刑警，如今在中学门口开修车铺。手上全是茧，眼睛却像还在办案。爱管闲事，管完又装作没管过。", background: "二十年刑警生涯，三年前因伤退下。修车铺是幌子也是日子，街坊丢猫找狗都来找他，比找派出所还快。", speechStyle: "北方口音，爱反问，\"你猜怎么着\"是口头禅。说正事时突然就不贫了。", openingLine: "" }
+/* ---------- 初始数据：侧边栏原版里的 4 张卡 + 1 场戏，原样搬入 ----------
+   网页版没有服务器，第一次打开（或本机存档里还没有这些卡和戏）时把原版
+   数据原样放进来；放过一次就打标记，之后以本机保存为准，删掉的不会再回来。 */
+var SEED_CARDS = [
+  { id: "orig-card-5", name: "刘洁", persona: "性格保守，干练职场女性气质，稳重，有亲和力。善解人意，偶尔展现小女孩情态。务实、理性、抗压力强，内心深处缺乏安全感，善于权衡得失、做出让步或低头，会调整自己适应恶劣环境和压力。她和阿威互有好感，关系比同事亲密。", background: "阿威的同事，业务部员工。30岁，已婚未育，老公是胖哥，二人感情平淡但稳定。身高165，皮肤很白，身材略丰腴，胸部较小但臀部浑圆饱满。暗红色披肩发，常扎马尾或丸子头。着装：职业裙装高跟鞋，或牛仔裤T恤平底鞋的休闲风格。", speechStyle: "稳重、亲和，善解人意，偶尔带点小女孩情态。", openingLine: "" },
+  { id: "orig-card-4", name: "阿威", persona: "温和，不爱出风头，重视心理感受，内心很丰富。轻度恋足。对单纯的肉体交合兴趣不大，需要通过心理刺激、视觉刺激、语言刺激、情感融合或特殊的玩法才能获得满足。", background: "男，35岁，未婚，普通上班族。不帅也不难看，中等胖瘦，身高175。", speechStyle: "温和、内敛，重视感受，说话不张扬。", openingLine: "" },
+  { id: "orig-card-3", name: "女丹", persona: "性格开朗活泼，内心务实。", background: "26岁，相貌古典，眉眼风情妖娆，狐狸脸尖下巴，身高168，冷白皮，身材修长偏瘦，平肩细腰翘臀。在歌舞团工作，是个演员，棕黄色长发。她是阿威好友红哥的老婆。", speechStyle: "开朗活泼。", openingLine: "" },
+  { id: "orig-card-2", name: "王康蕊", persona: "极致反差感。外表清冷御姐、气质高冷，内里随性通透、幽默接地气，完全没有美女包袱。性格直率坦荡、敢说敢玩、情绪鲜活，不矫情不端架子，爱自嘲、接梗快，松弛又洒脱。内心深处是重度恋爱脑。", background: "28岁，昵称阿蜜或王姐。净身高175，骨架匀称，体态饱满不单薄，肩线平直利落，腰臀比完美，大长腿线条笔直流畅，八头身比例。鹅蛋脸，五官辨识度高，眉毛细长，杏眼，眼尾微扬，嘴唇饱满。日常柔顺黑长直。静态面容清冷端庄、自带疏离感；一旦开口微笑，变得鲜活亲切、松弛接地气，冷暖反差极强。穿搭可驾驭酷飒中性风、轻熟简约风。穿高跟鞋轻松超一米八，近距离接触会给人压迫感。", speechStyle: "直率坦荡，敢说敢玩，接梗快，爱自嘲，松弛洒脱。", openingLine: "" }
 ];
-function presetsHtml() {
-  return '<div class="rows">' + PRESETS.map(function (p, i) {
-    return '<div class="row-card dashed"><div class="row-main">' + sealHtml(p.name) +
-      '<span class="row-text"><span class="row-name" style="display:block;">' + esc(p.name) + '</span>' +
-      '<span class="row-sub" style="display:block;">' + esc(p.persona) + '</span></span>' +
-      '<button type="button" class="use-btn" data-preset="' + i + '">用这张</button></div></div>';
-  }).join("") + "</div>";
-}
-function wirePresets(root, onPick) {
-  root.querySelectorAll("[data-preset]").forEach(function (b) {
-    b.onclick = function () { onPick(PRESETS[parseInt(b.getAttribute("data-preset"), 10)]); };
+var SEED_SESSION = {
+  id: "orig-session-2",
+  title: "刘洁 · 新的一场",
+  cast: [{ name: "刘洁", persona: "性格保守，干练职场女性气质，稳重，有亲和力。善解人意，偶尔展现小女孩情态。务实、理性、抗压力强，内心深处缺乏安全感，善于权衡得失、做出让步或低头，会调整自己适应恶劣环境和压力。她和阿威互有好感，关系比同事亲密。", background: "阿威的同事，业务部员工。30岁，已婚未育，老公是胖哥，二人感情平淡但稳定。身高165，皮肤很白，身材略丰腴，胸部较小但臀部浑圆饱满。暗红色披肩发，常扎马尾或丸子头。着装：职业裙装高跟鞋，或牛仔裤T恤平底鞋的休闲风格。", speechStyle: "稳重、亲和，善解人意，偶尔带点小女孩情态。", openingLine: "" }],
+  scene: "一次共同出差夜晚酒店里发生的一夜情。",
+  userName: "阿威",
+  userRole: "温和，不爱出风头，重视心理感受，内心很丰富。轻度恋足。对单纯的肉体交合兴趣不大，需要通过心理刺激、视觉刺激、语言刺激、情感融合或特殊的玩法才能获得满足。\n背景：男，35岁，未婚，普通上班族。不帅也不难看，中等胖瘦，身高175。\n说话方式：温和、内敛，重视感受，说话不张扬。",
+  styleMode: "novel", replyLength: "long", favorite: false,
+  messages: [
+    { id: "orig-msg-2", role: "character", speaker: "刘洁", beat: "orig-beat-1", content: "走廊里的灯是暖黄的，到了十一点多，声控的那盏暗下去一半，只剩地毯尽头电梯口的一点白光。刘洁站在1808门口，脚下的地毯很厚，踩上去一点声音也没有，空调的冷气从头顶的出风口吹下来，吹得她颈后刚洗过还带着潮气的头发丝一根根贴在皮肤上。\n\n她换了牛仔裤和平底鞋，身上是一件宽松的白色T恤，暗红色的头发松松地挽成一个丸子头，有几缕没挽进去，垂在耳边。她左手握着手机，屏幕还亮着，右手里捏着一份折了角的打印稿，纸边已经被她来回捏得发软了。走廊里有淡淡的消毒水味，混着地毯受潮的味道。\n\n她抬起手，手指在门板前停了两秒，又放了下去。指尖碰到门的时候凉了一下，她收回手，在牛仔裤的裤缝上蹭了蹭，掌心有点汗。她低头看了一眼手机，微信界面停在和胖哥的对话框里，最后一句是她发过去的“到了，刚洗完澡”，下面没有回音，时间显示是两个小时前。\n\n她把手机翻过来扣在打印稿上，深吸了一口气，喉咙轻轻动了一下，终于用指节敲了敲门。敲门声在空走廊里显得有点重，她自己都被那声音吓了一跳，往后退了半步，肩膀贴上了对面的墙面，凉意透过T恤传进来。\n\n“阿威，”她的声音压得很低，几乎是贴着门缝说的，“你睡了吗？”\n\n她顿了顿，手指又无意识地把那份打印稿对折了一下，纸张发出很轻的沙沙声。“明天上午见客户那个方案，有两处我想跟你再对一下……就两分钟，不耽误你休息。”\n\n说完她就不再出声了，站在门口等着，丸子头上的一缕头发滑下来，扫过她的脸颊，她也没去管，只是把脚尖抵在地毯上，轻轻地，一下一下地点着。" },
+    { id: "orig-msg-3", role: "user", speaker: "", beat: "", content: "我打开门，进来吧，离我睡觉还早着呢，" },
+    { id: "orig-msg-5", role: "character", speaker: "刘洁", beat: "orig-beat-2", content: "门一开，暖黄的光先从门缝里漏出来，落在她平底鞋的鞋尖上。她往里挪了半步，门口的地毯比走廊更软，鞋底陷下去一点，屋里的冷气裹着一点沐浴露的味道扑到脸上。她把打印稿从右手换到左手，手机在掌心里转了半圈，塞进牛仔裤前兜，塞到一半又抽出来，重新攥住。\n\n房间不大，床铺得整整齐齐，被角掖得平平的，床头那盏灯开着，光晕落在白色的被面上。桌上放着一瓶没开封的矿泉水，瓶身凝着一层细细的水珠，旁边是他的电脑，屏幕已经暗了。她站在桌边，没往床那边去，脚尖对着桌腿，鞋跟还抵在地毯的边缘上。\n\n“就是这页，”她把打印稿摊在桌上，用指尖压住折了角的地方，纸边在她手底下又卷了一下，“第二段这里，客户上次说想把预算拆开，我改了一版，你看这样写会不会太直接了。”她的声音比在走廊里稳了一点，手指顺着那行字划过去，指甲修剪得很短，甲面上有淡淡的光。\n\n她又翻到后面一页，指尖点在另一处，纸张发出很轻的沙沙声。“还有这里，交付时间我写的是下周三，早上开会的时候你说过周二也能赶出来，我怕写死了到时候被动。”说到一半，她停下来，把那缕滑到脸颊边的头发别到耳后，丸子头松了一点，有几根碎发贴在颈后，带着刚洗完澡的潮气。\n\n她抬起眼，目光在桌上的字上停了一秒，又落回自己的鞋尖上。平底鞋的鞋头沾了一点走廊地毯上的灰，她用另一只脚的鞋尖轻轻蹭了蹭，没蹭掉，又蹭了一下。矿泉水瓶上的水珠顺着瓶身往下滚，在桌面上留下一道很细的水痕。\n\n“就这两处，”她把两页纸重新叠好，边角对齐，又对了一遍，才把纸放回桌上，“对完我就回去，不耽误你。”她说完，手指还按在纸面上没拿开，掌心的汗在纸上洇出一点浅浅的印子，喉咙轻轻动了一下，又补了一句，“你要是困了就先说，我明天早上再问也行。”\n\n她站在那里没动，左手还握着手机，屏幕已经暗了，右手空下来，垂在身侧，手指在牛仔裤的裤缝上轻轻蹭了一下。床头灯的光从她身后照过来，影子斜斜地落在地毯上，她的脚尖又开始一下一下地点着地毯，幅度很小，几乎看不出来。" }
+  ],
+  createdAt: Date.parse("2026-11-10T12:10:06.265Z"),
+  updatedAt: Date.parse("2026-11-10T16:16:17.950Z")
+};
+var seededOnce = false;
+function applySeed() {
+  SEED_CARDS.forEach(function (c) {
+    if (!store.cards.some(function (x) { return x.name === c.name; })) {
+      store.cards.push(JSON.parse(JSON.stringify(c)));
+    }
   });
+  if (!store.sessions.some(function (x) { return x.title === SEED_SESSION.title; })) {
+    store.sessions.push(JSON.parse(JSON.stringify(SEED_SESSION)));
+  }
 }
+
 
 /* ================= 首页渲染（原版三段：收藏 / 台上正演着 / 角色卡） ================= */
 var sheet = { kind: "none" };
@@ -516,7 +546,7 @@ function sortedSessions() {
 function sessionCardHtml(s) {
   var first = s.cast && s.cast[0] ? s.cast[0].name : "?";
   var castNames = (s.cast || []).map(function (c) { return c.name; }).join("、");
-  var sub = "你演 " + (s.userName || "你自己") + " · AI 演 " + castNames + (s.scene ? " · " + s.scene : "");
+  var sub = "你演 " + (s.userName || "你自己") + " · Muse 演 " + castNames + (s.scene ? " · " + s.scene : "");
   var html = '<div class="row-card' + (s.favorite ? " fav" : "") + '"><div class="row-main">' + sealHtml(first) +
     '<span class="row-text"><span class="row-name" style="display:block;">' + esc(s.title) + '</span>' +
     '<span class="row-sub" style="display:block;">' + esc(sub) + '</span></span>' +
@@ -595,9 +625,8 @@ function renderHomeLists() {
     list.innerHTML = "";
     var ce = $("cards-empty");
     ce.hidden = false;
-    ce.innerHTML = '<p class="sec-note">还没有角色卡。下面三张是现成的模板，挑一张改两笔就能用；也可以从零写你自己的。</p>' + presetsHtml() +
+    ce.innerHTML = '<p class="sec-note">还没有角色卡。</p>' +
       '<button type="button" class="link-btn underline" id="btn-from-scratch" style="margin-top:8px;">从零写一张角色卡 →</button>';
-    wirePresets(ce, function (p) { openCharForm(Object.assign({}, p)); window.scrollTo({ top: 0 }); });
     $("btn-from-scratch").onclick = function () { openCharForm(null); window.scrollTo({ top: 0 }); };
   }
   $("key-notice").hidden = !!store.settings.apiKey;
@@ -628,7 +657,7 @@ function openCharForm(initial) {
     background: initial ? initial.background || "" : "",
     speechStyle: initial ? initial.speechStyle || "" : "",
     openingLine: initial ? initial.openingLine || "" : "",
-    confirmDelete: false, genError: ""
+    idea: "", confirmDelete: false, genError: ""
   };
   sheet = { kind: "character" };
   renderSheet();
@@ -638,16 +667,16 @@ function renderCharForm(root) {
   var editing = !!f.id;
   root.innerHTML =
     '<section class="panel" aria-label="角色卡编辑"><h2 class="font-stage">' + (editing ? "修改「" + esc(f.name) + "」" : "写一张角色卡") + "</h2>" +
-    '<div class="idea-box"><div class="field" style="margin:0;"><label for="cf-idea">一句话，让 AI 帮你把角色写出来</label>' +
-    '<div class="idea-row"><input type="text" id="cf-idea" placeholder="例：一个嘴硬心软的深夜食堂老板娘" />' +
-    '<button type="button" id="cf-generate">生成</button></div>' +
+    '<div class="idea-box"><div class="field" style="margin:0;"><label for="cf-idea">一句话，让 Muse 帮你把角色写出来</label>' +
+    '<div class="idea-row"><input type="text" id="cf-idea" placeholder="例：一个嘴硬心软的深夜食堂老板娘" value="' + esc(f.idea) + '" />' +
+    '<button type="button" id="cf-generate"' + (f.idea.trim() ? "" : " disabled") + '>生成</button></div>' +
     (f.genError ? '<p class="err-text">' + esc(f.genError) + "</p>" : "") + "</div></div>" +
     '<div class="field"><label for="cf-name">名字 *</label><input type="text" id="cf-name" value="' + esc(f.name) + '" /></div>' +
     '<div class="field"><label for="cf-persona">身份与性格</label><textarea id="cf-persona" rows="3" placeholder="年龄、职业、性格核心、藏在心里的那一面">' + esc(f.persona) + "</textarea></div>" +
     '<div class="field"><label for="cf-bg">背景设定</label><textarea id="cf-bg" rows="3" placeholder="来历、生活环境、和别人的关系">' + esc(f.background) + "</textarea></div>" +
     '<div class="field"><label for="cf-speech">说话方式</label><textarea id="cf-speech" rows="2" placeholder="语气、口头禅、用词习惯">' + esc(f.speechStyle) + "</textarea></div>" +
-    '<div class="field"><label for="cf-open">固定开场（可空；只在一对一时用，空则每次开场由 AI 现写）</label><textarea id="cf-open" rows="2">' + esc(f.openingLine) + "</textarea></div>" +
-    '<div class="form-actions"><button type="button" class="btn primary grow" id="cf-save">' + (editing ? "保存修改" : "存入角色卡") + '</button>' +
+    '<div class="field"><label for="cf-open">固定开场（可空；只在一对一时用，空则每次开场由 Muse 现写）</label><textarea id="cf-open" rows="2">' + esc(f.openingLine) + "</textarea></div>" +
+    '<div class="form-actions"><button type="button" class="btn primary grow" id="cf-save"' + (f.name.trim() ? "" : " disabled") + '>' + (editing ? "保存修改" : "存入角色卡") + '</button>' +
     '<button type="button" class="btn" id="cf-cancel">取消</button></div>' +
     (editing ?
       '<div style="margin-top:14px;font-size:14px;">' + (f.confirmDelete ?
@@ -659,8 +688,10 @@ function renderCharForm(root) {
   function sync() {
     f.name = $("cf-name").value; f.persona = $("cf-persona").value; f.background = $("cf-bg").value;
     f.speechStyle = $("cf-speech").value; f.openingLine = $("cf-open").value;
+    $("cf-save").disabled = !f.name.trim();
   }
   ["cf-name", "cf-persona", "cf-bg", "cf-speech", "cf-open"].forEach(function (id) { $(id).addEventListener("input", sync); });
+  $("cf-idea").addEventListener("input", function () { f.idea = this.value; $("cf-generate").disabled = !this.value.trim(); });
   $("cf-cancel").onclick = function () { closeSheet(); };
   $("cf-save").onclick = function () {
     sync();
@@ -677,7 +708,7 @@ function renderCharForm(root) {
     saveStore(); closeSheet(); renderHomeLists();
   };
   var genBtn = $("cf-generate");
-  genBtn.onclick = function () { generateCharacterDraft($("cf-idea").value.trim(), genBtn); };
+  genBtn.onclick = function () { f.idea = $("cf-idea").value; generateCharacterDraft($("cf-idea").value.trim(), genBtn); };
   if (editing) {
     var delBtn = $("cf-del"), okBtn = $("cf-del-ok"), noBtn = $("cf-del-no");
     if (delBtn) delBtn.onclick = function () { sync(); f.confirmDelete = true; renderCharForm(root); };
@@ -721,12 +752,12 @@ async function generateCharacterDraft(idea, btn) {
     renderCharForm($("sheet"));
     toast("草稿写好了，改一改再存");
   } catch (err) {
-    charFormState.genError = "生成失败，再试一次。（检查 API Key 和网络）";
+    charFormState.genError = "生成失败，再试一次。";
     renderCharForm($("sheet"));
   }
 }
 
-/* ---------- 开场表单（原版：选角 我演/AI演 多选 + 你扮演谁 + 场景与演法） ---------- */
+/* ---------- 开场表单（原版：选角 我演/Muse 演 多选 + 你扮演谁 + 场景与演法） ---------- */
 var sessForm = null;
 function composeUserRole(c) {
   return [c.persona, c.background ? "背景：" + c.background : "", c.speechStyle ? "说话方式：" + c.speechStyle : ""].filter(Boolean).join("\n").slice(0, 1000);
@@ -750,7 +781,7 @@ function renderSessionForm(root) {
     '<section class="panel" aria-label="开一场新戏"><h2 class="font-stage">开一场新戏 · 先分角色</h2>' +
     '<section aria-label="选角"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">' +
     '<div><h3 class="font-stage" style="font-size:16px;font-weight:600;margin:0;line-height:24px;">先选角 · 在每张卡上分配</h3>' +
-    '<p class="dim-text" style="margin:0;">「我演」归你，只能选一个，点下就把卡里的设定带进下面你的角色信息；「AI 演」归 AI，可以选好几个。同一张卡只能在一边。卡不对就点「改卡」，删卡也在改卡里。</p></div>' +
+    '<p class="dim-text" style="margin:0;">「我演」归你，只能选一个，点下就把卡里的设定带进下面你的角色信息；「Muse 演」归 Muse，可以选好几个。同一张卡只能在一边。卡不对就点「改卡」，删卡也在改卡里。</p></div>' +
     '<button type="button" class="link-btn" id="sf-new-card" style="flex:0 0 auto;">＋ 写角色卡</button></div>' +
     '<div id="sf-cast"></div></section>' +
     '<section aria-label="你扮演谁" style="margin-top:24px;"><div class="side-head"><span class="side-badge you">你</span><div><h3>你扮演谁</h3><p>这一场里你就是这个人，台词都由你说。从上面的卡点「我演」会自动带入，也可以直接手填。</p></div></div>' +
@@ -765,7 +796,7 @@ function renderSessionForm(root) {
     "</section>" +
     '<div class="cast-chips" id="sf-chips" style="margin-top:20px;"></div>' +
     '<p class="err-text" id="sf-error" hidden>开场失败，再试一次。</p>' +
-    '<div class="form-actions" style="margin-top:16px;"><button type="button" class="btn primary grow" id="sf-start">先给 AI 选至少一个角色</button>' +
+    '<div class="form-actions" style="margin-top:16px;"><button type="button" class="btn primary grow" id="sf-start">先给 Muse 选至少一个角色</button>' +
     '<button type="button" class="btn" id="sf-cancel">取消</button></div></section>';
   $("sf-new-card").onclick = function () { openCharForm(null); };
   $("sf-uname").addEventListener("input", function () { sessForm.userName = this.value; renderSessChips(); });
@@ -782,9 +813,8 @@ function renderSessionForm(root) {
 function renderCastList() {
   var root = $("sf-cast"); if (!root || !sessForm) return;
   if (store.cards.length === 0) {
-    root.innerHTML = '<p class="sec-note">名册里还没有角色卡。下面三张是现成的模板，挑一张改两笔就能用；也可以从零写你自己的——写好回来点「AI 演」或「我演」就能开场。</p>' + presetsHtml() +
+    root.innerHTML = '<p class="sec-note">名册里还没有角色卡。先写一张——写好回来点「Muse 演」或「我演」就能开场。</p>' +
       '<button type="button" class="link-btn underline" id="sf-from-scratch" style="margin-top:8px;">从零写一张角色卡 →</button>';
-    wirePresets(root, function (p) { openCharForm(Object.assign({}, p)); });
     $("sf-from-scratch").onclick = function () { openCharForm(null); };
     return;
   }
@@ -796,7 +826,7 @@ function renderCastList() {
       '<span class="row-sub" style="display:block;">' + esc(c.persona || "（没有写性格）") + '</span></span></div>' +
       '<div class="row-actions" style="gap:8px;">' +
       '<button type="button" class="pill you' + (mine ? " on" : "") + '" data-pick-user="' + c.id + '">我演</button>' +
-      '<button type="button" class="pill ai' + (theirs ? " on" : "") + '" data-pick-ai="' + c.id + '">AI 演</button>' +
+      '<button type="button" class="pill ai' + (theirs ? " on" : "") + '" data-pick-ai="' + c.id + '">Muse 演</button>' +
       '<button type="button" data-edit-card="' + c.id + '" style="color:var(--dim);">改卡</button></div></div>';
   }).join("") + "</div>";
   root.querySelectorAll("[data-pick-user]").forEach(function (b) {
@@ -842,13 +872,13 @@ function renderSessChips() {
   var root = $("sf-chips"); if (!root || !sessForm) return;
   var castNames = store.cards.filter(function (c) { return sessForm.castIds.indexOf(c.id) >= 0; }).map(function (c) { return c.name; });
   var html = '<span class="cast-chip cast-chip-you">你演：' + esc(sessForm.userName.trim() || "你自己") + '</span><span style="color:var(--dim);">×</span>';
-  if (castNames.length) html += castNames.map(function (n) { return '<span class="cast-chip cast-chip-ai">AI 演：' + esc(n) + "</span>"; }).join("");
-  else html += '<span class="cast-chip">AI 演：还没选</span>';
+  if (castNames.length) html += castNames.map(function (n) { return '<span class="cast-chip cast-chip-ai">Muse 演：' + esc(n) + "</span>"; }).join("");
+  else html += '<span class="cast-chip">Muse 演：还没选</span>';
   root.innerHTML = html;
   var btn = $("sf-start");
   var can = castNames.length >= 1;
   btn.disabled = !can;
-  btn.textContent = can ? "开演" : "先给 AI 选至少一个角色";
+  btn.textContent = can ? "开演" : "先给 Muse 选至少一个角色";
 }
 function createSessionFromForm() {
   if (!sessForm) return;
@@ -924,7 +954,7 @@ function buildSystem(s) {
 }
 function buildTranscript(s, instruction) {
   var label = userLabel(s);
-  var lines = s.messages.map(function (m) {
+  var lines = s.messages.slice(-40).map(function (m) {
     return (m.role === "user" ? label : m.speaker || (s.cast[0] ? s.cast[0].name : "角色")) + "：" + m.content;
   });
   var tail = instruction || (s.messages.length === 0
@@ -1082,7 +1112,7 @@ $("btn-stage-settings").onclick = function () {
 function renderStage() {
   var s = activeSession(); if (!s) return;
   $("stage-title").textContent = s.title;
-  $("stage-sub").textContent = "你演 " + (s.userName || "你自己") + " · AI 演 " + s.cast.map(function (c) { return c.name; }).join("、");
+  $("stage-sub").textContent = "你演 " + (s.userName || "你自己") + " · Muse 演 " + s.cast.map(function (c) { return c.name; }).join("、");
   $("chat-input").placeholder = "以「" + (s.userName || "你") + "」的身份说话或行动，点名某人就直接喊他的名字…";
   renderStagePanel();
   renderChat();
@@ -1094,7 +1124,7 @@ function renderStagePanel() {
   if (!stageSettingsOpen || !s) { panel.hidden = true; panel.innerHTML = ""; return; }
   panel.hidden = false;
   var available = store.cards.filter(function (c) { return !s.cast.some(function (m) { return m.name === c.name; }); });
-  var html = '<div><span class="flabel" style="display:block;font-size:14px;color:var(--dim);margin-bottom:6px;">演员表 · 你演「' + esc(s.userName || "你自己") + "」，下面这些由 AI 演</span>" +
+  var html = '<div><span class="flabel" style="display:block;font-size:14px;color:var(--dim);margin-bottom:6px;">演员表 · 你演「' + esc(s.userName || "你自己") + "」，下面这些由 Muse 演</span>" +
     '<div class="rows">' + s.cast.map(function (m, idx) {
       var row = '<div style="display:flex;align-items:center;gap:8px;">' + sealHtml(m.name) +
         '<span class="font-stage" style="flex:1;min-width:0;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(m.name) + "</span>";
@@ -1143,7 +1173,8 @@ function renderStagePanel() {
       var c = store.cards.find(function (x) { return x.id === b.getAttribute("data-cast-add"); });
       if (!c) return;
       s.cast.push({ name: c.name, persona: c.persona, background: c.background, speechStyle: c.speechStyle, openingLine: c.openingLine });
-      castPanelError = ""; s.updatedAt = Date.now(); saveStore(); renderStage(); toast(c.name + " 入场了");
+      castPanelError = ""; s.updatedAt = Date.now(); saveStore(); renderStage();
+      requestReply(s, "新角色「" + c.name + "」刚刚加入这场戏，此刻登场。写他入场的这一拍：在场其他角色可以有反应，但不要替对方（用户扮演的角色）做决定。直接续写，不要加任何前缀说明。");
     };
   });
   $("temp-cast-name").addEventListener("input", function () { tempCastName = this.value; });
@@ -1152,7 +1183,8 @@ function renderStagePanel() {
     var name = tempCastName.trim();
     if (!name) { castPanelError = "先写个名字。"; renderStagePanel(); return; }
     s.cast.push({ name: name, persona: tempCastPersona.trim(), background: "", speechStyle: "", openingLine: "" });
-    tempCastName = ""; tempCastPersona = ""; castPanelError = ""; s.updatedAt = Date.now(); saveStore(); renderStage(); toast(name + " 入场了");
+    tempCastName = ""; tempCastPersona = ""; castPanelError = ""; s.updatedAt = Date.now(); saveStore(); renderStage();
+    requestReply(s, "新角色「" + name + "」刚刚加入这场戏，此刻登场。写他入场的这一拍：在场其他角色可以有反应，但不要替对方（用户扮演的角色）做决定。直接续写，不要加任何前缀说明。");
   };
   wireSeg("st-style", function (v) { s.styleMode = v; s.updatedAt = Date.now(); saveStore(); });
   wireSeg("st-length", function (v) { s.replyLength = v; s.updatedAt = Date.now(); saveStore(); });
@@ -1408,6 +1440,7 @@ function renderWipeZone() {
     $("btn-wipe-no").onclick = renderWipeZone;
     $("btn-wipe-ok").onclick = function () {
       store = { cards: [], sessions: [], settings: { apiKey: "", model: "deepseek-chat", temperature: 1.0, globalExtra: "", modelList: [] } };
+      seededOnce = true;
       saveStore();
       try { localStorage.removeItem(LS_KEY); } catch (e) { }
       renderWipeZone(); renderSettings(); renderHomeLists(); toast("已清空");
