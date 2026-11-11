@@ -224,6 +224,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 36px
 .kv span:first-child { color: var(--dim); }
 .kv b { text-align: right; word-break: break-all; }
 .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+.rules-text { white-space: pre-wrap; font-size: 14px; line-height: 1.75; margin-top: 12px; }
 
 /* ---------- stage (原版) ---------- */
 #stage-view { display: none; flex-direction: column; background: var(--bg); height: 100dvh; }
@@ -373,6 +374,18 @@ input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 36px
         <div id="wipe-zone">
           <button class="btn danger-outline block" id="btn-wipe" type="button">清空全部数据（角色卡＋全部戏＋设置）</button>
         </div>
+      </div>
+    </section>
+
+    <!-- ============ 全局写作规则（内置于框架，随每一拍一起发给模型） ============ -->
+    <section class="sec" aria-label="全局写作规则">
+      <h2 class="sec-title font-stage">全局写作规则</h2>
+      <p class="sec-note" style="margin-top:8px;">这套规则内置在框架里，对每一场戏、每一拍都生效：开场、续写、重演时，它都会随角色设定和文体、篇幅设置一起发给模型。</p>
+      <div class="panel" style="margin-top:0;">
+        <details>
+          <summary style="cursor:pointer;font-size:15px;font-weight:500;">查看规则全文</summary>
+          <div class="rules-text" id="global-rules-text"></div>
+        </details>
       </div>
     </section>
   </main>
@@ -909,6 +922,23 @@ function createSessionFromForm() {
 }
 
 /* ================= 提示词拼装（原版服务端逻辑原样移植） ================= */
+/* 全局写作规则：用户定稿的提示词原文，内置在框架里，对每一场戏、每一拍都生效。
+   buildWritingRules 会把它原样拼进发给模型的 system 消息，排在文体/篇幅等
+   输出设置之后；首页「全局写作规则」一节展示的也是这一份，两处不会分叉。 */
+var GLOBAL_WRITING_RULES = `写作风格核心是 show don't tell。 通过多维度交替描写来营造电影画面般的效果。每一段场景都要先确定至少一个主题和重点，然后围绕这个主题或重点不限篇幅把它写透，写到细致。
+尺度要求： 不允许回避描写性器官。可采用微距式深入描写细节。不可省略和抽象描述，并根据人物设定写出特点和差异。
+
+具体写作规则如下：
+1. 注重描写和刻画的准确性。注重因果关系和以及真实生活化细节。减少文学上的夸张和不符合常理的描写
+2.先解构人物再针对性刻画。先立人设再围绕人设去刻画。每一个人物性格都是独一无二的，每一个身体部位都是不同的。人物要有自己特有的习惯，反应。要体现差异化而不是千篇一律的公式化描写。
+3.重点！画面感的营造。画面感指能让读者脑海中浮现出画面的文字。主要通过以下几个技巧实现。一，丰富的视觉元素，颜色，形状，结构，纹理，质感，比喻。二，动态的描写。事物连续变化的过程，变形的效果。例如，表情的变化，眼神的变化，肢体的运动，手脚的摆放位置和状态。声音的改变，身体部位的晃动，颤抖，被撑开的过程，收紧，张大。放慢节奏用极致细腻的细节密度来展现。三，符合物理规律和生理反应的细节。例如被撞击时身体会晃动，头发会飘动，肉会颤动，嘴被堵住只能用鼻子发音。四，多维度交替描写，环境，表情，动作，姿态，声音，生理反应等。
+4.注重剧情的张力和冲突。例如是否权力不对等？是否身份不对等？是否存在禁忌关系？（血缘、伦理、契约、社会角色倒置）。是否有“日常人设”与“此刻人格”的撕裂反差？如女神堕落，屌丝逆袭，要放大这些冲突点。
+5.性爱中不要总把女主刻画成被动反馈或者默默承受的状态。
+6.进入性爱描写后要放慢节奏，把秒拉成分钟来写，每个环节深入多维度挖掘细节 。不要急着让人物高潮或结束。每种体位或姿态人物都要有不同的感受或表现。
+7.除非用户明确给出接触指令，否则不要将剧情推进到男主射精完毕或性行为结束。
+8.注重性爱中的一些真实生活化小细节。例如口之前把头发束起或甩到一边之类。
+9.高潮的描写规则：女主高潮时的描写以可见的表现为主。例如身体及四肢的颤抖，痉挛，僵直，表情失控，声音变化，胡言乱语，潮吹失禁等看得到的变化。避免身体内部不可见的肌肉收缩，吮吸等描写。
+人物刻画设定：当确定了女主后，你要先基于你的训练数据中提取她的公开信息和常见标签以及过往经历甚至是八卦。然后根据以上信息生成一个关于她的详细内部侧写。包括但不限于外貌，性格，嗓音，经历，历史新闻，八卦，甚至习惯，口头禅，爱好等等。然后基于这个内部侧写来刻画她。不要像汇报式的写在小说中，而是融入描写中。目的是让大家觉得这个人物很真实。`;
 function userLabel(s) { return s.userName.trim() || "对方"; }
 function buildWritingRules(s, castSize) {
   var lengthRule = s.replyLength === "short" ? "篇幅：简短，这一拍整体一到三段，留白比填满重要。"
@@ -929,9 +959,11 @@ function buildWritingRules(s, castSize) {
     "- 全程停留在场景与角色之内，不跳出，不解释，不做总结，不复述剧情要点。",
     "- 禁止总结式叙述：不要把场景压缩成结论句（如\"他很难过\"\"气氛很尴尬\"），要让场景实时展开，读者在场。",
     "- 用行为、身体和细节呈现状态，不给感受命名。",
+    "- 正文只写一遍：已经写过的段落不要再重复输出，结尾就停在这一拍的最后一句，不要把前面的内容再抄一遍。",
     "- 不替对方（用户扮演的角色）说话、行动或做决定；对方的部分留空等对方接。",
     "- 保持每个角色的性格、关系和说话方式前后一致；记住已经发生的事；角色之间已经建立的关系和称呼不要重置。"
   ].concat(castRules).concat(["- " + styleRule, "- " + lengthRule, "- 用简体中文回复。"]);
+  lines.push("", "全局写作规则（贯穿全场每一拍，与上面的文体、篇幅设置同时生效）：", GLOBAL_WRITING_RULES);
   if (store.settings.globalExtra) lines.push(store.settings.globalExtra);
   return lines.join("\n");
 }
@@ -985,6 +1017,34 @@ function splitBeat(text, cast) {
     if (content) segs.push({ speaker: matches[i].name, content: content });
   }
   return segs.length ? segs : [{ speaker: fallback, content: t }];
+}
+
+/* 去重保险：思考模式下模型偶尔会把写完的一拍原样再输出一遍（整段内容连续重复两次），
+   客户端只是照单全收地显示和保存，看起来就像同一内容说了两遍。保存/显示前把
+   「紧挨着的、原样重复的段落块」折叠成一份：只折叠完全相同且足够长的连续重复，正常正文不动。 */
+function dedupeRepeated(text) {
+  var t = String(text || "");
+  if (t.trim().length < 40) return t;
+  var paras = t.split(/\n{2,}/);
+  var changed = true;
+  while (changed && paras.length > 1) {
+    changed = false;
+    var n = paras.length;
+    for (var k = Math.floor(n / 2); k >= 1; k--) {
+      var tail = paras.slice(n - k).join("\n\n").trim();
+      if (tail.length < 40) continue;
+      var prev = paras.slice(n - 2 * k, n - k).join("\n\n").trim();
+      if (tail === prev) { paras = paras.slice(0, n - k); changed = true; break; }
+    }
+  }
+  var out = paras.join("\n\n");
+  /* 单段文本被原样连写两遍（中间无空行或只有一个换行）的情况 */
+  var flat = out.trim();
+  if (flat.length >= 80) {
+    var half = Math.floor(flat.length / 2);
+    if (flat.length - half * 2 <= 1 && flat.slice(0, half) === flat.slice(flat.length - half)) out = flat.slice(0, half);
+  }
+  return out;
 }
 
 /* ================= 向 DeepSeek 请求一拍 ================= */
@@ -1069,7 +1129,7 @@ async function requestReply(s, instruction) {
             var wn = $("writing-note");
             if (wn) wn.textContent = "对方正在思考…";
           }
-          if (delta && delta.content) { full += delta.content; liveSegs = splitBeat(full, s.cast); paintLive(); }
+          if (delta && delta.content) { full += delta.content; liveSegs = splitBeat(dedupeRepeated(full), s.cast); paintLive(); }
         } catch (e) { }
       }
     }
@@ -1080,7 +1140,9 @@ async function requestReply(s, instruction) {
     return;
   }
   generating = false;
-  var segs = splitBeat(full, s.cast);
+  var segs = splitBeat(dedupeRepeated(full), s.cast).map(function (seg) {
+    return { speaker: seg.speaker, content: dedupeRepeated(seg.content) };
+  });
   if (!segs.length) {
     stageError = "DeepSeek 这次没吐出内容，重试一下。";
     if (activeSessionId === s.id) renderStage();
@@ -1464,6 +1526,7 @@ function renderWipeZone() {
 
 /* ================= 初始化 ================= */
 loadStore();
+$("global-rules-text").textContent = GLOBAL_WRITING_RULES;
 renderSheet();
 renderHomeLists();
 renderSettings();
